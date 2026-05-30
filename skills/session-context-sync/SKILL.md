@@ -335,23 +335,45 @@ Obsidian  → skipped (no new concepts this session)
 
 ---
 
-## Step 6 (optional) — Deploy to claude-skills repo
+## Step 6 — Deploy to claude-skills repo
 
-After syncing to Notion, offer to push the updated skill to the local git repo:
+**This step is not optional when a skill was updated or created this session.** Always run it after any session that touched a skill.
+
+Triggers:
+- A skill was updated (content changed, new section added, etc.)
+- A new skill was created this session
+- User says "sync", "deploy", or "push to repo"
+
+For all other sessions (no skill changes), offer it and let Will skip.
 
 ```
-Deploy updated skills to ~/claude-skills? (yes / skip)
+Deploy updated skills to claude-skills repo? (yes / skip)
 ```
 
-If yes:
-1. For each skill that was updated this session, write the SKILL.md to `~/claude-skills/skills/<skill-name>/SKILL.md`
+### What to write
+
+- **Updated skill**: overwrite `<repo-root>/skills/<skill-name>/SKILL.md` with current content
+- **New skill**: create `<repo-root>/skills/<skill-name>/SKILL.md` (mkdir if needed)
+- **Both**: write all changed skills in one commit
+
+### Path resolution (always follow this order)
+
+1. **Use the path where CLAUDE.md was read from** — that directory IS the repo root.
+2. **If that path doesn't exist or isn't writable**, fall back to the GitHub URL:
+   `https://github.com/will55555/claude-skills`
+   Then notify Will:
+   > ⚠️ Local repo path not found — could not write to disk. Reference: https://github.com/will55555/claude-skills
+   > Run `python setup.py` from your clone, or tell me the correct path and I'll update CLAUDE.md.
+3. **Never guess a path** (e.g. `~/claude-skills`). Never silently skip — always tell Will what happened.
+
+### If path is valid
+
+1. Write each changed SKILL.md to `<repo-root>/skills/<skill-name>/SKILL.md`
 2. Run:
    ```bash
-   cd ~/claude-skills && git add -A && git commit -m "chore: sync skills from Notion 2026-05-30"
+   cd <repo-root> && git add -A && git commit -m "chore: sync skills from Notion $(date +%Y-%m-%d)"
    ```
 3. Remind Will to `git push` if the repo has a remote.
-
-Skip silently if the claude-skills repo doesn't exist on disk yet — just note it in the post-sync summary.
 
 ---
 
