@@ -25,9 +25,10 @@ git clone <repo-url> ~/claude-skills
 cd ~/claude-skills
 python setup.py
 ```
-That's it. `setup.py` handles two things:
+That's it. `setup.py` handles three things:
 1. Symlinks `~/.claude/skills` → this repo's `skills/` folder
 2. Prompts for your Notion token and writes `~/.claude/mcp.json`
+3. Prompts for your Obsidian vault path and writes `OBSIDIAN_VAULT` to `~/.claude/settings.json`
 
 After setup: restart Claude Code, then share your Notion Hub page with the integration (page `···` menu → Connections).
 
