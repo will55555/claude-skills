@@ -85,7 +85,7 @@ User-defined. Warm brown-black base with amber as primary accent and warm cream 
 
 ---
 
-#### Colorway 2 — Midnight Blue Red *(currently active)*
+#### Colorway 2 — Midnight Blue Red *(saved, not currently active)*
 
 User-defined. Deep midnight blue base with crimson as primary accent and cool blue-white light mode.
 
@@ -109,47 +109,71 @@ User-defined. Deep midnight blue base with crimson as primary accent and cool bl
 
 ---
 
-### Default colorway — Midnight Blue Red + Cool Blue-White Light
+#### Colorway 3 — Obsidian Black Gold *(currently active)*
+
+User-defined. Near-black base with warm undertone and gold as primary accent. Warm cream light mode.
+
+```css
+/* Dark */
+--bg: #0A0900;  --s1: #121008;  --s2: #1A1710;  --s3: #221E16;
+--b1: #332B18;  --b2: #4A3E24;
+--t1: #F5E6C8;  --t2: #9A8060;  --t3: #5C4A2A;
+--amber: #C9A227;  --amber-d: #1E1505;
+--blue:  #5B8DEF;  --blue-d:  #080E20;
+--green: #52B96A;  --green-d: #071A0E;
+--red:   #E05C5C;  --red-d:   #1E0808;
+
+/* Light */
+--bg: #FAF6ED;  --s1: #FFFFFF;  --s2: #F5EED8;  --s3: #EDE5C8;
+--b1: #DDD0B0;  --b2: #C9BA94;
+--t1: #0A0900;  --t2: #5C4A2A;  --t3: #9A8060;
+--amber-d: #FDF5DC;  --blue-d: #E8EEFF;
+--green-d: #EDFAF1;  --red-d:  #FDEAEA;
+```
+
+---
+
+### Default colorway — Obsidian Black Gold + Warm Cream Light
 
 The dashboard always ships with both dark and light mode defined. Switching is instant via a JS class toggle on `<html>`.
 
 ```css
-/* ── DARK MODE (default) — Midnight Blue Red ── */
+/* ── DARK MODE (default) — Obsidian Black Gold ── */
 :root {
-  --bg: #0A0D18;      /* deep midnight blue with faint red warmth */
-  --s1: #111628;      /* card surface */
-  --s2: #181E32;      /* secondary surface / hover */
-  --s3: #1F273D;      /* tertiary / selected */
-  --b1: #2E3A58;      /* border default — blue-gray */
-  --b2: #3D4D70;      /* border hover */
-  --t1: #E8ECF8;      /* primary text — cool blue-white */
-  --t2: #8895BC;      /* secondary — muted periwinkle */
-  --t3: #4A5680;      /* tertiary */
+  --bg: #0A0900;      /* near-black with faint warm undertone */
+  --s1: #121008;      /* card surface */
+  --s2: #1A1710;      /* secondary surface / hover */
+  --s3: #221E16;      /* tertiary / selected */
+  --b1: #332B18;      /* border default — warm dark brown */
+  --b2: #4A3E24;      /* border hover */
+  --t1: #F5E6C8;      /* primary text — warm gold-cream */
+  --t2: #9A8060;      /* secondary — muted warm */
+  --t3: #5C4A2A;      /* tertiary */
 
   /* Accents — same across both modes */
-  --amber:  #E8354A;  --amber-d:  #220810;
+  --amber:  #C9A227;  --amber-d:  #1E1505;
   --blue:   #5B8DEF;  --blue-d:   #080E20;
   --green:  #52B96A;  --green-d:  #071A0E;
-  --red:    #E8354A;  --red-d:    #220810;
+  --red:    #E05C5C;  --red-d:    #1E0808;
   --purple: #8B7FE8;  --purple-d: #0E0B1E;
   --teal:   #2BB5A0;
   --r: 8px;  --r-sm: 5px;
 }
 
-/* ── LIGHT MODE — Cool Blue-White ── */
+/* ── LIGHT MODE — Warm Cream ── */
 html.light {
-  --bg: #F4F6FC;      /* cool blue-white */
+  --bg: #FAF6ED;      /* warm cream */
   --s1: #FFFFFF;      /* card surface */
-  --s2: #E8ECF8;      /* secondary surface */
-  --s3: #DDE4F5;      /* tertiary */
-  --b1: #C8D2EC;      /* border */
-  --b2: #B0BDE0;      /* border hover */
-  --t1: #111628;      /* deep navy ink */
-  --t2: #4A5680;      /* secondary */
-  --t3: #8895BC;      /* tertiary */
+  --s2: #F5EED8;      /* secondary surface */
+  --s3: #EDE5C8;      /* tertiary */
+  --b1: #DDD0B0;      /* border */
+  --b2: #C9BA94;      /* border hover */
+  --t1: #0A0900;      /* near-black ink */
+  --t2: #5C4A2A;      /* secondary */
+  --t3: #9A8060;      /* tertiary */
 
   /* Accent dark variants flip to light in light mode */
-  --amber-d:  #FDEAEC;
+  --amber-d:  #FDF5DC;
   --blue-d:   #E8EEFF;
   --green-d:  #EDFAF1;
   --red-d:    #FDEAEA;
@@ -214,10 +238,29 @@ grep -c "#E8354A" terra-os.html  # should return 0
 
 ### Rules — always enforced
 - Never hardcode hex colors outside `:root` and `html.light` — always `var(--name)`
-- Pure black (`#000`, `#060606`) is forbidden — minimum `#0A0D18`
-- Pure white (`#FFF` as bg) is too harsh — use `#F4F6FC` minimum
+- Pure black (`#000`, `#060606`) is forbidden — minimum `#0A0900` for near-black colorways
+- Pure white (`#FFF` as bg) is too harsh — use warm or cool off-white minimum
 - Accent colors stay consistent across both modes — only surface/text variables change
 - When updating colors globally, use `sed` — see Update Patterns section
+
+### CSS custom property inheritance for nested components
+
+CSS custom properties inherit through the DOM. This means a variable overridden on a parent element propagates to all its children — useful for scoped theming but a source of bugs when unexpected:
+
+```css
+/* A modal or drawer that should always use dark tones regardless of light mode */
+.modal {
+  --bg: #0A0900;
+  --s1: #121008;
+  --t1: #F5E6C8;
+  /* All children of .modal now read these overridden values from var(--bg) etc. */
+}
+```
+
+**When this matters:**
+- Cards rendered inside a section that has its own surface override will inherit it — intentional for nested card grids, a bug if unexpected
+- Chart.js reads CSS variables at render time, not inheritance-time — pass computed values via `getComputedStyle(document.documentElement).getPropertyValue('--amber')` if colors aren't picking up
+- Shadow DOM elements (e.g. custom elements) do NOT inherit — pass variables explicitly or use `::part()`
 
 ---
 
