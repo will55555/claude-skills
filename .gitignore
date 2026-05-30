@@ -2,3 +2,8 @@ __pycache__/
 *.pyc
 .DS_Store
 *.bak
+
+# Never commit local MCP configs or anything with tokens
+mcp.json
+*.local.json
+.env

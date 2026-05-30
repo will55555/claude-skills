@@ -25,7 +25,11 @@ git clone <repo-url> ~/claude-skills
 cd ~/claude-skills
 python setup.py
 ```
-That's it. Claude Code will read skills from this repo going forward.
+That's it. `setup.py` handles two things:
+1. Symlinks `~/.claude/skills` → this repo's `skills/` folder
+2. Prompts for your Notion token and writes `~/.claude/mcp.json`
+
+After setup: restart Claude Code, then share your Notion Hub page with the integration (page `···` menu → Connections).
 
 ## Deploy — pull from Notion → write to repo
 
