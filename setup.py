@@ -94,11 +94,37 @@ def setup_notion_mcp():
     print("   with the integration: page ··· menu → Connections → your integration.")
 
 
+def setup_obsidian_vault():
+    print()
+    print("── Step 3: Obsidian vault ──────────────────────────")
+
+    settings_path = CLAUDE_DIR / "settings.json"
+    existing = {}
+    if settings_path.exists():
+        existing = json.loads(settings_path.read_text(encoding="utf-8"))
+
+    if existing.get("env", {}).get("OBSIDIAN_VAULT"):
+        print(f"✅ OBSIDIAN_VAULT already set: {existing['env']['OBSIDIAN_VAULT']}")
+        return
+
+    print("  Path to your Obsidian vault root (the folder containing your notes).")
+    print("  Example: C:\\Users\\you\\Documents\\ObsidianVault")
+    vault = input("  Paste path: ").strip()
+    if not vault:
+        print("⚠️  No path provided — skipping Obsidian vault setup.")
+        return
+
+    existing.setdefault("env", {})["OBSIDIAN_VAULT"] = vault
+    settings_path.write_text(json.dumps(existing, indent=2), encoding="utf-8")
+    print(f"✅ OBSIDIAN_VAULT written to {settings_path}")
+
+
 def main():
     print("claude-skills setup")
     print()
     setup_skills_symlink()
     setup_notion_mcp()
+    setup_obsidian_vault()
     print()
     print("Done! Next: open Claude Code and run 'deploy from Notion' to pull the latest skills.")
 

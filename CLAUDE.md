@@ -56,6 +56,14 @@ When user says "push to Notion" or "sync skills to Notion":
 | note-reader | 36f89370-d497-817089bcc30be8e9ef2d |
 | personal-os-dashboard | TBD — add after first deploy |
 | claude-skills | 37089370-d497-8123-a87d-e47bcd96f0e7 |
+| consolidate-memory | TBD |
+| docx | TBD |
+| pdf | TBD |
+| pptx | TBD |
+| schedule | TBD |
+| setup-cowork | TBD |
+| skill-creator | TBD |
+| xlsx | TBD |
 
 ## Notion reference
 - Skills Library page: `36f89370-d497-819d-a89e-e9a7d9b13840`

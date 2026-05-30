@@ -185,10 +185,16 @@ For unknown projects search DB first, create if missing (see Step 4A-new below).
 
 ### Vault root — runtime discovery
 
-Never hardcode the vault path. At sync time:
+Never hardcode the vault path. At sync time, try in order:
+
+**Preferred (Claude Code):** Read the `OBSIDIAN_VAULT` env var from `~/.claude/settings.json` — set automatically by `setup.py` on new machines. If present, use it directly.
+
+**Fallback (Claude Desktop / if env var not set):**
 1. Call `Filesystem:list_allowed_directories`
 2. Identify the entry containing "Obsidian" or "ObsidianVault" — that is the vault root
 3. Use that path as the base for all writes this session
+
+If neither resolves, ask the user for the path and remind them to run `setup.py` or add `OBSIDIAN_VAULT` to `~/.claude/settings.json` under `env`.
 
 This makes the skill machine-agnostic — works on Windows, VM, or any future machine
 as long as the Obsidian vault is in the allowed directories.
@@ -243,6 +249,13 @@ If a new topic doesn't fit above, ask Will which folder before writing.
 2. Use Filesystem:write_file to write to:
    [discovered vault root]\[vault-path]\[note-title].md
 3. Confirm write with Filesystem:read_file on the written path
+```
+
+**Claude Code alternative** (no Filesystem MCP available):
+```
+1. Read vault root from $OBSIDIAN_VAULT env var (set by setup.py in ~/.claude/settings.json)
+2. Write using the Write tool to: [vault root]\[vault-path]\[note-title].md
+3. Confirm using the Read tool on the written path
 ```
 
 - Filename: lowercase-hyphenated, no spaces (`repo-pattern-per-adr-012.md`)
