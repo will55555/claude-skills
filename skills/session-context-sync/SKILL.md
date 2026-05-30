@@ -1,7 +1,7 @@
 ---
 name: session-context-sync
 description: |
-  Unified session-end sync skill. Triggers at end of any substantial session — coding, planning, design, or learning. Handles three write targets in one pass: Notion (project state), Obsidian (note candidates), and CLAUDE.md (context snapshot for Claude Code). Trigger on: "sync", "wrap up", "end of session", "push to Notion", "update Notion", "update Obsidian", "update CLAUDE.md", or proactively when meaningful work was done on ROMS, PIOS, pfdc-loandatacorrection, or any active project. Always prompt at session end — never skip when the session produced decisions, code, or learning artifacts.
+  Unified session-end sync skill. Triggers at end of any substantial session — coding, planning, design, or learning. Handles three write targets in one pass: Notion (project state), Obsidian (note candidates), and CLAUDE.md (context snapshot for Claude Code). Trigger on: "sync", "wrap up", "end of session", "push to Notion", "update Notion", "update Obsidian", "update CLAUDE.md", or proactively when meaningful work was done on ROMS, PIOS, or any active project. Always prompt at session end — never skip when the session produced decisions, code, or learning artifacts.
 ---
 
 # Session Sync Skill
@@ -18,7 +18,7 @@ without affecting the others.
 |---|---|---|---|
 | **Notion** | Project state snapshot + progress log | Session produced Notion-worthy content (see classification below) | Desktop or Code |
 | **Obsidian** | Note candidate(s) distilled from session | Session produced a concept, pattern, or decision worth keeping | Desktop or Code |
-| **CLAUDE.md** | Context snapshot for Claude Code continuity | Session touched a repo-level project (ROMS, PIOS, pfdc, etc.) | Desktop or Code |
+| **CLAUDE.md** | Context snapshot for Claude Code continuity | Session touched a repo-level project (ROMS, PIOS, etc.) | Desktop or Code |
 
 Both Claude Desktop and Claude Code sessions sync to all three targets.
 The session type determines what content is available, not which targets apply.
@@ -137,7 +137,6 @@ Only proceed after confirmation. Accept inline edits if user says "edit first".
 |---|---|---|
 | ROMS | `36f89370-d497-8171-b111-e09ba33ec354` | Coding |
 | PIOS | `36f89370-d497-8140-a5a9-d14f76ddaefd` | Coding |
-| pfdc-loandatacorrection | `36f89370-d497-81b5-87f7-ebdb7686ed48` | Work |
 | claude-skills | `37089370-d497-8123-a87d-e47bcd96f0e7` | Coding |
 
 For unknown projects search DB first, create if missing (see Step 4A-new below).
@@ -167,7 +166,6 @@ For unknown projects search DB first, create if missing (see Step 4A-new below).
 
 | Project type | Domain |
 |---|---|
-| Freddie Mac / job work | Work |
 | ROMS, PIOS, Terra API, any SDE build | Coding |
 | Terra Inc entity ops, strategy | Business |
 | Investing, PIOS-governed capital | Finance |
@@ -207,7 +205,6 @@ as long as the Obsidian vault is in the allowed directories.
 | ROMS | `Projects/ROMS/` |
 | PIOS | `Projects/PIOS/` |
 | Terra Inc | `Projects/Terra/` |
-| pfdc-loandatacorrection | `Work/` |
 | Architecture / System Design | `Software Development/System Design/` |
 | Languages / CS fundamentals | `Software Development/1-Languages/` |
 | Full-stack patterns | `Software Development/2-Full-Stack Integration/` |
@@ -330,7 +327,7 @@ EOF
 ```
 
 - If CLAUDE.md already exists: merge new state with existing Decisions Log (never drop prior decisions)
-- Repo paths: `~/projects/roms/`, `~/projects/pios/`, `~/projects/pfdc-loandatacorrection/` — confirm with Will if unsure
+- Repo paths: `~/projects/roms/`, `~/projects/pios/` — confirm with Will if unsure
 - CLAUDE.md is committed to the repo — remind Will to `git add CLAUDE.md && git commit -m "chore: update claude context"` after writing
 
 ---
