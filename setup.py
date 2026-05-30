@@ -5,9 +5,11 @@ One-time setup for claude-skills on a new machine.
 Steps:
   1. Symlink ~/.claude/skills → this repo's skills/ folder
   2. Write ~/.claude/mcp.json with Notion MCP server (prompts for token)
+  3. Write OBSIDIAN_VAULT env var to ~/.claude/settings.json (prompts for path)
 
 Usage:
-    python setup.py
+    python setup.py                  # auto-detects repo path, confirms with you
+    python setup.py /path/to/repo    # use explicit repo path, skips confirm
 """
 import json
 import os
@@ -122,6 +124,22 @@ def setup_obsidian_vault():
 def main():
     print("claude-skills setup")
     print()
+
+    # Allow CLI override: python setup.py /path/to/repo
+    global REPO_DIR, SKILLS_SRC
+    if len(sys.argv) > 1:
+        REPO_DIR = Path(sys.argv[1]).resolve()
+        SKILLS_SRC = REPO_DIR / "skills"
+        print(f"  Using CLI-provided repo path: {REPO_DIR}")
+    else:
+        answer = input(f"  Detected repo: {REPO_DIR}\n  Use this path? [Y/n]: ").strip().lower()
+        if answer == "n":
+            custom = input("  Enter repo path: ").strip()
+            if custom:
+                REPO_DIR = Path(custom).resolve()
+                SKILLS_SRC = REPO_DIR / "skills"
+    print()
+
     setup_skills_symlink()
     setup_notion_mcp()
     setup_obsidian_vault()
