@@ -222,6 +222,8 @@ If a new topic doesn't fit above, ask Will which folder before writing.
 ### Note format (always use this schema)
 
 ```markdown
+> **What this note is:** [One sentence — what this note covers and why it was written]
+
 #tag #tag #tag
 
 ### What is it?
@@ -241,6 +243,9 @@ If a new topic doesn't fit above, ask Will which folder before writing.
 
 ### Key insight
 [One sentence that would make future-Will immediately recall why this mattered]
+
+## Related Notes
+- [[Note Title]] — [one-line description of relationship]
 ```
 
 ### Write procedure
@@ -259,7 +264,9 @@ If a new topic doesn't fit above, ask Will which folder before writing.
 3. Confirm using the Read tool on the written path
 ```
 
-- Filename: lowercase-hyphenated, no spaces (`repo-pattern-per-adr-012.md`)
+- Filename:
+  - Concept / pattern notes (Software Development/, Trading/, etc.): `lowercase-hyphenated.md` (e.g. `dev-log-two-mode-pattern.md`)
+  - Project notes inside a project folder (Projects/ROMS/, Projects/PIOS/, etc.): `NN - Title.md` with two-digit prefix matching the next available number in that folder (e.g. `12 - ROMS Auth Rehydration.md`)
 - Never overwrite an existing note — if file exists, append a dated update section instead
 - Confirm write succeeded with `cat` of the written file
 
