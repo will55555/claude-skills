@@ -138,6 +138,7 @@ Only proceed after confirmation. Accept inline edits if user says "edit first".
 | ROMS | `36f89370-d497-8171-b111-e09ba33ec354` | Coding |
 | PIOS | `36f89370-d497-8140-a5a9-d14f76ddaefd` | Coding |
 | pfdc-loandatacorrection | `36f89370-d497-81b5-87f7-ebdb7686ed48` | Work |
+| claude-skills | `37089370-d497-8123-a87d-e47bcd96f0e7` | Coding |
 
 For unknown projects search DB first, create if missing (see Step 4A-new below).
 
