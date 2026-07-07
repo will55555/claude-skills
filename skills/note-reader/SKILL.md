@@ -124,6 +124,71 @@ Always tell the user **which note / page / section** you read from, so they can 
 
 ---
 
+## Step 5: Creating Notes from Web Sources
+
+When creating a new Obsidian note from fetched web content, **always include these sections** at the end:
+
+### Related Notes
+Link to other relevant notes in the vault using `[[wikilink]]` syntax:
+```markdown
+## Related Notes
+
+- [[Note Title]] — one-line description of relationship
+- [[Another Note]] — how it connects to this note
+```
+
+Search your vault first to find existing notes on related topics. If no related notes exist yet, leave this section empty or omit it.
+
+### Sources
+Always credit the sources used to compile the note:
+```markdown
+## Sources
+
+- Source Name: [URL or description]
+- Source Name: [URL or description]
+- Foundational concept — [brief description if non-web source]
+```
+
+### Note Format Template
+Use this structure for consistency:
+```markdown
+#tag #tag #tag
+
+### What is it?
+[One-line definition or concept]
+
+### Why it matters
+[Consequence or relevance]
+
+### How it works
+[Mechanism or structure]
+
+### The design principles behind it
+
+| Principle | Rationale |
+|-----------|-----------|
+| [name] | [explanation] |
+
+### Key insight
+[One sentence that captures the essence]
+
+---
+
+## Related Notes
+
+- [[Link 1]] — description
+- [[Link 2]] — description
+
+---
+
+## Sources
+
+- Source 1: URL
+- Source 2: URL
+```
+
+---
+
 ## Tips & Edge Cases
 
 - **Ambiguous request**: If the user says "check my notes" without specifying a topic, ask what they're looking for before fetching everything.
@@ -132,3 +197,4 @@ Always tell the user **which note / page / section** you read from, so they can 
 - **Stale Notion content**: Notion MCP fetches live data — no caching concerns.
 - **Private / missing files**: If a Notion page returns 404, tell the user and ask them to confirm the page URL or ID. For Obsidian/local paths that don't exist, follow the **Path Not Found — Fallback Flow** in Step 2 above — switch to manual path entry immediately, do not keep guessing paths.
 - **Multiple sources**: It's fine to read from both Notion and Obsidian in one request if the user needs cross-source synthesis.
+- **Note creation**: Always include Related Notes and Sources sections when creating new Obsidian notes — they enable cross-vault discovery and source attribution.
