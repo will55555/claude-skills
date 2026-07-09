@@ -1,5 +1,5 @@
 # Engineering Hub Guide
-<!-- Freshness: 2026-07-09 | v1.0 | Cold storage: sections load ONLY via HUB.md Trigger Map -->
+<!-- Freshness: 2026-07-09 | v1.1 | Cold storage: sections load ONLY via HUB.md Trigger Map -->
 <!-- Lego rule: every section below is self-contained and deletable without breaking any other. -->
 
 ## Agent Stance
@@ -117,7 +117,7 @@ Rules:
 Hard budget ~15–20 lines. Overwritten in place on every sync — history goes to DEV_LOG, never here.
 
 ## Copy/Paste Commands
-- Bootstrap (web/Desktop): `Load the Engineering Hub from
+- Bootstrap (web/Desktop, fully portable — no machine path needed): `Load the Engineering Hub from
   https://raw.githubusercontent.com/will55555/claude-skills/master/skills/ai-control/HUB.md — apply all
   rules; project = <name>; continue <TASK-ID> from latest checkpoint.`
 - Scoped start: `load hub <project>`
@@ -130,14 +130,17 @@ Hard budget ~15–20 lines. Overwritten in place on every sync — history goes 
 
 ## Per-Repo CLAUDE.md Pointer (auto-activation in Claude Code)
 Paste into each repo's `CLAUDE.md` once. Enables the hub to load automatically on
-session start — no `load hub` phrase needed. Adjust the relative path to wherever
-claude-skills actually sits relative to that repo.
+session start — no `load hub` phrase needed.
 ```markdown
 ## Engineering Hub
 At the start of every substantive session, read and apply all rules from:
-`../../claude-skills/skills/ai-control/HUB.md`
+`../claude-skills/skills/ai-control/HUB.md`
 The hub is the source of truth. Update the hub, not this file.
 ```
+Default example above assumes the repo sits as a SIBLING of claude-skills directly under
+`SDE/` (one level up: `../`). VERIFY actual folder depth before pasting — adjust the `../`
+count if the repo is nested deeper. Don't paste the template blind.
+
 Repos still needing this pointer: terra-api, roms, pios, terra-hq-site, and any
 future repo. Non-repo projects (DSA, FM-at-home) have no CLAUDE.md — use the
 explicit `load hub` / `load hub <project>` trigger for those instead.

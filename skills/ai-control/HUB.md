@@ -1,11 +1,17 @@
 # Engineering Hub (load hub)
-<!-- Freshness: 2026-07-09 | v1.0 | Home: claude-skills/skills/ai-control/ -->
+<!-- Freshness: 2026-07-09 | v1.1 | Home: claude-skills/skills/ai-control/ -->
 
 ## Mission
 Single control system for all personal coding/engineering work. Fast handoff, minimal re-discovery,
 compact memory usage. Rules live here; templates/schemas/commands live in HUB_GUIDE.md; live project
 state lives in HUB_STATE.md. This file is rules-only — if a section needs an example, the example
 belongs in the GUIDE.
+
+Note: ai-control is intentionally NOT an auto-discovered skill (no `SKILL.md`/frontmatter) — this
+repo's other skills resolve via a symlink + frontmatter matching (see root `CLAUDE.md`/`DEV_LOG.md`);
+the hub is a directly-loaded reference set instead, reached only via `load hub` or a repo's CLAUDE.md
+pointer. Deliberate, not an oversight — the hub's fast-fetch design doesn't fit the skill-discovery
+model.
 
 ## Trigger Contract
 - Explicit trigger: `load hub` (variants: `hub`, `start hub`). Scoped: `load hub <project>` — skip
@@ -121,10 +127,9 @@ Fixed read order — never deviate, never parallelize:
 
 ## Machine Paths
 - All hub-internal references are relative to the claude-skills repo root.
-- MULTI-MACHINE NOTE: absolute paths below are machine-specific, not portable assumptions. On any
-  new machine, verify with `Filesystem:list_allowed_directories` before trusting a path — do not
-  assume laptop 2 mirrors laptop 1's username or drive layout. GitHub raw URL access and the
-  `load hub` trigger have no such dependency and are the reliable cross-machine fallback.
+- MULTI-MACHINE NOTE: absolute paths below are machine-specific, not portable assumptions — verify
+  with `Filesystem:list_allowed_directories` before trusting any on a new machine (full checklist:
+  GUIDE → New Machine Setup). GitHub raw URL access and `load hub` have no such dependency.
 - Known absolute paths + caveats:
   | Machine/context | Path | Caveat |
   |---|---|---|
@@ -132,6 +137,10 @@ Fixed read order — never deviate, never parallelize:
   | Other SDE repos (terra-api, roms, etc.) | `C:\Users\solan\OneDrive\Desktop\SDE\<repo>\` | Reachability unconfirmed — check `Filesystem:list_allowed_directories` each session; fall back to downloadables if absent |
   | Obsidian vault | `C:\Users\solan\iCloudDrive\iCloud~md~obsidian\iCloud\Obsidian Vault\` | Reachable; sync skill owns writes |
   | Hub (canonical) | `claude-skills/skills/ai-control/` | Local in Code; GitHub raw elsewhere |
+
+  Copy-paste command templates elsewhere in this hub (Skill Update Trigger, GUIDE bootstrap)
+  reference this table rather than repeating a literal path — update here, once, when a path
+  changes or a new machine is added.
 
 ## Secrets Hygiene
 No API keys, tokens, credentials, or proprietary work code (FM internals) in hub files, TASKS.md,
@@ -143,12 +152,22 @@ or dev logs — everything here lands in git. Work-at-home HUB_STATE sections ho
 - MANDATORY: any edit to the Working Memory Contract above must update the session-rules web mirror
   (claude-skills/skills/session-rules/SKILL.md) in the same pass — the mirror carries the pointer +
   minimal WM format ONLY, nothing else. This is the single permitted duplication; keep it minimal.
-- When the hub is updated, refresh the freshness stamp and note the change in ai-control's own DEV_LOG (create `skills/ai-control/DEV_LOG.md` on first use, per Bootstrap Rules).
+- Git is the sole source of truth for `ai-control/`. Notion may carry an informational dupe of hub
+  state (see session-context-sync Target Overview) — never read back into git, never authoritative
+  on conflict.
+- When the hub is updated, refresh the freshness stamp AND note the change in the claude-skills
+  REPO'S ROOT `DEV_LOG.md` (Repo Log schema — dated entries). Do NOT create a separate nested log —
+  ai-control is part of the claude-skills repo, not its own repo; it shares that repo's one log.
 
 ## Skill Update Trigger
-- Trigger: `sync skills` (variants: `push skills`, `update skills`). Runs any time a skill or hub
-  file was edited this session — not only at session end (session-end sync still covers this via
-  the Trigger Map row, but `sync skills` lets it fire on demand mid-session).
+- Trigger: `sync skills` (variant: `update skills`). Runs any time a skill or hub file was edited
+  this session — not only at session end (session-end sync still covers this via the Trigger Map
+  row, but `sync skills` lets it fire on demand mid-session).
+- NAMING NOTE: this is deliberately distinct from this repo's existing "push to Notion" / "sync
+  skills to Notion" / "deploy" / "pull skills" phrases (see root DEV_LOG.md), which govern the
+  Notion↔repo flow for OTHER skills. `sync skills` (bare, no "Notion") means the git-only hub
+  action above. Dropped the `push skills` variant specifically because it echoed "push to Notion"
+  too closely — full collision resolution still open, this is a partial mitigation.
 - What the agent CAN do directly: write/edit the local files in the claude-skills repo via the
   Filesystem tool, when that repo is reachable (verified for `claude-skills/` itself; check
   `Filesystem:list_allowed_directories` each session — don't assume). This is a real file edit,
@@ -166,9 +185,11 @@ or dev logs — everything here lands in git. Work-at-home HUB_STATE sections ho
   2) Preview the change set — confirm before writing.
   3) On approval: write the files locally via Filesystem tools (if reachable) — this IS executed,
      not just described.
-  4) Supply the exact commands for Will to run (never claim to run them):
+  4) Supply the exact commands for Will to run (never claim to run them), using this machine's
+     verified path from the Machine Paths table (do not hardcode a path here — it drifts on a
+     second machine; the table below is the single source):
      ```bash
-     cd C:\Users\solan\OneDrive\Desktop\SDE\claude-skills
+     cd <claude-skills repo root — see Machine Paths table>
      git add -A
      git commit -m "chore: sync skills <YYYY-MM-DD> — <short summary>"
      git push

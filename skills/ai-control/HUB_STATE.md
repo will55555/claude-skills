@@ -1,5 +1,5 @@
 # Engineering Hub State
-<!-- Freshness: 2026-07-09 | Snapshots only — overwritten in place. History lives in DEV_LOGs. -->
+<!-- Freshness: 2026-07-09 | v1.1 | Snapshots only — overwritten in place. History lives in DEV_LOGs. -->
 <!-- New project? Copy the template from HUB_GUIDE.md → HUB_STATE Section Template. -->
 
 ## Terra API                                        <!-- prefix: TAPI -->
@@ -41,10 +41,14 @@
 - **Context:** Java default. Arrays → Strings → Linked Lists → Trees → Graphs → DP.
 
 ## claude-skills                                    <!-- prefix: SKILLS -->
-- **Status:** Active — hub deployed, path fix + push pending
-- **Active Task:** SKILLS-007 — commit + push path-reference fix (ai-control/ → skills/ai-control/)
-- **Next Step:** `sync skills` to commit and push; then SKILLS-005 (CLAUDE.md pointers) and SKILLS-006 (dogfood)
+- **Status:** Active — hub v1.1 fully drafted and verified, awaiting commit/push
+- **Active Task:** SKILLS-012 — commit + push everything (path fix, Sync Queue, git-authority,
+  duplicate-skill cleanup, dev-log entry, findings A–H)
+- **Next Step:** `sync skills` to commit and push; then SKILLS-005 (CLAUDE.md pointers, verify
+  depth first) and SKILLS-006 (dogfood on TAPI-001)
 - **Blockers:** None
-- **Context:** Hub v1 + satellite edits live at `skills/ai-control/`. dev-log archived. Path refs
-  were pointing at wrong location (`ai-control/` vs actual `skills/ai-control/`) — fixed in place
-  2026-07-09, not yet committed/pushed. Remaining tasks tracked in `skills/ai-control/TASKS.md`.
+- **Context:** Hub v1.1 + satellite edits live at `skills/ai-control/`, re-verified fresh on disk
+  2026-07-09. dev-log + duplicate session-rules skill neutralized in archive/. Git = sole source
+  of truth for ai-control; Notion = informational dupe only. Full history in claude-skills root
+  DEV_LOG.md (2026-07-09 entry, written). Open: SKILLS-013 (naming collision), SKILLS-014 (stale
+  Notion mirror of session-context-sync).

@@ -20,12 +20,56 @@ do not maintain a duplicate table here.
 
 | Target | What gets written | Trigger condition | Source |
 |---|---|---|---|
-| **Notion** | Project state snapshot + progress log | Session produced Notion-worthy content (see classification below) | Desktop or Code |
+| **Git (ai-control hub)** | HUB.md/HUB_GUIDE.md/HUB_STATE.md/TASKS.md — AUTHORITATIVE | Any hub/skill file edited | Local write + git commands supplied (never auto-pushed) |
+| **Notion** | Project state snapshot + progress log; ALSO an informational mirror/dupe of hub state (never authoritative) | Session produced Notion-worthy content, or hub state changed | Desktop or Code |
 | **Obsidian** | Note candidate(s) distilled from session | Session produced a concept, pattern, or decision worth keeping | Desktop or Code |
 | **HUB_STATE.md** | Active project section snapshot (overwrite in place) | Session touched a hub-tracked project (any Terra project, DSA, claude-skills, etc.) | Desktop or Code |
 
-Both Claude Desktop and Claude Code sessions sync to all three targets.
+Both Claude Desktop and Claude Code sessions sync to all targets that apply.
 The session type determines what content is available, not which targets apply.
+
+**Source-of-truth rule:** Git is the sole authority for `ai-control/` (the Engineering Hub).
+Notion may hold a dupe/mirror of hub state for visibility — useful on mobile, useless as an
+edit-back path. On any conflict between Notion and git, git wins, always. This is the deliberate
+exception to this repo's Notion-authored-skills pattern (see root `DEV_LOG.md` / `CLAUDE.md`) —
+the hub's fast local-edit design (Linear Fetch, `sync state`) depends on git being the only writer.
+
+---
+
+## Universal Sync & Fallback Queue
+
+Every `sync` invocation attempts ALL applicable targets in one pass. If a target succeeds,
+write normally. If a target is unreachable, don't drop the content — queue it instead.
+
+**Why Notion is the queue:** Notion is reachable from nearly every session type via MCP,
+even when the "real" target (git, Obsidian) isn't. So unreachable content gets written to
+a **Notion Sync Queue** page, tagged with its true intended destination, and drained on a
+future sync once that destination is reachable again.
+
+### Queue entry format (written to the Sync Queue page in Notion)
+```
+#SyncQueue #target:<git|obsidian|notion>
+Status: Pending
+Payload: [the content that couldn't be written to its real destination]
+Queued: [date]
+Session type: [Desktop | Code | Mobile]
+```
+
+### Procedure
+1. On `sync`, attempt each applicable target (git/hub, Notion, Obsidian).
+2. Any failure → write a queue entry to the Sync Queue page instead (create the page on
+   first use; its ID then lives in Claude memory, not hardcoded in this skill).
+3. At the START of every sync, before writing new content, check the Sync Queue for
+   Pending items whose target is now reachable — drain them (write to the real
+   destination), then mark that entry Synced (kept as history, not deleted).
+4. **Last-resort fallback:** if Notion itself is unreachable (rare), fall back to a
+   downloadable staged file in `/mnt/user-data/outputs/`, and tell Will explicitly that
+   even the queue couldn't be written remotely.
+5. Notion serves two distinct roles simultaneously: an informational DUPE of hub state
+   (never authoritative — see Target Overview above), and a temporary QUEUE for anything
+   that missed its real destination (tagged #SyncQueue, drained later). Don't confuse the
+   two — dupes are permanent visibility copies; queue entries are transient and get marked
+   Synced.
 
 ---
 
@@ -99,6 +143,9 @@ Vault path: [Projects/PIOS/ or Concepts/ etc.]
 Project section: [name — must match an existing HUB_STATE.md heading, or propose
                    a new one from the HUB_GUIDE section template]
 Updates: Status / Active Task / Next Step / Blockers / Context (≤3 lines)
+
+─── SYNC QUEUE (if any target unreachable) ──
+[target] unreachable → queued in Notion Sync Queue, will retry next sync
 
 Sync all? (yes / edit first / skip [notion|obsidian|hubstate])
 ```
@@ -244,8 +291,8 @@ HUB_GUIDE.md and are not rewritten per session — live state lives in one place
 ```
 ✅ Session sync complete
 
-Notion     → [project] updated
-Obsidian   → [note title] written to [vault path]
+Notion     → [project] updated (or: queued in Sync Queue, target unreachable)
+Obsidian   → [note title] written to [vault path] (or: queued)
 HUB_STATE  → [project] section overwritten (claude-skills/skills/ai-control/HUB_STATE.md)
 
 Remind: git add skills/ai-control/HUB_STATE.md && git commit && git push if not done.
@@ -283,3 +330,5 @@ an unpushed commit means those sessions see stale state.
 | Multiple projects in session | Sync each separately |
 | Note file already exists | Append dated update section |
 | claude-skills repo not found | Fall back to GitHub URL, notify Will |
+| Target unreachable (any) | Write queue entry to Notion Sync Queue instead of dropping content |
+| Notion itself unreachable (queue can't be written) | Fall back to downloadable staged file; notify Will explicitly |
