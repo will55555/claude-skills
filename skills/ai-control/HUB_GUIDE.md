@@ -163,3 +163,6 @@ Run once per new machine. Do NOT assume laptop 2 mirrors laptop 1's paths, MCP c
    this is itself a `sync skills` edit (local write + git commands supplied, Will pushes).
 6. **Obsidian vault path** may also differ on this machine — verify separately before the sync
    skill attempts an Obsidian write; don't assume the laptop-1 path.
+7. **Every session after setup, on ANY machine:** `git pull` before trusting local hub files are
+   current — two laptops means either one can be stale relative to the other. This is the
+   ongoing cost of multi-machine use, not a one-time setup step.

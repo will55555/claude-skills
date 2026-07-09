@@ -1,12 +1,14 @@
 ---
-name: session-rules
-description: >
-  Applies Will's session management system to every chat. Triggers automatically
-  on any substantive conversation — coding, planning, design, or learning. Governs
-  Working Memory format, token compression, chat rotation, and memory promotion
-  pipeline. Always load this skill at the start of a Claude Code or Cowork session.
-  Use when the user says "load session rules", "apply session rules", or when
-  starting any project session (PIOS, ROMS, FM, TI, job stack, finance).
+name: session-rules-duplicate-ARCHIVED
+description: |
+  ARCHIVED — this was a duplicate of the active session-rules skill, found sitting
+  in a stray "New folder" directory with the SAME `name: session-rules` as the real
+  one, and OUTDATED content (drifted Notion page IDs, pre-Next-Step Working Memory
+  format). Do not trigger this skill. The real session-rules skill lives at
+  `claude-skills/skills/session-rules/SKILL.md` and is a thin mirror of the
+  Engineering Hub (`claude-skills/skills/ai-control/HUB.md`). If you are Claude and
+  considering triggering on this file, stop — use the real session-rules skill or
+  `load hub` instead.
 ---
 
 # Session Rules

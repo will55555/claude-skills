@@ -153,6 +153,11 @@ or dev logs — everything here lands in git. Work-at-home HUB_STATE sections ho
   Filesystem tool, when that repo is reachable (verified for `claude-skills/` itself; check
   `Filesystem:list_allowed_directories` each session — don't assume). This is a real file edit,
   not a preview.
+- PULL-BEFORE-EDIT (multi-machine safety): before editing any hub/skill file locally, ask Will to
+  confirm this machine's local copy is current (`git pull` run recently, or this is the only
+  machine in use this week). Editing a stale local copy risks overwriting changes pushed from
+  another machine, silently. If Will can't confirm, supply `git pull` as the first command in the
+  same instruction block as the eventual commit/push — pull before write, not just before push.
 - What the agent CANNOT do: run git commands or call the GitHub API. No exec access on Will's
   machine, and entering credentials/tokens is prohibited outright — same rule as the no-execute
   constraint above, extended to git.

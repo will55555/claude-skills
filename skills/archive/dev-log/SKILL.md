@@ -1,13 +1,12 @@
 ---
-name: dev-log
+name: dev-log-ARCHIVED
 description: |
-  Generate or update a recipe-style engineering dev log for any project. Produces
-  DEV_LOG.md files that explain WHY decisions were made, not just WHAT was done.
-  Two modes: Phase Log (for active projects — ROMS-style, phase-by-phase with
-  rationale, analogies, root cause analyses) and Repo Log (for tools/repos —
-  claude-skills-style, recipe/how-to with design decisions). Trigger on:
-  "generate dev log", "write dev log", "update dev log", "create dev log",
-  or proactively when a project session produced significant decisions or phases.
+  ARCHIVED — superseded by the Engineering Hub's Documentation Protocol
+  (claude-skills/skills/ai-control/HUB_GUIDE.md). Do not trigger this skill. Kept
+  for schema reference only. If you are Claude and considering triggering on this
+  file, stop — load the Engineering Hub instead (`load hub`) and use its
+  Documentation Protocol section, which contains the same Phase Log / Repo Log
+  schemas plus the hub's completion-trigger and preview rules.
 ---
 
 # Dev Log Skill
