@@ -1,14 +1,18 @@
 ---
 name: session-context-sync
 description: |
-  Unified session-end sync skill. Triggers at end of any substantial session — coding, planning, design, or learning. Handles three write targets in one pass: Notion (project state), Obsidian (note candidates), and CLAUDE.md (context snapshot for Claude Code). Trigger on: "sync", "wrap up", "end of session", "push to Notion", "update Notion", "update Obsidian", "update CLAUDE.md", or proactively when meaningful work was done on ROMS, PIOS, or any active project. Always prompt at session end — never skip when the session produced decisions, code, or learning artifacts.
+  Unified session-end sync skill. Triggers at end of any substantial session — coding, planning, design, or learning. Handles three write targets in one pass: Notion (project state), Obsidian (note candidates), and the Engineering Hub's HUB_STATE.md (live project snapshot). Trigger on: "sync", "wrap up", "end of session", "push to Notion", "update Notion", "update Obsidian", "sync state", or proactively when meaningful work was done on any active project. Always prompt at session end — never skip when the session produced decisions, code, or learning artifacts.
 ---
 
 # Session Sync Skill
 
-Unified end-of-session sync across three targets: Notion, Obsidian, and CLAUDE.md.
-Runs in a single pass at session end. Each target is independent — one can be skipped
-without affecting the others.
+Unified end-of-session sync across three targets: Notion, Obsidian, and the Engineering
+Hub's HUB_STATE.md. Runs in a single pass at session end. Each target is independent —
+one can be skipped without affecting the others.
+
+Note: Notion page IDs and the Projects DB reference are NOT stored in this file — they
+live in Claude memory (userMemories) as the single source of truth. Look them up there;
+do not maintain a duplicate table here.
 
 ---
 
@@ -18,7 +22,7 @@ without affecting the others.
 |---|---|---|---|
 | **Notion** | Project state snapshot + progress log | Session produced Notion-worthy content (see classification below) | Desktop or Code |
 | **Obsidian** | Note candidate(s) distilled from session | Session produced a concept, pattern, or decision worth keeping | Desktop or Code |
-| **CLAUDE.md** | Context snapshot for Claude Code continuity | Session touched a repo-level project (ROMS, PIOS, etc.) | Desktop or Code |
+| **HUB_STATE.md** | Active project section snapshot (overwrite in place) | Session touched a hub-tracked project (any Terra project, DSA, claude-skills, etc.) | Desktop or Code |
 
 Both Claude Desktop and Claude Code sessions sync to all three targets.
 The session type determines what content is available, not which targets apply.
@@ -26,8 +30,6 @@ The session type determines what content is available, not which targets apply.
 ---
 
 ## Notion-Worthiness Classification
-
-Not everything belongs in Notion. Apply this filter before including anything in the Notion sync:
 
 **✅ Notion-worthy — always include:**
 - Project state change (started, completed, blocked, unblocked)
@@ -46,7 +48,7 @@ Not everything belongs in Notion. Apply this filter before including anything in
 - Brainstorming that didn't converge
 - Planning that produced no decisions
 - Tooling setup that didn't touch a project
-- Meta sessions (like designing this pipeline) unless a new project was created
+- Meta sessions unless a new project was created
 
 When in doubt: ask "did the project state change?" If no → skip Notion.
 
@@ -54,43 +56,28 @@ When in doubt: ask "did the project state change?" If no → skip Notion.
 
 ## Step 1 — Extract session content
 
-Pull the following from the current session:
-
-- **Working Memory block** — Core Objective, Key Facts, Progress & Current State
-- **Key decisions** — ADRs, design choices, implementation choices, anything marked decided
+- **Working Memory block** — Core Objective, Key Facts, Progress & Current State, Next Step
+- **Key decisions** — ADRs, design choices, implementation choices
 - **Code completed** — file names, method names, what was built or changed
-- **Concepts learned** — patterns, tradeoffs, architecture principles, anything worth a note
+- **Concepts learned** — patterns, tradeoffs, architecture principles
 - **Blockers** — anything flagged VERIFY, TODO, or unresolved
-- **Next action** — the most specific next step discussed
-
-If no Working Memory block exists, summarize from context directly.
+- **Next action** — the most specific next step discussed (feeds HUB_STATE's Next Step field)
 
 ---
 
 ## Step 2 — Classify session and determine targets
 
-First identify session type:
-- **Desktop chat** — planning, design, learning, debugging discussion
-- **Claude Code** — active coding, devlog entries, file writes, repo changes
-
-Then apply the Notion-worthiness classification above and infer targets:
-
 ```
 Session classification:
-→ Session type:  [Desktop / Code]
-→ Notion:        [yes — reason] / [no — reason]
-→ Obsidian:      [yes — candidate list] / [no]
-→ CLAUDE.md:     [yes — which repo] / [no]
+→ Session type: [Desktop / Code]
+→ Notion: [yes — reason] / [no — reason]
+→ Obsidian: [yes — candidate list] / [no]
+→ HUB_STATE: [yes — which project section] / [no]
 ```
-
-If all three apply, present a single combined preview before writing anything.
-If only one applies, skip the others silently — do not ask about skipped targets.
 
 ---
 
 ## Step 3 — Show sync preview and confirm
-
-Show a combined preview before any writes:
 
 ```
 📤 Session Sync Preview
@@ -106,42 +93,24 @@ Log entry: [date + 2-3 bullet summary]
 Note: [title]
 Tags: #tag #tag
 Vault path: [Projects/PIOS/ or Concepts/ etc.]
-Sections: What / Why / How / Principles / Key Insight
 [1-line preview of Key Insight]
 
-─── CLAUDE.md ───────────────────────────
-Repo: [project name]
-Updates: Objective / Stack / State / Next Action / Blockers
-[show diff from current CLAUDE.md if it exists]
+─── HUB_STATE ───────────────────────────
+Project section: [name — must match an existing HUB_STATE.md heading, or propose
+                   a new one from the HUB_GUIDE section template]
+Updates: Status / Active Task / Next Step / Blockers / Context (≤3 lines)
 
-Sync all? (yes / edit first / skip [notion|obsidian|claude])
+Sync all? (yes / edit first / skip [notion|obsidian|hubstate])
 ```
-
-Only proceed after confirmation. Accept inline edits if user says "edit first".
 
 ---
 
 ## Step 4A — Notion sync
 
-### Database reference (do not search — use directly)
-
-| Item | Value |
-|---|---|
-| Hub page | `35489370-d497-804f-bf0f-de6d0bee12a2` |
-| Projects DB | `6eafacec-385d-4336-9f02-1f60839b82d3` |
-| Data source | `collection://cf8f7353-f469-44bf-bbf2-56e1dfa280f3` |
-
-### Known project page IDs
-
-| Project | Page ID | Domain |
-|---|---|---|
-| ROMS | `36f89370-d497-8171-b111-e09ba33ec354` | Coding |
-| PIOS | `36f89370-d497-8140-a5a9-d14f76ddaefd` | Coding |
-| Terra API | `37789370-d497-8190-8780-e2b4e7a6c480` | Coding |
-| claude-skills | `37089370-d497-8123-a87d-e47bcd96f0e7` | Coding |
-| Obsidian 3D Graph Plugin | `37089370-d497-81a1-98a8-d94df1eca250` | Coding |
-
-For unknown projects search DB first, create if missing (see Step 4A-new below).
+### Database reference
+Look up in Claude memory (userMemories): Hub page, Projects DB, data source, and known
+project page IDs. Do not hardcode or duplicate these here — they drift when stored in
+two places (this table drifted from session-rules' copy before consolidation).
 
 ### Page template sections
 
@@ -153,11 +122,11 @@ For unknown projects search DB first, create if missing (see Step 4A-new below).
 ## 📋 Progress Log     ← ALWAYS prepend newest entry, never overwrite
 ```
 
-### Log entry format (prepend, newest on top)
+### Log entry format
 
 ```markdown
 ---
-### 2026-05-30
+### YYYY-MM-DD
 - Built X, implemented Y
 - Decided: [key decision + rationale]
 - Verified: [anything confirmed]
@@ -175,10 +144,10 @@ For unknown projects search DB first, create if missing (see Step 4A-new below).
 
 ### Step 4A-new — Handle unknown projects
 
-1. Search Projects DB by name via `notion-search` with data_source_url
+1. Search Projects DB by name via `notion-search`
 2. If found — use that page ID
 3. If not found — create via `notion-create-pages` with full template
-4. Tell user to add the new page ID to this skill's known IDs table
+4. Tell Will to add the new page ID to Claude memory (not to this skill file)
 
 ---
 
@@ -186,19 +155,13 @@ For unknown projects search DB first, create if missing (see Step 4A-new below).
 
 ### Vault root — runtime discovery
 
-Never hardcode the vault path. At sync time, try in order:
+**Preferred (Claude Code):** Read `OBSIDIAN_VAULT` env var from `~/.claude/settings.json`.
 
-**Preferred (Claude Code):** Read the `OBSIDIAN_VAULT` env var from `~/.claude/settings.json` — set automatically by `setup.py` on new machines. If present, use it directly.
-
-**Fallback (Claude Desktop / if env var not set):**
+**Fallback (Claude Desktop):**
 1. Call `Filesystem:list_allowed_directories`
-2. Identify the entry containing "Obsidian" or "ObsidianVault" — that is the vault root
-3. Use that path as the base for all writes this session
+2. Identify entry containing "Obsidian" or "ObsidianVault"
 
-If neither resolves, ask the user for the path and remind them to run `setup.py` or add `OBSIDIAN_VAULT` to `~/.claude/settings.json` under `env`.
-
-This makes the skill machine-agnostic — works on Windows, VM, or any future machine
-as long as the Obsidian vault is in the allowed directories.
+If neither resolves, ask Will and remind them to run `setup.py`.
 
 ### Vault path registry
 
@@ -216,9 +179,7 @@ as long as the Obsidian vault is in the allowed directories.
 | Business / Terra strategy | `Business/` |
 | AutoCAD | `AutoCAD/` |
 
-If a new topic doesn't fit above, ask Will which folder before writing.
-
-### Note format (always use this schema)
+### Note format
 
 ```markdown
 > **What this note is:** [One sentence — what this note covers and why it was written]
@@ -226,13 +187,13 @@ If a new topic doesn't fit above, ask Will which folder before writing.
 #tag #tag #tag
 
 ### What is it?
-[One concise paragraph — definition, no fluff]
+[One concise paragraph]
 
 ### Why it matters
-[Why this is worth knowing — consequence, impact, relevance to your work]
+[Consequence, impact, relevance to your work]
 
 ### How it works
-[Mechanism, flow, or structure — as specific as the concept allows]
+[Mechanism, flow, or structure]
 
 ### The design principles behind it
 
@@ -247,153 +208,67 @@ If a new topic doesn't fit above, ask Will which folder before writing.
 - [[Note Title]] — [one-line description of relationship]
 ```
 
-### Write procedure
+### Filename convention
+- Concept notes (`Software Development/`, `Trading/`, etc.): `lowercase-hyphenated.md`
+- Project notes (`Projects/ROMS/`, `Projects/PIOS/`, etc.): `NN - Title.md` (two-digit prefix)
 
-```
-1. Discover vault root via Filesystem:list_allowed_directories
-2. Use Filesystem:write_file to write to:
-   [discovered vault root]\[vault-path]\[note-title].md
-3. Confirm write with Filesystem:read_file on the written path
-```
-
-**Claude Code alternative** (no Filesystem MCP available):
-```
-1. Read vault root from $OBSIDIAN_VAULT env var (set by setup.py in ~/.claude/settings.json)
-2. Write using the Write tool to: [vault root]\[vault-path]\[note-title].md
-3. Confirm using the Read tool on the written path
-```
-
-- Filename:
-  - Concept / pattern notes (Software Development/, Trading/, etc.): `lowercase-hyphenated.md` (e.g. `dev-log-two-mode-pattern.md`)
-  - Project notes inside a project folder (Projects/ROMS/, Projects/PIOS/, etc.): `NN - Title.md` with two-digit prefix matching the next available number in that folder (e.g. `12 - ROMS Auth Rehydration.md`)
-- Never overwrite an existing note — if file exists, append a dated update section instead
-- Confirm write succeeded with `cat` of the written file
-
-### Surfacing note candidates
-
-When the session produced multiple learnable concepts, list them all in the preview:
-
-```
-Obsidian candidates this session:
-1. [concept name] → Concepts/Architecture/
-2. [concept name] → Projects/PIOS/
-Which should I write? (all / 1,2 / none)
-```
+Never overwrite an existing note — append a dated update section instead.
 
 ---
 
-## Step 4C — CLAUDE.md sync
+## Step 4C — HUB_STATE.md sync
 
-### What CLAUDE.md is
+Replaces the former CLAUDE.md sync. Per-repo CLAUDE.md files are now thin pointers to
+HUB_GUIDE.md and are not rewritten per session — live state lives in one place:
+`claude-skills/skills/ai-control/HUB_STATE.md`.
 
-A context snapshot committed to the repo root. Claude Code reads it at session start
-to resume without re-explaining. It is not documentation — it is working memory for
-the coding agent.
+### Procedure
 
-### CLAUDE.md schema
-
-```markdown
-# [Project Name] — Claude Code Context
-
-## Objective
-[One sentence: what this project is and what's being built]
-
-## Stack
-[Language, framework, key deps — one line each]
-
-## Current State
-[What's done, what's in progress — 2-4 bullets]
-
-## Next Action
-[The single most specific next coding task]
-
-## Open Blockers
-[Anything unresolved, needing verification, or waiting on info]
-
-## Key Decisions Log
-| Date | Decision | Rationale |
-|---|---|---|
-| [date] | [decision] | [why] |
-```
-
-### Write procedure
-
-```bash
-# Check if CLAUDE.md exists in repo root
-cat ~/[repo-path]/CLAUDE.md 2>/dev/null || echo "NOT FOUND"
-
-# Write or overwrite
-cat > ~/[repo-path]/CLAUDE.md << 'EOF'
-[formatted CLAUDE.md content]
-EOF
-```
-
-- If CLAUDE.md already exists: merge new state with existing Decisions Log (never drop prior decisions)
-- Repo paths: `~/projects/roms/`, `~/projects/pios/` — confirm with Will if unsure
-- CLAUDE.md is committed to the repo — remind Will to `git add CLAUDE.md && git commit -m "chore: update claude context"` after writing
+1. Locate the project's existing section in HUB_STATE.md (heading match). If none
+   exists, propose a new section using the template in HUB_GUIDE.md → "HUB_STATE
+   Section Template" and confirm with Will before adding it.
+2. OVERWRITE the section in place — Status, Active Task, Next Step, Blockers, Context.
+   Do not append or accumulate history here; history belongs in the project's own
+   DEV_LOG.md (Documentation Protocol, in HUB_GUIDE.md), not in HUB_STATE.
+3. Keep the section within its ~15–20 line budget. Context field stays ≤3 lines —
+   snapshot, not narrative.
+4. Update the freshness stamp at the top of HUB_STATE.md.
+5. If this session produced a dev-log-worthy phase or decision, hand off to the
+   Documentation Protocol (HUB_GUIDE.md) for the actual DEV_LOG.md entry — HUB_STATE
+   only gets the resulting Next Step / Status, not the narrative.
 
 ---
 
 ## Step 5 — Post-sync confirmation
 
-After all writes complete, show a brief summary:
-
 ```
 ✅ Session sync complete
 
-Notion    → [project] updated (Current State, Next Action, log entry prepended)
-Obsidian  → [note title] written to [vault path]
-CLAUDE.md → [project] context snapshot written to [repo path]
+Notion     → [project] updated
+Obsidian   → [note title] written to [vault path]
+HUB_STATE  → [project] section overwritten (claude-skills/skills/ai-control/HUB_STATE.md)
 
-Remind: git add CLAUDE.md && git commit if you haven't already.
-```
-
-If any target was skipped, note it:
-```
-Obsidian  → skipped (no new concepts this session)
+Remind: git add skills/ai-control/HUB_STATE.md && git commit && git push if not done.
 ```
 
 ---
 
 ## Step 6 — Deploy to claude-skills repo
 
-**This step is not optional when a skill was updated or created this session.** Always run it after any session that touched a skill.
+**Mandatory when a skill or hub file was updated or created this session.**
 
-Triggers:
-- A skill was updated (content changed, new section added, etc.)
-- A new skill was created this session
-- User says "sync", "deploy", or "push to repo"
+### Path resolution
 
-For all other sessions (no skill changes), offer it and let Will skip.
+1. Use the path where the hub/skills were read from — that IS the repo root.
+2. If not writable, fall back to `https://github.com/will55555/claude-skills` and notify Will.
+3. Never guess a path. Never silently skip.
 
+```bash
+cd <repo-root> && git add -A && git commit -m "chore: sync session output $(date +%Y-%m-%d)"
 ```
-Deploy updated skills to claude-skills repo? (yes / skip)
-```
 
-### What to write
-
-- **Updated skill**: overwrite `<repo-root>/skills/<skill-name>/SKILL.md` with current content
-- **New skill**: create `<repo-root>/skills/<skill-name>/SKILL.md` (mkdir if needed)
-- **Both**: write all changed skills in one commit
-
-### Path resolution (always follow this order)
-
-1. **Use the path where CLAUDE.md was read from** — that directory IS the repo root.
-2. **If that path doesn't exist or isn't writable**, fall back to the GitHub URL:
-   `https://github.com/will55555/claude-skills`
-   Then notify Will:
-   > ⚠️ Local repo path not found — could not write to disk. Reference: https://github.com/will55555/claude-skills
-   > Run `python setup.py` from your clone, or tell me the correct path and I'll update CLAUDE.md.
-3. **Never guess a path** (e.g. `~/claude-skills`). Never silently skip — always tell Will what happened.
-
-### If path is valid
-
-1. Write each changed SKILL.md to `<repo-root>/skills/<skill-name>/SKILL.md`
-2. Run:
-   ```bash
-   cd <repo-root> && git add -A && git commit -m "chore: sync skills from Notion $(date +%Y-%m-%d)"
-   ```
-3. Remind Will to `git push` if the repo has a remote.
+Remind Will to `git push` — web/Desktop sessions read the pushed copy of the hub, so
+an unpushed commit means those sessions see stale state.
 
 ---
 
@@ -401,10 +276,10 @@ Deploy updated skills to claude-skills repo? (yes / skip)
 
 | Error | Action |
 |---|---|
-| Notion MCP timeout | Retry once; if fails, show preview content and tell user to paste manually |
-| Vault path not found | Ask user to confirm vault root before writing |
-| CLAUDE.md repo path unknown | Ask user for repo path — do not guess |
-| Ambiguous project name | Ask user to confirm before any write |
-| Multiple projects in one session | Sync each separately, confirm each |
-| Note file already exists | Append dated update section, never overwrite |
-| claude-skills repo not found | Skip Step 6, note in summary |
+| Notion MCP timeout | Retry once; show preview for manual paste if fails |
+| Vault path not found | Ask Will to confirm vault root |
+| HUB_STATE section not found for project | Propose new section from template; confirm before adding |
+| Ambiguous project name | Confirm before any write |
+| Multiple projects in session | Sync each separately |
+| Note file already exists | Append dated update section |
+| claude-skills repo not found | Fall back to GitHub URL, notify Will |
