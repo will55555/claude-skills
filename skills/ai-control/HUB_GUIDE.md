@@ -141,3 +141,25 @@ The hub is the source of truth. Update the hub, not this file.
 Repos still needing this pointer: terra-api, roms, pios, terra-hq-site, and any
 future repo. Non-repo projects (DSA, FM-at-home) have no CLAUDE.md — use the
 explicit `load hub` / `load hub <project>` trigger for those instead.
+
+## New Machine Setup (portability checklist)
+Run once per new machine. Do NOT assume laptop 2 mirrors laptop 1's paths, MCP config, or git state.
+
+1. **Verify reachability first** — `Filesystem:list_allowed_directories` before trusting any
+   absolute path. If the Filesystem MCP isn't configured for this machine yet, set its allowed
+   directories to include the claude-skills repo location on THIS machine (may differ from
+   `C:\Users\solan\...` if username/drive differs).
+2. **Get a real git clone, not a synced folder.** If claude-skills lives under OneDrive/iCloud on
+   this machine too, treat that copy as read-only staging — do not run git commands against a
+   `.git` folder that a file-sync service is also touching (risk of corruption from concurrent
+   sync + git writes). Prefer: `git clone https://github.com/will55555/claude-skills.git` into a
+   plain local folder outside any sync service, and do git operations there.
+3. **Reachability-only fallback:** if this session can't get local file access at all (Desktop/web,
+   or Filesystem MCP not yet configured), use the GitHub raw bootstrap prompt from Copy/Paste
+   Commands — fully portable, no machine setup required.
+4. **Verify the hub loads correctly:** `load hub` and confirm the orientation line comes back with
+   real project/task data, not an error.
+5. **Update Machine Paths in HUB.md** with this machine's actual verified paths once confirmed —
+   this is itself a `sync skills` edit (local write + git commands supplied, Will pushes).
+6. **Obsidian vault path** may also differ on this machine — verify separately before the sync
+   skill attempts an Obsidian write; don't assume the laptop-1 path.

@@ -48,6 +48,7 @@ Fixed read order — never deviate, never parallelize:
 | `sync state` (any time) | — | Overwrite active HUB_STATE section now; no full pass |
 | Rollover threshold hit | Rollover Rule below | Mandatory 4-part output |
 | Note context needed | note-reader skill | Read-only fetch |
+| New machine / first setup | GUIDE: New Machine Setup | Walk through portability checklist |
 | Repeated correction / hub friction | Promotion Engine below | Flag inline; batch at session end |
 
 ## Agent Operating Constraints
@@ -120,6 +121,10 @@ Fixed read order — never deviate, never parallelize:
 
 ## Machine Paths
 - All hub-internal references are relative to the claude-skills repo root.
+- MULTI-MACHINE NOTE: absolute paths below are machine-specific, not portable assumptions. On any
+  new machine, verify with `Filesystem:list_allowed_directories` before trusting a path — do not
+  assume laptop 2 mirrors laptop 1's username or drive layout. GitHub raw URL access and the
+  `load hub` trigger have no such dependency and are the reliable cross-machine fallback.
 - Known absolute paths + caveats:
   | Machine/context | Path | Caveat |
   |---|---|---|
