@@ -4,15 +4,21 @@
 
 ## Terra API                                        <!-- prefix: TAPI -->
 - **Status:** Active — primary build
-- **Active Task:** TAPI-001 — Phase 3 JWT auth implementation (issuer model resolved, ready to code)
-- **Next Step:** Implement AuthService/AuthController/JwtAuthenticationFilter; bind SelfTokenIssuer
-  behind TokenIssuer interface with versioned claims (iss/sub/exp/tier/scope)
+- **Active Task:** TAPI-001 — Phase 3 JWT auth implementation, mid-implementation
+- **Next Step:** Write Java classes: TokenIssuer/TokenValidator interfaces + SigningKeyResolver/
+  VerificationKeyResolver seam, SelfTokenIssuer/SelfTokenValidator (JJWT), LoginRequest/Response,
+  AuthService, AuthController (POST /api/auth/login), JwtAuthenticationFilter — then rewire
+  SecurityConfig (JWT REPLACES ApiKeyFilter, confirmed w/ Will 2026-07-09; ApiKeyFilter code
+  stays, just unwired). Staying on phase-3-resilience (no new branch, Will's call).
 - **Blockers:** None
-- **Context:** Spring Boot 3.5.1 / Java 21 / Gradle Kotlin. Phase 2 static-key COMPLETE
-  (phase-2-auth). Phase 3 = resilience (ADR-004/005, DONE) + JWT (issuer model resolved
-  2026-07-08: self-issued on master, Terra Auth provisioned-not-built on terra-auth-service
-  branch, activates on 2nd independent identity consumer). Reuse shouldNotFilter bypass for
-  /actuator/** and /api/webhooks/** (ApiKeyFilter gotcha).
+- **Context:** Spring Boot 3.5.1 / Java 21 / Gradle Kotlin. Fetched ADR-003 from Notion directly
+  (page 37089370-d497-818c-8ff2-dde48c2dc3ec) — confirms self-issued JWT + TokenIssuer/
+  TokenValidator/key-resolver seams + versioned claims (iss/sub/exp/tier/scope) so a future
+  RemoteTokenIssuer swap is clean. Done: build.gradle.kts (jjwt-api/impl/jackson 0.12.6),
+  application.yaml (terra.auth.issuer + terra.auth.login single-service-account block), local
+  terra-api CLAUDE.md (Open Blockers/Key Decisions Log/Next Action fixed — was stale, this repo
+  clone hadn't picked up the 2026-07-08 resolution). Reuse shouldNotFilter bypass pattern for
+  /actuator/**, /api/webhooks/**, and now /api/auth/login too.
 
 ## ROMS                                             <!-- prefix: ROMS -->
 - **Status:** Deployed
