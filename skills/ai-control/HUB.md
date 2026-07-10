@@ -1,5 +1,5 @@
 # Engineering Hub (load hub)
-<!-- Freshness: 2026-07-09 | v1.1 | Home: claude-skills/skills/ai-control/ -->
+<!-- Freshness: 2026-07-10 | v1.2 | Home: claude-skills/skills/ai-control/ -->
 
 ## Mission
 Single control system for all personal coding/engineering work. Fast handoff, minimal re-discovery,
@@ -65,24 +65,30 @@ Fixed read order — never deviate, never parallelize:
 | Repeated correction / hub friction | Promotion Engine below | Flag inline; batch at session end |
 
 ## Agent Operating Constraints
-- NO EXECUTION: never run `mvn test`, `./gradlew build|test`, `ng test`, `npm test|start`,
-  `java -jar`, scripts, or any program/test — nor any equivalent in tools not listed. Will runs
-  everything; agent supplies the exact command and expected result.
-- Completion evidence = Will's report only. Never claim a test passed or a build succeeded from
-  reading code.
-- Flag freely, edit on approval: surface every issue the moment it's seen; never modify files,
-  Notion, or logs without explicit approval. Preview before every commit/write.
+
+**EXECUTION ROLE BOUNDARY (absolute):**
+- Claude NEVER executes build/test/run commands. Period. Forbidden: `./gradlew build|test`, `npm`, `mvn test`, `java -jar`, shell scripts, or any equivalent.
+- Will ALWAYS executes all commands. Will reports results.
+- Completion evidence = Will's report only. Never claim a test passed, build succeeded, or command executed from reading code.
+
+**Why this matters:** Forces correct rhythm:
+  1) Will writes/edits code
+  2) Claude reviews, flags issues, suggests fixes (using Response Contract)
+  3) Will approves edits
+  4) Claude applies approved edits
+  5) **Will** runs: `./gradlew build`, `./gradlew test`, `npm install`, etc.
+  6) Will pastes output
+  7) Claude troubleshoots based on Will's report
+
+**The cognitive lock:** If Claude sees a command window, it is NOT Claude's to use. Ever.
+
+**Other operating constraints:**
+- Flag freely, edit on approval: surface every issue the moment it's seen; never modify files, Notion, or logs without explicit approval. Preview before every commit/write.
 - No unrelated refactors. Minimal, targeted changes only.
-- Agent stance is reviewer/pair (see GUIDE: Agent Stance) — Will stays literate in everything the
-  agent does; no black-box execution.
-- Correct tool for real writes: use `Filesystem:write_file`/`edit_file` for Will's actual machine
-  — never the sandbox `create_file`/`str_replace` tools (those write to Claude's own container,
-  not Will's disk). See GUIDE: Operating Incidents for the 2026-07-09 case that established this.
-- Verify writes outside the claude-skills repo by re-reading immediately after editing — a
-  successful tool response is not proof of persistence. See GUIDE: Operating Incidents for why.
-- Multi-remote push discipline: supply push commands for EVERY configured remote, not just one
-  (terra-api: GitHub + Bitbucket mirror `terra-inc-dev/terra-api`). Lead with `git remote -v`
-  first when a repo's remotes are unconfirmed — never assume a single `origin`.
+- Agent stance is reviewer/pair (see GUIDE: Agent Stance) — Will stays literate in everything the agent does; no black-box execution.
+- Correct tool for real writes: use `Filesystem:write_file`/`edit_file` for Will's actual machine — never the sandbox `create_file`/`str_replace` tools (those write to Claude's own container, not Will's disk). See GUIDE: Operating Incidents for the 2026-07-09 case that established this.
+- Verify writes outside the claude-skills repo by re-reading immediately after editing — a successful tool response is not proof of persistence. See GUIDE: Operating Incidents for why.
+- Multi-remote push discipline: supply push commands for EVERY configured remote, not just one (terra-api: GitHub + Bitbucket mirror `terra-inc-dev/terra-api`). Lead with `git remote -v` first when a repo's remotes are unconfirmed — never assume a single `origin`.
 
 ## Working Memory Contract
 - Append to every substantive response (skip for ultra-short replies: yes/no, one-line confirms):
