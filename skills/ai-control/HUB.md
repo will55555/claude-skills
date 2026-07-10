@@ -24,10 +24,16 @@ model.
   (raw.githubusercontent.com/will55555/claude-skills/master/skills/ai-control/). Pushed state = visible state.
 
 ## Startup Sequence (mandatory order)
-1) Detect active project from working folder (or from `load hub <project>` argument).
-2) Follow Linear Fetch Mode below. Read nothing outside it.
-3) Emit the orientation confirmation line.
-4) If required artifacts are missing, apply Bootstrap Rules (offer, never auto-create).
+1) Startup sync (lightweight, not a full session-end pass):
+   - Claude Code only: confirm/pull before trusting local files (`git pull` at the repo root from
+     Machine Paths). Web/Desktop reading GitHub raw skip this — always current by definition.
+   - Any session type: drain any Pending `#target:git` entries from the Notion Sync Queue if git
+     is now reachable (full mechanism: session-context-sync → Universal Sync & Fallback Queue).
+   - Lightweight only — not the full Notion/Obsidian/HUB_STATE pass `sync` does at session end.
+2) Detect active project from working folder (or from `load hub <project>` argument).
+3) Follow Linear Fetch Mode below. Read nothing outside it.
+4) Emit the orientation confirmation line.
+5) If required artifacts are missing, apply Bootstrap Rules (offer, never auto-create).
 
 ## Linear Fetch Mode (straight-line speed path)
 Fixed read order — never deviate, never parallelize:
@@ -50,7 +56,7 @@ Fixed read order — never deviate, never parallelize:
 | Test requested | GUIDE: Testing Protocol | Prepare artifacts + how-to-run; never execute |
 | DSA practice requested | GUIDE: DSA Methodology | 3-phase flow |
 | Completion reported (or single agent ask) | GUIDE: Documentation Protocol | Draft dev-log entry → preview → approval → write |
-| Session ending / wrap-up | session-context-sync skill | Full sync pass (Notion/Obsidian/HUB_STATE) |
+| Session ending / wrap-up | session-context-sync skill | Full sync pass (Notion/Obsidian/HUB_STATE + skill/hub git commands if touched) |
 | `sync state` (any time) | — | Overwrite active HUB_STATE section now; no full pass |
 | `sync hub` (any time) | — | Preview all touched skill/hub files → write locally → supply git commands (see Skill Update Trigger) |
 | Rollover threshold hit | Rollover Rule below | Mandatory 4-part output |
@@ -69,6 +75,14 @@ Fixed read order — never deviate, never parallelize:
 - No unrelated refactors. Minimal, targeted changes only.
 - Agent stance is reviewer/pair (see GUIDE: Agent Stance) — Will stays literate in everything the
   agent does; no black-box execution.
+- Correct tool for real writes: use `Filesystem:write_file`/`edit_file` for Will's actual machine
+  — never the sandbox `create_file`/`str_replace` tools (those write to Claude's own container,
+  not Will's disk). See GUIDE: Operating Incidents for the 2026-07-09 case that established this.
+- Verify writes outside the claude-skills repo by re-reading immediately after editing — a
+  successful tool response is not proof of persistence. See GUIDE: Operating Incidents for why.
+- Multi-remote push discipline: supply push commands for EVERY configured remote, not just one
+  (terra-api: GitHub + Bitbucket mirror `terra-inc-dev/terra-api`). Lead with `git remote -v`
+  first when a repo's remotes are unconfirmed — never assume a single `origin`.
 
 ## Working Memory Contract
 - Append to every substantive response (skip for ultra-short replies: yes/no, one-line confirms):
@@ -134,8 +148,11 @@ Fixed read order — never deviate, never parallelize:
 - Known absolute paths + caveats:
   | Machine/context | Path | Caveat |
   |---|---|---|
-  | claude-skills repo | `C:\Users\solan\OneDrive\Desktop\SDE\claude-skills\` | Filesystem MCP CAN reach directly (verified 2026-07-09) — edit in place |
-  | Other SDE repos (terra-api, roms, etc.) | `C:\Users\solan\OneDrive\Desktop\SDE\<repo>\` | Reachability unconfirmed — check `Filesystem:list_allowed_directories` each session; fall back to downloadables if absent |
+  | claude-skills repo | `C:\Users\solan\OneDrive\Desktop\SDE\claude-skills\` | Confirmed reachable 2026-07-09 — edit in place |
+  | terra-api | `C:\Users\solan\OneDrive\Desktop\SDE\terra-api\terra-api\` (double-nested!) | Confirmed reachable 2026-07-09 |
+  | terra-hq-site | `C:\Users\solan\OneDrive\Desktop\SDE\terra-hq-site\` | Confirmed reachable 2026-07-09 |
+  | ROMS (restaurant-order-management-system) | `C:\Users\solan\OneDrive\Desktop\SDE\restaurant-order-management-system\` | Confirmed 2026-07-09 — folder is NOT named "roms" |
+  | pios | no repo exists yet | n/a — add when PIOS moves to code |
   | Obsidian vault | `C:\Users\solan\iCloudDrive\iCloud~md~obsidian\iCloud\Obsidian Vault\` | Reachable; sync skill owns writes |
   | Hub (canonical) | `claude-skills/skills/ai-control/` | Local in Code; GitHub raw elsewhere |
 
@@ -161,44 +178,14 @@ or dev logs — everything here lands in git. Work-at-home HUB_STATE sections ho
   ai-control is part of the claude-skills repo, not its own repo; it shares that repo's one log.
 
 ## Skill Update Trigger
-- Trigger: `sync hub` (renamed 2026-07-09 from `sync skills` — see naming note below). Runs any
-  time a skill or hub file was edited this session — not only at session end (session-end sync
-  still covers this via the Trigger Map row, but `sync hub` lets it fire on demand mid-session).
-- NAMING NOTE: originally `sync skills`, which sat too close to this repo's pre-existing "push to
-  Notion" / "sync skills to Notion" / "deploy" / "pull skills" phrases (see root DEV_LOG.md),
-  which govern the Notion↔repo flow for OTHER skills. Rather than rely on a bare-vs-qualified
-  distinction someone has to remember, renamed to `sync hub` — matches the hub's own existing
-  verb-first pattern (`sync state`, `sync framework`) and has zero phrase overlap with the Notion
-  flow. Structural fix, not a managed distinction.
-- What the agent CAN do directly: write/edit the local files in the claude-skills repo via the
-  Filesystem tool, when that repo is reachable (verified for `claude-skills/` itself; check
-  `Filesystem:list_allowed_directories` each session — don't assume). This is a real file edit,
-  not a preview.
-- PULL-BEFORE-EDIT (multi-machine safety): before editing any hub/skill file locally, ask Will to
-  confirm this machine's local copy is current (`git pull` run recently, or this is the only
-  machine in use this week). Editing a stale local copy risks overwriting changes pushed from
-  another machine, silently. If Will can't confirm, supply `git pull` as the first command in the
-  same instruction block as the eventual commit/push — pull before write, not just before push.
-- What the agent CANNOT do: run git commands or call the GitHub API. No exec access on Will's
-  machine, and entering credentials/tokens is prohibited outright — same rule as the no-execute
-  constraint above, extended to git.
-- On trigger:
-  1) List every skill/hub file touched this session (path + one-line description of the change).
-  2) Preview the change set — confirm before writing.
-  3) On approval: write the files locally via Filesystem tools (if reachable) — this IS executed,
-     not just described.
-  4) Supply the exact commands for Will to run (never claim to run them), using this machine's
-     verified path from the Machine Paths table (do not hardcode a path here — it drifts on a
-     second machine; the table below is the single source):
-     ```bash
-     cd <claude-skills repo root — see Machine Paths table>
-     git add -A
-     git commit -m "chore: sync hub <YYYY-MM-DD> — <short summary>"
-     git push
-     ```
-  5) State plainly that local write is done but push is NOT — Will must run the commands above
-     before web/Desktop sessions see the update. Never say "pushed" or "synced to GitHub" unless
-     Will has reported back that the push succeeded.
-- If the claude-skills repo isn't reachable this session (Filesystem MCP doesn't list it), fall
-  back to staged downloadable files in `/mnt/user-data/outputs/` with the same commands, same as
-  any other unreachable-path scenario.
+- Trigger: `sync hub` (renamed 2026-07-09 from `sync skills` — avoids collision with this repo's
+  pre-existing "push to Notion"/"deploy" phrases for OTHER skills; see root DEV_LOG.md).
+- Agent CAN write/edit local claude-skills files directly (real edit, when reachable — check
+  `Filesystem:list_allowed_directories` each session, don't assume).
+- Agent CANNOT run git commands or call the GitHub API — no exec access, credentials prohibited.
+  Always supplies exact commands for Will to run; never claims a push succeeded without Will's
+  confirmation.
+- Pull-before-edit: confirm this machine's local copy is current before writing (multi-machine
+  safety) — same principle as Startup Sequence step 1, applied before edits too.
+- Full step-by-step procedure (preview → write → supply commands → fallback if unreachable):
+  GUIDE → Skill Update Procedure.

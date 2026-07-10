@@ -305,22 +305,30 @@ Remind: git add skills/ai-control/HUB_STATE.md && git commit && git push if not 
 
 ---
 
-## Step 6 — Deploy to claude-skills repo
+## Step 6 — Skill/hub git commands (delegate, don't duplicate)
 
 **Mandatory when a skill or hub file was updated or created this session.**
 
-### Path resolution
+This is the SAME action as HUB.md's `sync hub` trigger (Skill Update Trigger section) — don't
+maintain separate git-command logic here. Full procedure lives there; summary:
 
-1. Use the path where the hub/skills were read from — that IS the repo root.
-2. If not writable, fall back to `https://github.com/will55555/claude-skills` and notify Will.
-3. Never guess a path. Never silently skip.
+1. List every skill/hub file touched this session.
+2. Preview the change set — confirm before writing.
+3. Write files locally via Filesystem tools (if reachable) — this IS executed, a real edit.
+4. Supply the exact commands for Will to run (the agent CANNOT run git commands or call the
+   GitHub API — no exec access, credentials prohibited). Use the path from HUB.md's Machine
+   Paths table, not a hardcoded one:
+   ```bash
+   cd <repo root — see Machine Paths table>
+   git add -A
+   git commit -m "chore: sync hub <YYYY-MM-DD> — <short summary>"
+   git push
+   ```
+5. State plainly that local write is done but push is NOT, until Will confirms it succeeded.
+   Never say "pushed"/"synced" without that confirmation.
 
-```bash
-cd <repo-root> && git add -A && git commit -m "chore: sync session output $(date +%Y-%m-%d)"
-```
-
-Remind Will to `git push` — web/Desktop sessions read the pushed copy of the hub, so
-an unpushed commit means those sessions see stale state.
+If the claude-skills repo isn't reachable this session, fall back to staged downloadable files
+in `/mnt/user-data/outputs/` with the same commands.
 
 ---
 
