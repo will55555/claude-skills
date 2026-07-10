@@ -30,6 +30,17 @@
       consumer ("Issuer Model — Resolved 2026-07-08"). Memory was correct; terra-api's local
       CLAUDE.md was stale (2026-07-07 blocker never updated). Fixed CLAUDE.md (Open Blockers,
       Key Decisions Log, Next Action) and HUB_STATE's TAPI section to match ADR-003.
+- [x] SKILLS-017 — RESOLVED 2026-07-09 (found during re-audit): two real operational bugs caught
+      by re-reading files after editing them, not just trusting tool success:
+      (a) ROMS's CLAUDE.md was created with the wrong tool (sandbox `create_file`, not
+      `Filesystem:write_file`) — file never actually existed on Will's machine despite SKILLS-005
+      marking it done. Recreated correctly, verified present.
+      (b) terra-api's SKILLS-016 CLAUDE.md fix reverted silently sometime after the edit tool
+      confirmed success — root cause unconfirmed (initially misattributed to OneDrive sync race;
+      Will clarified the "OneDrive" folder name is legacy only, no active cloud sync on this
+      machine, so that theory is wrong — corrected in HUB.md/HUB_GUIDE.md). Redone in 3 smaller
+      edits, re-verified present this time. Added both lessons as standing rules to HUB.md's Agent
+      Operating Constraints (correct tool for real writes; verify-by-reread regardless of cause).
 - [x] SKILLS-013 — RESOLVED 2026-07-09: renamed `sync skills` → `sync hub` (structural fix, not
       a managed bare-vs-qualified distinction — zero phrase overlap with "sync skills to
       Notion"/"deploy"/"push to Notion"). Updated HUB.md (trigger, Trigger Map row, commit

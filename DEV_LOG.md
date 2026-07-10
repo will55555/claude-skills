@@ -156,3 +156,14 @@ would all have pointed at a path that doesn't exist.
   self-issued JWT + provisioned-not-built Terra Auth is the real, current, Accepted decision.
   terra-api's local CLAUDE.md was stale (2026-07-07 blocker never updated after the 2026-07-08
   resolution); corrected to match.
+
+### Correction (same day) — OneDrive sync misdiagnosis
+A later re-audit found terra-api's CLAUDE.md fix from the SKILLS-016 entry above had reverted
+silently despite the edit tool confirming success (and, separately, that ROMS's CLAUDE.md was
+never actually written — wrong tool used, sandbox `create_file` instead of the real
+`Filesystem:write_file`). Both were fixed and re-verified present via fresh reads. The revert was
+initially attributed to a "OneDrive sync race" — Will clarified the "OneDrive" folder name on
+this machine is legacy naming only, with no actual active cloud sync running. That causal theory
+was wrong; true root cause remains unconfirmed. HUB.md and HUB_GUIDE.md corrected to remove the
+false attribution while keeping the practical rule (re-read after editing to confirm persistence,
+regardless of cause) — the observed symptom was real even though the explanation wasn't.

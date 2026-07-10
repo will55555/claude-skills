@@ -99,6 +99,50 @@ Rules:
   root cause not just fix · reproducible on a fresh machine from the log alone.
 - Analogy habit: anchor new concepts to Spring Boot/Java when introducing frontend/infra ideas.
 
+## Skill Update Procedure (full detail for `sync hub` — rule summary lives in HUB.md)
+Runs any time a skill or hub file was edited this session — not only at session end.
+
+1. List every skill/hub file touched this session (path + one-line description of the change).
+2. Preview the change set — confirm before writing.
+3. On approval: write the files locally via Filesystem tools (if reachable) — this IS executed,
+   a real edit, not just described.
+4. Pull-before-edit: before writing, confirm this machine's local copy is current (recent
+   `git pull`, or this is the only machine in use this week). Editing a stale copy risks silently
+   overwriting changes pushed from another machine. If unconfirmed, supply `git pull` as the first
+   command in the same instruction block as the eventual commit/push.
+5. Supply the exact commands for Will to run (never claim to run them), using the path from
+   HUB.md's Machine Paths table (don't hardcode — it drifts on a second machine):
+   ```bash
+   cd <claude-skills repo root — see Machine Paths table>
+   git add -A
+   git commit -m "chore: sync hub <YYYY-MM-DD> — <short summary>"
+   git push
+   ```
+6. State plainly that local write is done but push is NOT, until Will confirms it succeeded.
+   Never say "pushed"/"synced to GitHub" without that confirmation.
+7. If claude-skills isn't reachable this session, fall back to staged downloadable files in
+   `/mnt/user-data/outputs/` with the same commands.
+
+## Operating Incidents (reference — lessons already codified as rules in HUB.md)
+Real incidents from 2026-07-09 that produced standing rules. Kept here for full context; the
+terse rule itself lives in HUB.md's Agent Operating Constraints — this section is the "why."
+
+**Wrong tool used for a real write (ROMS's CLAUDE.md):** created via the sandbox `create_file`
+tool instead of `Filesystem:write_file`. The sandbox tool writes to Claude's own ephemeral
+container, not Will's disk — the file appeared created (successful tool response) but never
+existed on Will's machine. SKILLS-005 was marked done for ROMS based on this false success.
+Caught only when a later audit tried to read the file back and got ENOENT. Fixed by recreating
+with the correct tool and verifying presence via a fresh read.
+
+**Edit reverted silently (terra-api's CLAUDE.md):** a multi-part edit_file call succeeded (tool
+returned a clean diff) during the SKILLS-016 fix, but a later re-audit found the file back at its
+original pre-edit state — not corrupted, not merge-conflicted, just cleanly reverted. Initially
+attributed to a OneDrive sync race (the file sits in a folder named "OneDrive"), but Will clarified
+that folder name is legacy only — no active cloud sync runs on this machine. True root cause
+remains unknown. The fix was redone as three smaller edits and re-verified present via fresh read.
+The practical lesson survives independent of the (wrong) explanation: a successful tool response
+is not proof of persistence for files outside the primary hub repo — re-read to confirm.
+
 ## Commit Conventions
 - Conventional Commits: `feat: | fix: | docs: | refactor: | test: | chore:`; imperative mood;
   subject ≤ ~65 chars; reference the task ID when one exists — `feat(TAPI-003): add TokenValidator seam`.
@@ -161,20 +205,23 @@ Run once per new machine. Do NOT assume laptop 2 mirrors laptop 1's paths, MCP c
    absolute path. If the Filesystem MCP isn't configured for this machine yet, set its allowed
    directories to include the claude-skills repo location on THIS machine (may differ from
    `C:\Users\solan\...` if username/drive differs).
-2. **Get a real git clone, not a synced folder.** If claude-skills lives under OneDrive/iCloud on
-   this machine too, treat that copy as read-only staging — do not run git commands against a
-   `.git` folder that a file-sync service is also touching (risk of corruption from concurrent
-   sync + git writes). Prefer: `git clone https://github.com/will55555/claude-skills.git` into a
-   plain local folder outside any sync service, and do git operations there.
+2. **Get a real git clone, not a synced folder — but verify sync is actually active first.** A
+   folder named "OneDrive" or "iCloud" doesn't necessarily mean live cloud sync is running —
+   confirmed on Will's primary machine 2026-07-09 (the "OneDrive" path is legacy naming only, no
+   active sync). Check the actual sync client's status before assuming risk. If sync genuinely IS
+   active, treat that copy as read-only staging — do not run git commands against a `.git` folder
+   a file-sync service is also touching (risk of corruption from concurrent sync + git writes).
+   If unsure or sync is confirmed active: `git clone https://github.com/will55555/claude-skills.git`
+   into a plain local folder outside any sync service, and do git operations there.
 3. **Reachability-only fallback:** if this session can't get local file access at all (Desktop/web,
    or Filesystem MCP not yet configured), use the GitHub raw bootstrap prompt from Copy/Paste
    Commands — fully portable, no machine setup required.
 4. **Verify the hub loads correctly:** `load hub` and confirm the orientation line comes back with
    real project/task data, not an error.
 5. **Update Machine Paths in HUB.md** with this machine's actual verified paths once confirmed —
-   this is itself a `sync skills` edit (local write + git commands supplied, Will pushes).
+   this is itself a `sync hub` edit (local write + git commands supplied, Will pushes).
 6. **Obsidian vault path** may also differ on this machine — verify separately before the sync
    skill attempts an Obsidian write; don't assume the laptop-1 path.
-7. **Every session after setup, on ANY machine:** `git pull` before trusting local hub files are
-   current — two laptops means either one can be stale relative to the other. This is the
-   ongoing cost of multi-machine use, not a one-time setup step.
+7. **Every session after setup, on ANY machine:** the Startup Sequence's step 1 (HUB.md) now
+   handles this automatically — confirm/pull before trusting local files. Nothing extra to do
+   here; noted for awareness that this applies beyond just first-time setup.
