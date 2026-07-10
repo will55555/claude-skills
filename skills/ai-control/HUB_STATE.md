@@ -4,12 +4,15 @@
 
 ## Terra API                                        <!-- prefix: TAPI -->
 - **Status:** Active — primary build
-- **Active Task:** TAPI-001 — Phase 3 JWT auth implementation
-- **Next Step:** Build TokenIssuer → SelfTokenIssuer + TokenValidator seams with versioned claims
+- **Active Task:** TAPI-001 — Phase 3 JWT auth implementation (issuer model resolved, ready to code)
+- **Next Step:** Implement AuthService/AuthController/JwtAuthenticationFilter; bind SelfTokenIssuer
+  behind TokenIssuer interface with versioned claims (iss/sub/exp/tier/scope)
 - **Blockers:** None
 - **Context:** Spring Boot 3.5.1 / Java 21 / Gradle Kotlin. Phase 2 static-key COMPLETE
-  (phase-2-auth). Phase 3 branch = resilience + JWT workstreams. Reuse shouldNotFilter bypass
-  for /actuator/** and /api/webhooks/** (ApiKeyFilter gotcha).
+  (phase-2-auth). Phase 3 = resilience (ADR-004/005, DONE) + JWT (issuer model resolved
+  2026-07-08: self-issued on master, Terra Auth provisioned-not-built on terra-auth-service
+  branch, activates on 2nd independent identity consumer). Reuse shouldNotFilter bypass for
+  /actuator/** and /api/webhooks/** (ApiKeyFilter gotcha).
 
 ## ROMS                                             <!-- prefix: ROMS -->
 - **Status:** Deployed
@@ -41,14 +44,12 @@
 - **Context:** Java default. Arrays → Strings → Linked Lists → Trees → Graphs → DP.
 
 ## claude-skills                                    <!-- prefix: SKILLS -->
-- **Status:** Active — hub v1.1 fully drafted and verified, awaiting commit/push
-- **Active Task:** SKILLS-012 — commit + push everything (path fix, Sync Queue, git-authority,
-  duplicate-skill cleanup, dev-log entry, findings A–H)
-- **Next Step:** `sync skills` to commit and push; then SKILLS-005 (CLAUDE.md pointers, verify
-  depth first) and SKILLS-006 (dogfood on TAPI-001)
+- **Status:** Active — hub v1.1 complete, pointers placed, both open decisions resolved
+- **Active Task:** SKILLS-006 — dogfood: run `load hub tapi` in a fresh Claude Code session
+- **Next Step:** Open a real Claude Code session in terra-api, confirm the CLAUDE.md pointer
+  auto-activates the hub, verify orientation line, log any friction
 - **Blockers:** None
-- **Context:** Hub v1.1 + satellite edits live at `skills/ai-control/`, re-verified fresh on disk
-  2026-07-09. dev-log + duplicate session-rules skill neutralized in archive/. Git = sole source
-  of truth for ai-control; Notion = informational dupe only. Full history in claude-skills root
-  DEV_LOG.md (2026-07-09 entry, written). Open: SKILLS-013 (naming collision), SKILLS-014 (stale
-  Notion mirror of session-context-sync).
+- **Context:** Hub v1.1 committed and pushed 2026-07-09 (first round); second round of fixes
+  (CLAUDE.md pointers, `sync skills`→`sync hub` rename, session-context-sync excluded from
+  Notion flow, TAPI/ADR-003 correction) applied on disk, not yet committed. Git = sole source of
+  truth for ai-control; Notion = informational dupe only.

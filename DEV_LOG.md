@@ -50,7 +50,7 @@ Trigger phrase: "push to Notion" or "sync skills to Notion"
 
 | Skill | Purpose |
 |-------|---------|
-| `session-context-sync` | End-of-session sync → Notion, Obsidian, CLAUDE.md |
+| `session-context-sync` | End-of-session sync → Notion, Obsidian, HUB_STATE.md. EXCLUDED from the Notion deploy/push flow as of 2026-07-09 — too tightly coupled to hub-specific design to dual-author; edit directly in-repo |
 | `consolidate-memory` | Deduplicate and prune memory files |
 | `docx` | Word document creation and editing (.docx) |
 | `note-reader` | Read notes from Notion / Obsidian |
@@ -135,3 +135,24 @@ would all have pointed at a path that doesn't exist.
 - This repo's Notion mirror of session-context-sync is stale relative to tonight's edits — risk if
   "deploy"/"pull skills" runs before Notion is updated to match (SKILLS-014)
 - Not yet dogfooded: first real test is `load hub tapi` in a fresh Claude Code session (SKILLS-006)
+
+### Addendum (same day) — SKILLS-005, SKILLS-013, SKILLS-014, SKILLS-016 resolved
+- **SKILLS-005:** CLAUDE.md pointers placed in terra-api (`../../`, double-nested — verified by
+  reading actual folder structure, not assumed), terra-hq-site (`../`), and ROMS/
+  restaurant-order-management-system (`../`, new minimal CLAUDE.md — none existed). PIOS skipped,
+  no repo exists yet. Depth table recorded in HUB_GUIDE.md going forward.
+- **SKILLS-013 (naming collision) — resolved, not just mitigated:** `sync skills` renamed to
+  `sync hub`. Reasoning: a bare-vs-qualified phrase distinction is something someone has to
+  remember (same failure class as the page-ID drift and duplicate-skill issues found earlier
+  tonight) — better to make the collision structurally impossible. `sync hub` matches this hub's
+  existing verb-first pattern (`sync state`, `sync framework`) and has zero overlap with "sync
+  skills to Notion"/"deploy"/"push to Notion."
+- **SKILLS-014 (stale Notion mirror) — resolved via permanent exclusion, not a one-time refresh:**
+  `session-context-sync` excluded from the Notion deploy/push flow going forward (see Skill
+  inventory table above and the skill's own file). A one-time Notion refresh would only reset the
+  clock until the next independent edit on either side; exclusion removes the dual-authorship
+  problem structurally instead.
+- **SKILLS-016:** resolved earlier same day — fetched ADR-003 directly from Notion, confirmed
+  self-issued JWT + provisioned-not-built Terra Auth is the real, current, Accepted decision.
+  terra-api's local CLAUDE.md was stale (2026-07-07 blocker never updated after the 2026-07-08
+  resolution); corrected to match.

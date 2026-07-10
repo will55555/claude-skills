@@ -52,6 +52,7 @@ Fixed read order — never deviate, never parallelize:
 | Completion reported (or single agent ask) | GUIDE: Documentation Protocol | Draft dev-log entry → preview → approval → write |
 | Session ending / wrap-up | session-context-sync skill | Full sync pass (Notion/Obsidian/HUB_STATE) |
 | `sync state` (any time) | — | Overwrite active HUB_STATE section now; no full pass |
+| `sync hub` (any time) | — | Preview all touched skill/hub files → write locally → supply git commands (see Skill Update Trigger) |
 | Rollover threshold hit | Rollover Rule below | Mandatory 4-part output |
 | Note context needed | note-reader skill | Read-only fetch |
 | New machine / first setup | GUIDE: New Machine Setup | Walk through portability checklist |
@@ -160,14 +161,15 @@ or dev logs — everything here lands in git. Work-at-home HUB_STATE sections ho
   ai-control is part of the claude-skills repo, not its own repo; it shares that repo's one log.
 
 ## Skill Update Trigger
-- Trigger: `sync skills` (variant: `update skills`). Runs any time a skill or hub file was edited
-  this session — not only at session end (session-end sync still covers this via the Trigger Map
-  row, but `sync skills` lets it fire on demand mid-session).
-- NAMING NOTE: this is deliberately distinct from this repo's existing "push to Notion" / "sync
-  skills to Notion" / "deploy" / "pull skills" phrases (see root DEV_LOG.md), which govern the
-  Notion↔repo flow for OTHER skills. `sync skills` (bare, no "Notion") means the git-only hub
-  action above. Dropped the `push skills` variant specifically because it echoed "push to Notion"
-  too closely — full collision resolution still open, this is a partial mitigation.
+- Trigger: `sync hub` (renamed 2026-07-09 from `sync skills` — see naming note below). Runs any
+  time a skill or hub file was edited this session — not only at session end (session-end sync
+  still covers this via the Trigger Map row, but `sync hub` lets it fire on demand mid-session).
+- NAMING NOTE: originally `sync skills`, which sat too close to this repo's pre-existing "push to
+  Notion" / "sync skills to Notion" / "deploy" / "pull skills" phrases (see root DEV_LOG.md),
+  which govern the Notion↔repo flow for OTHER skills. Rather than rely on a bare-vs-qualified
+  distinction someone has to remember, renamed to `sync hub` — matches the hub's own existing
+  verb-first pattern (`sync state`, `sync framework`) and has zero phrase overlap with the Notion
+  flow. Structural fix, not a managed distinction.
 - What the agent CAN do directly: write/edit the local files in the claude-skills repo via the
   Filesystem tool, when that repo is reachable (verified for `claude-skills/` itself; check
   `Filesystem:list_allowed_directories` each session — don't assume). This is a real file edit,
@@ -191,7 +193,7 @@ or dev logs — everything here lands in git. Work-at-home HUB_STATE sections ho
      ```bash
      cd <claude-skills repo root — see Machine Paths table>
      git add -A
-     git commit -m "chore: sync skills <YYYY-MM-DD> — <short summary>"
+     git commit -m "chore: sync hub <YYYY-MM-DD> — <short summary>"
      git push
      ```
   5) State plainly that local write is done but push is NOT — Will must run the commands above

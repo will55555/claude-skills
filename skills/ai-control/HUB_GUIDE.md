@@ -126,11 +126,12 @@ Hard budget ~15–20 lines. Overwritten in place on every sync — history goes 
 - Framework edit (only with approved candidate): `sync framework`
 - Quick status: `Using HUB_STATE + active TASKS.md: done / open / next in 5 bullets max.`
 - Rollover (agent emits automatically at threshold; manual trigger): `roll over`
-- Update skills (local edit + git commands supplied; Will runs push): `sync skills`
+- Update skills/hub (local edit + git commands supplied; Will runs push): `sync hub`
 
 ## Per-Repo CLAUDE.md Pointer (auto-activation in Claude Code)
-Paste into each repo's `CLAUDE.md` once. Enables the hub to load automatically on
-session start — no `load hub` phrase needed.
+Paste into each repo's `CLAUDE.md` once (append to existing content if the file already has
+project context — never overwrite). Enables the hub to load automatically on session start —
+no `load hub` phrase needed.
 ```markdown
 ## Engineering Hub
 At the start of every substantive session, read and apply all rules from:
@@ -138,11 +139,19 @@ At the start of every substantive session, read and apply all rules from:
 The hub is the source of truth. Update the hub, not this file.
 ```
 Default example above assumes the repo sits as a SIBLING of claude-skills directly under
-`SDE/` (one level up: `../`). VERIFY actual folder depth before pasting — adjust the `../`
-count if the repo is nested deeper. Don't paste the template blind.
+`SDE/` (one level up: `../`). **Depth is NOT uniform across repos — verified per-repo 2026-07-09:**
 
-Repos still needing this pointer: terra-api, roms, pios, terra-hq-site, and any
-future repo. Non-repo projects (DSA, FM-at-home) have no CLAUDE.md — use the
+| Repo | Actual git root | Depth needed | Status |
+|---|---|---|---|
+| terra-api | `SDE/terra-api/terra-api/` (double-nested!) | `../../` | ✅ pointer added |
+| terra-hq-site | `SDE/terra-hq-site/` (sibling) | `../` | ✅ pointer added |
+| restaurant-order-management-system (ROMS) | `SDE/restaurant-order-management-system/` (sibling) | `../` | ✅ pointer added (new minimal CLAUDE.md, none existed) |
+| pios | no repo exists yet | n/a | — nothing to point; add when PIOS moves to code |
+
+Don't trust this table blind on a future machine either — folder layout can differ per machine
+(see Machine Paths). `list_directory` the actual repo before assuming depth.
+
+Non-repo projects (DSA, FM-at-home) have no CLAUDE.md — use the
 explicit `load hub` / `load hub <project>` trigger for those instead.
 
 ## New Machine Setup (portability checklist)

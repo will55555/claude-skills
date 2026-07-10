@@ -14,6 +14,11 @@ Note: Notion page IDs and the Projects DB reference are NOT stored in this file 
 live in Claude memory (userMemories) as the single source of truth. Look them up there;
 do not maintain a duplicate table here.
 
+Note: this skill is EXCLUDED from the repo's Notion deploy/push flow (see root `DEV_LOG.md`) as
+of 2026-07-09 — it's too tightly coupled to hub-specific design (git-authority rule, Sync Queue)
+to safely dual-author between Notion and git. Edit this file directly in the repo. Do not run
+"deploy"/"pull skills" against this specific file, and do not "push to Notion" from it either.
+
 ---
 
 ## Target Overview

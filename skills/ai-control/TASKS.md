@@ -16,19 +16,41 @@
       `name: session-rules` as active skill, drifted Notion IDs, old WM format) (done)
 - [x] SKILLS-010 — Applied Patches 1–4 + Findings A–H: Sync Queue, git-authority rule,
       CLAUDE.md pointer depth fix, dev-log-location fix, hardcoded-path genericization,
-      freshness stamps bumped to v1.1, trigger naming partial mitigation (done — uncommitted)
+      freshness stamps bumped to v1.1, trigger naming partial mitigation (done — pushed 2026-07-09)
 - [x] SKILLS-011 — Append the 2026-07-09 entry to claude-skills root DEV_LOG.md (done)
-- [ ] SKILLS-012 — Commit + push everything above (`sync skills`)
-- [ ] SKILLS-005 — Add CLAUDE.md pointer block to terra-api, roms, pios, terra-hq-site
-      (VERIFY actual relative path depth first — see HUB_GUIDE Per-Repo Pointer note)
+- [x] SKILLS-012 — Commit + push everything above (`sync skills`) (done — pushed 2026-07-09)
+- [x] SKILLS-005 — Add CLAUDE.md pointer block to terra-api, roms, pios, terra-hq-site (done
+      2026-07-09 — terra-api: `../../` (double-nested, appended to existing rich CLAUDE.md);
+      terra-hq-site: `../` (appended to existing rich CLAUDE.md); ROMS
+      (restaurant-order-management-system): `../` (NEW minimal CLAUDE.md created, none existed);
+      PIOS skipped, no repo exists yet)
 - [ ] SKILLS-006 — Dogfood: run `load hub tapi` in a fresh Claude Code session, log friction
-- [ ] SKILLS-013 — Still-open decision: resolve `sync skills` vs "sync skills to Notion"/
-      "deploy" naming collision (partial mitigation applied — dropped `push skills` variant)
-- [ ] SKILLS-014 — Still-open risk: Notion's copy of session-context-sync is stale vs tonight's
-      edits — update the Notion page, or exclude this skill from the Notion deploy/push flow,
-      before anyone runs "deploy"/"pull skills"
+- [x] SKILLS-016 — RESOLVED 2026-07-09: fetched ADR-003 directly from Notion — confirms
+      self-issued JWT on master, Terra Auth provisioned-not-built, activates on 2nd identity
+      consumer ("Issuer Model — Resolved 2026-07-08"). Memory was correct; terra-api's local
+      CLAUDE.md was stale (2026-07-07 blocker never updated). Fixed CLAUDE.md (Open Blockers,
+      Key Decisions Log, Next Action) and HUB_STATE's TAPI section to match ADR-003.
+- [x] SKILLS-013 — RESOLVED 2026-07-09: renamed `sync skills` → `sync hub` (structural fix, not
+      a managed bare-vs-qualified distinction — zero phrase overlap with "sync skills to
+      Notion"/"deploy"/"push to Notion"). Updated HUB.md (trigger, Trigger Map row, commit
+      message example) and HUB_GUIDE.md (Copy/Paste Commands).
+- [x] SKILLS-014 — RESOLVED 2026-07-09: `session-context-sync` permanently excluded from the
+      Notion deploy/push flow (too tightly coupled to hub-specific design to dual-author safely).
+      Updated root DEV_LOG.md's Skill inventory table and the skill's own SKILL.md with explicit
+      exclusion notes. "deploy"/"pull skills" will no longer touch this file.
 - [x] SKILLS-015 — Update root DEV_LOG.md's "Skill inventory" table: dev-log + session-rules
       rows marked ARCHIVED, footnote added explaining ai-control's exclusion (done)
 
 ## FM (work-at-home thinking — context only, no proprietary code/internals)
 (none yet)
+
+## Security (not project-specific — general hygiene follow-ups)
+- [ ] SEC-001 — Move exposed plaintext credentials into a password manager (Bitwarden or Proton
+      Pass — both free-tier viable, Bitwarden slightly favored for CLI/dev workflow fit), then
+      delete the plaintext copies:
+      - `C:\Users\solan\OneDrive\Desktop\SDE\Github PAT key.txt`
+      - `C:\Users\solan\OneDrive\Desktop\SDE\s3-ROMS-local_accessKeys.csv`
+      - `C:\Users\solan\OneDrive\Desktop\SDE\s3-ROMS-local_credentials.csv`
+      (Note: the copies of these files INSIDE `restaurant-order-management-system\` are already
+      gitignored — lower urgency there. These three are the ones sitting unprotected at bare
+      SDE root, outside any repo.)
