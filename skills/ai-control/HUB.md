@@ -156,6 +156,8 @@ Fixed read order — never deviate, never parallelize:
   |---|---|---|
   | claude-skills repo | `C:\Users\solan\OneDrive\Desktop\SDE\claude-skills\` | Confirmed reachable 2026-07-09 — edit in place |
   | terra-api | `C:\Users\solan\OneDrive\Desktop\SDE\terra-api\terra-api\` (double-nested!) | Confirmed reachable 2026-07-09 |
+  | terra-api (machine: test) | `C:\Users\test\Desktop\Programing\terra-api\` (single-nested, NOT double) | Confirmed reachable 2026-07-10 |
+  | claude-skills (machine: test) | `C:\Users\test\Desktop\Programing\claude-skills\` | Confirmed reachable 2026-07-10 |
   | terra-hq-site | `C:\Users\solan\OneDrive\Desktop\SDE\terra-hq-site\` | Confirmed reachable 2026-07-09 |
   | ROMS (restaurant-order-management-system) | `C:\Users\solan\OneDrive\Desktop\SDE\restaurant-order-management-system\` | Confirmed 2026-07-09 — folder is NOT named "roms" |
   | pios | no repo exists yet | n/a — add when PIOS moves to code |

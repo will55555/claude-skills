@@ -1,24 +1,26 @@
 # Engineering Hub State
-<!-- Freshness: 2026-07-09 | v1.1 | Snapshots only — overwritten in place. History lives in DEV_LOGs. -->
+<!-- Freshness: 2026-07-10 | v1.2 | Snapshots only — overwritten in place. History lives in DEV_LOGs. -->
 <!-- New project? Copy the template from HUB_GUIDE.md → HUB_STATE Section Template. -->
 
 ## Terra API                                        <!-- prefix: TAPI -->
 - **Status:** Active — primary build
-- **Active Task:** TAPI-001 — Phase 3 JWT auth implementation (issuer model resolved, ready to code)
-- **Next Step:** Implement AuthService/AuthController/JwtAuthenticationFilter; bind SelfTokenIssuer
-  behind TokenIssuer interface with versioned claims (iss/sub/exp/tier/scope)
+- **Active Task:** TAPI-001 Done (2026-07-10) — Phase 3 JWT auth verified end-to-end
+  (login → 200 + token → GET /api/dashboard → 200). No active task assigned yet.
+- **Next Step:** Pick next TAPI task — package realignment (health/ premature, missing
+  client/exception/) or resilience-track cleanup; neither started.
 - **Blockers:** None
-- **Context:** Spring Boot 3.5.1 / Java 21 / Gradle Kotlin. Phase 2 static-key COMPLETE
-  (phase-2-auth). Phase 3 = resilience (ADR-004/005, DONE) + JWT (issuer model resolved
-  2026-07-08: self-issued on master, Terra Auth provisioned-not-built on terra-auth-service
-  branch, activates on 2nd independent identity consumer). Reuse shouldNotFilter bypass for
-  /actuator/** and /api/webhooks/** (ApiKeyFilter gotcha).
+- **Context:** ApiKeyFilter deleted from phase-3-resilience (preserved live on
+  phase-2-auth) after fixing a bug where its lingering @Component annotation
+  auto-registered it as a servlet filter independent of SecurityConfig, blocking
+  login with 401 regardless of JWT wiring. Full writeup: terra-api/DEV_LOG.md → Phase 3.
+  New machine in use this session (user `test`, single-nested path), now in Machine
+  Paths table.
 
 ## ROMS                                             <!-- prefix: ROMS -->
 - **Status:** Deployed
 - **Active Task:** ROMS-001 — first real integration target for Terra API shared services
-- **Next Step:** Define integration point once TAPI Phase 3 auth is usable
-- **Blockers:** Waiting on TAPI-001
+- **Next Step:** Define integration point — TAPI-001 (JWT auth) done 2026-07-10, unblocked
+- **Blockers:** None
 - **Context:** Spring Boot + React. First potential revenue source.
 
 ## PIOS                                             <!-- prefix: PIOS -->
