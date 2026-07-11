@@ -1,30 +1,26 @@
 # Engineering Hub State
-<!-- Freshness: 2026-07-09 | v1.1 | Snapshots only — overwritten in place. History lives in DEV_LOGs. -->
+<!-- Freshness: 2026-07-10 | v1.2 | Snapshots only — overwritten in place. History lives in DEV_LOGs. -->
 <!-- New project? Copy the template from HUB_GUIDE.md → HUB_STATE Section Template. -->
 
 ## Terra API                                        <!-- prefix: TAPI -->
 - **Status:** Active — primary build
-- **Active Task:** TAPI-001 — Phase 3 JWT auth implementation, mid-implementation
-- **Next Step:** Write Java classes: TokenIssuer/TokenValidator interfaces + SigningKeyResolver/
-  VerificationKeyResolver seam, SelfTokenIssuer/SelfTokenValidator (JJWT), LoginRequest/Response,
-  AuthService, AuthController (POST /api/auth/login), JwtAuthenticationFilter — then rewire
-  SecurityConfig (JWT REPLACES ApiKeyFilter, confirmed w/ Will 2026-07-09; ApiKeyFilter code
-  stays, just unwired). Staying on phase-3-resilience (no new branch, Will's call).
+- **Active Task:** TAPI-001 Done (2026-07-10) — Phase 3 JWT auth verified end-to-end
+  (login → 200 + token → GET /api/dashboard → 200). No active task assigned yet.
+- **Next Step:** Pick next TAPI task — package realignment (health/ premature, missing
+  client/exception/) or resilience-track cleanup; neither started.
 - **Blockers:** None
-- **Context:** Spring Boot 3.5.1 / Java 21 / Gradle Kotlin. Fetched ADR-003 from Notion directly
-  (page 37089370-d497-818c-8ff2-dde48c2dc3ec) — confirms self-issued JWT + TokenIssuer/
-  TokenValidator/key-resolver seams + versioned claims (iss/sub/exp/tier/scope) so a future
-  RemoteTokenIssuer swap is clean. Done: build.gradle.kts (jjwt-api/impl/jackson 0.12.6),
-  application.yaml (terra.auth.issuer + terra.auth.login single-service-account block), local
-  terra-api CLAUDE.md (Open Blockers/Key Decisions Log/Next Action fixed — was stale, this repo
-  clone hadn't picked up the 2026-07-08 resolution). Reuse shouldNotFilter bypass pattern for
-  /actuator/**, /api/webhooks/**, and now /api/auth/login too.
+- **Context:** ApiKeyFilter deleted from phase-3-resilience (preserved live on
+  phase-2-auth) after fixing a bug where its lingering @Component annotation
+  auto-registered it as a servlet filter independent of SecurityConfig, blocking
+  login with 401 regardless of JWT wiring. Full writeup: terra-api/DEV_LOG.md → Phase 3.
+  New machine in use this session (user `test`, single-nested path), now in Machine
+  Paths table.
 
 ## ROMS                                             <!-- prefix: ROMS -->
 - **Status:** Deployed
 - **Active Task:** ROMS-001 — first real integration target for Terra API shared services
-- **Next Step:** Define integration point once TAPI Phase 3 auth is usable
-- **Blockers:** Waiting on TAPI-001
+- **Next Step:** Define integration point — TAPI-001 (JWT auth) done 2026-07-10, unblocked
+- **Blockers:** None
 - **Context:** Spring Boot + React. First potential revenue source.
 
 ## PIOS                                             <!-- prefix: PIOS -->
