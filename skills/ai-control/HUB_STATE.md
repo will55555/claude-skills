@@ -1,20 +1,23 @@
 # Engineering Hub State
-<!-- Freshness: 2026-07-10 | v1.2 | Snapshots only — overwritten in place. History lives in DEV_LOGs. -->
+<!-- Freshness: 2026-07-11 | v1.2 | Snapshots only — overwritten in place. History lives in DEV_LOGs. -->
 <!-- New project? Copy the template from HUB_GUIDE.md → HUB_STATE Section Template. -->
 
 ## Terra API                                        <!-- prefix: TAPI -->
 - **Status:** Active — primary build
 - **Active Task:** TAPI-001 Done (2026-07-10) — Phase 3 JWT auth verified end-to-end
   (login → 200 + token → GET /api/dashboard → 200). No active task assigned yet.
-- **Next Step:** Pick next TAPI task — package realignment (health/ premature, missing
-  client/exception/) or resilience-track cleanup; neither started.
+- **Next Step:** TAPI-006 (delete superseded `health/HealthIndicator.java` stub) is
+  small/standalone, available now. The bigger pick is starting the Phase 4 branch
+  (TAPI-002/003/004: rate limit, audit log, feature flags — reassigned from Phase 3
+  2026-07-11) with `client/`+`exception/` package realignment (TAPI-005) done JIT as
+  part of it, not standalone. None started yet.
 - **Blockers:** None
-- **Context:** ApiKeyFilter deleted from phase-3-resilience (preserved live on
-  phase-2-auth) after fixing a bug where its lingering @Component annotation
-  auto-registered it as a servlet filter independent of SecurityConfig, blocking
-  login with 401 regardless of JWT wiring. Full writeup: terra-api/DEV_LOG.md → Phase 3.
-  New machine in use this session (user `test`, single-nested path), now in Machine
-  Paths table.
+- **Context:** ApiKeyFilter actually deleted 2026-07-11 (previously only de-annotated
+  despite docs claiming full deletion — caught and fixed same session). ADR-006/007/008
+  reassigned Phase 3 → Phase 4 in Notion (dated amendments, originals preserved); Redis
+  formally Phase 5 (was informal `phase-4-redis` branch name). Full writeup:
+  terra-api/DEV_LOG.md → Phase Renumbering. New machine in use this session (user
+  `test`, single-nested path), now in Machine Paths table.
 
 ## ROMS                                             <!-- prefix: ROMS -->
 - **Status:** Deployed
