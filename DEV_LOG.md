@@ -157,6 +157,32 @@ would all have pointed at a path that doesn't exist.
   terra-api's local CLAUDE.md was stale (2026-07-07 blocker never updated after the 2026-07-08
   resolution); corrected to match.
 
+---
+
+## 2026-07-11 — HUB.md v1.3: Execution Role Boundary strengthened
+
+### What changed
+`## Agent Operating Constraints` in `skills/ai-control/HUB.md` was edited directly by Will
+(mid-session, terra-api) to add an explicit **EXECUTION ROLE BOUNDARY (absolute)** subsection —
+stronger, more literal language than the prior "NO EXECUTION" bullet: names the forbidden
+commands (`./gradlew build|test`, `npm`, `mvn test`, `java -jar`, shell scripts), spells out the
+7-step edit/run/report rhythm, and adds the "cognitive lock" framing (if Claude sees a command
+window, it is not Claude's to use).
+
+### Why this matters
+The edit landed on disk without a stamp refresh or a log entry — a live Hub Update Gate gap
+caught mid-session when Will asked "did you fully read the hub" after a `load hub` + status
+check in terra-api. Freshness stamp still read `2026-07-10 | v1.2` despite the substantive
+rewrite.
+
+### Fix
+- Freshness stamp bumped to `2026-07-11 | v1.3`.
+- This entry closes the gate: content edit + stamp + log now all agree.
+
+### Known limitations / next
+- No functional rule change (the underlying no-execution policy was already in force) — this was
+  a specificity/emphasis upgrade plus a process-hygiene fix, not a new constraint.
+
 ### Correction (same day) — OneDrive sync misdiagnosis
 A later re-audit found terra-api's CLAUDE.md fix from the SKILLS-016 entry above had reverted
 silently despite the edit tool confirming success (and, separately, that ROMS's CLAUDE.md was
@@ -167,3 +193,37 @@ this machine is legacy naming only, with no actual active cloud sync running. Th
 was wrong; true root cause remains unconfirmed. HUB.md and HUB_GUIDE.md corrected to remove the
 false attribution while keeping the practical rule (re-read after editing to confirm persistence,
 regardless of cause) — the observed symptom was real even though the explanation wasn't.
+
+---
+
+## 2026-07-11 — HUB_GUIDE.md v1.2: project CLAUDE.md pointer convention codified
+
+### What changed
+Same terra-api session that caught the HUB.md v1.3 gap above also surfaced a second one: terra-api's
+`CLAUDE.md` had described JWT (ADR-003) as "still empty stubs... not started" a full day after
+TAPI-001 shipped and was verified end-to-end (2026-07-10) — HUB_STATE.md, TASKS.md, and DEV_LOG.md
+all had it right, CLAUDE.md alone was stale. Traced the cause: none of `sync state`, `sync hub`, or
+`load hub`'s Linear Fetch Mode ever write to or cross-check project CLAUDE.md files — it's read
+once as the auto-activation pointer, then never revisited.
+
+### Fix
+- terra-api's `CLAUDE.md` corrected (JWT status, Next Action) and its own Key Decisions Log given
+  a 2026-07-11 entry explaining the change.
+- `HUB_GUIDE.md` → `Operating Incidents`: new entry recording the drift and root cause.
+- `HUB_GUIDE.md` → `Per-Repo CLAUDE.md Pointer`: standing rule added — any "Next Action"/"Next
+  Step"-style field in a project CLAUDE.md must be a pointer to `HUB_STATE.md`, never a duplicate,
+  since nothing rewrites it. Feature/architecture-level "Current State" content stays local —
+  HUB_STATE's fixed ~15–20 line snapshot shape can't hold it by design.
+- Freshness stamp bumped to `2026-07-11 | v1.2`.
+
+### Why not fix it by wiring CLAUDE.md into the sync pipeline instead
+Considered (add CLAUDE.md as a fourth `sync` write target, or have `load hub` diff it against
+HUB_STATE). Will chose the pointer approach instead — smaller, matches the hub's existing "shared
+content = pointer, not copy" principle (Skill Interop, HUB.md), and removes the drift surface
+structurally rather than adding another thing that has to stay synchronized.
+
+### Known limitations / next
+- Only terra-api's CLAUDE.md was corrected this session (ROMS, PIOS, terra-hq-site aren't
+  reachable from this machine — see Machine Paths). Their CLAUDE.md files carry the same
+  duplication risk and should get the same pointer treatment next time they're touched from a
+  machine that can reach them.

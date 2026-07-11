@@ -1,5 +1,5 @@
 # Engineering Hub (load hub)
-<!-- Freshness: 2026-07-10 | v1.2 | Home: claude-skills/skills/ai-control/ -->
+<!-- Freshness: 2026-07-11 | v1.3 | Home: claude-skills/skills/ai-control/ -->
 
 ## Mission
 Single control system for all personal coding/engineering work. Fast handoff, minimal re-discovery,

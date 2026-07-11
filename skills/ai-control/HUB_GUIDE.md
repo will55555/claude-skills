@@ -1,5 +1,5 @@
 # Engineering Hub Guide
-<!-- Freshness: 2026-07-09 | v1.1 | Cold storage: sections load ONLY via HUB.md Trigger Map -->
+<!-- Freshness: 2026-07-11 | v1.2 | Cold storage: sections load ONLY via HUB.md Trigger Map -->
 <!-- Lego rule: every section below is self-contained and deletable without breaking any other. -->
 
 ## Agent Stance
@@ -143,6 +143,20 @@ remains unknown. The fix was redone as three smaller edits and re-verified prese
 The practical lesson survives independent of the (wrong) explanation: a successful tool response
 is not proof of persistence for files outside the primary hub repo — re-read to confirm.
 
+**Project CLAUDE.md drifted from HUB_STATE with no mechanism to catch it (terra-api, 2026-07-11):**
+terra-api's `CLAUDE.md` described JWT (ADR-003) as "still empty stubs... not started" a full day
+after TAPI-001 shipped and was verified end-to-end (2026-07-10) — HUB_STATE.md, TASKS.md, and
+DEV_LOG.md all had it right. Root cause: none of `sync state` (writes HUB_STATE.md only), `sync
+hub` (writes HUB.md/HUB_GUIDE.md only), or `load hub`'s Linear Fetch Mode (reads HUB_STATE as the
+snapshot of record, never cross-checks project CLAUDE.md) touch project CLAUDE.md files at all —
+it's used once, as the auto-activation pointer, then never revisited. Caught only because Will
+asked "did you fully read the hub" after a status check surfaced the contradiction.
+**Fix pattern (see Per-Repo CLAUDE.md Pointer below for the standing rule):** don't try to keep
+CLAUDE.md's task-status fields in sync with HUB_STATE — replace them with a pointer instead.
+Feature/architecture-level detail (what shipped, why) has no other home and stays in CLAUDE.md as-is
+— HUB_STATE is a fixed ~15–20 line snapshot by design and can't carry it, so only genuinely
+duplicated fields (Next Action / Next Step) should collapse to a pointer, not the whole section.
+
 ## Commit Conventions
 - Conventional Commits: `feat: | fix: | docs: | refactor: | test: | chore:`; imperative mood;
   subject ≤ ~65 chars; reference the task ID when one exists — `feat(TAPI-003): add TokenValidator seam`.
@@ -197,6 +211,14 @@ Don't trust this table blind on a future machine either — folder layout can di
 
 Non-repo projects (DSA, FM-at-home) have no CLAUDE.md — use the
 explicit `load hub` / `load hub <project>` trigger for those instead.
+
+**Task-status fields must point at HUB_STATE, not duplicate it.** If a repo's CLAUDE.md carries a
+"Next Action"/"Next Step"-style field, write it as a pointer (`See HUB_STATE.md → [Project] →
+Next Step`) rather than restating the current pick — nothing in the sync/load pipeline writes
+back to project CLAUDE.md files, so any duplicated status field WILL drift silently (see Operating
+Incidents, 2026-07-11, for the terra-api case this was caught from). Feature/architecture-level
+content (a "Current State" changelog of what shipped) is fine to keep local — HUB_STATE's
+fixed-size snapshot can't hold that detail and isn't meant to.
 
 ## New Machine Setup (portability checklist)
 Run once per new machine. Do NOT assume laptop 2 mirrors laptop 1's paths, MCP config, or git state.
