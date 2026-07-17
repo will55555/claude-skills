@@ -1,23 +1,24 @@
 # Engineering Hub State
-<!-- Freshness: 2026-07-11 | v1.2 | Snapshots only — overwritten in place. History lives in DEV_LOGs. -->
+<!-- Freshness: 2026-07-15 | v1.3 | Snapshots only — overwritten in place. History lives in DEV_LOGs. -->
 <!-- New project? Copy the template from HUB_GUIDE.md → HUB_STATE Section Template. -->
 
 ## Terra API                                        <!-- prefix: TAPI -->
 - **Status:** Active — primary build
-- **Active Task:** TAPI-001 Done (2026-07-10) — Phase 3 JWT auth verified end-to-end
-  (login → 200 + token → GET /api/dashboard → 200). No active task assigned yet.
-- **Next Step:** TAPI-006 (delete superseded `health/HealthIndicator.java` stub) is
-  small/standalone, available now. The bigger pick is starting the Phase 4 branch
-  (TAPI-002/003/004: rate limit, audit log, feature flags — reassigned from Phase 3
-  2026-07-11) with `client/`+`exception/` package realignment (TAPI-005) done JIT as
-  part of it, not standalone. None started yet.
+- **Active Task:** None in progress — **Phase 4 (governance) fully closed 2026-07-15:**
+  TAPI-002/003/004/006/007/008 Done, TAPI-005 resolved Not Needed (re-evaluated after
+  TAPI-002/003/004 shipped; none needed custom exceptions).
+- **Next Step:** `phase-4-governance` branch, 14 commits ahead of Phase 3 close, not
+  pushed — held until Will decides to push/merge. No next-phase task selected yet;
+  candidates are Phase 5 (Redis + PostgreSQL migration, ADR-001/007) or resuming ROMS
+  integration testing (JWT auth ready since TAPI-001).
 - **Blockers:** None
-- **Context:** ApiKeyFilter actually deleted 2026-07-11 (previously only de-annotated
-  despite docs claiming full deletion — caught and fixed same session). ADR-006/007/008
-  reassigned Phase 3 → Phase 4 in Notion (dated amendments, originals preserved); Redis
-  formally Phase 5 (was informal `phase-4-redis` branch name). Full writeup:
-  terra-api/DEV_LOG.md → Phase Renumbering. New machine in use this session (user
-  `test`, single-nested path), now in Machine Paths table.
+- **Context:** Phase 4 shipped rate limiting, audit log bus, feature flags, Notion
+  removal — plus 2 real bugs found only via live smoke-testing (not caught by
+  `MockMvc`): audit log JSON casing (camelCase vs. ADR-007's snake_case schema) and a
+  Spring Security `/error` permitAll gap that silently overwrote real HTTP statuses
+  with `403` app-wide (TAPI-008, general fix, not heartbeat-specific). Full writeup:
+  terra-api/DEV_LOG.md (7 dated entries this session). Machine: `test`, single-nested
+  path (see Machine Paths table).
 
 ## ROMS                                             <!-- prefix: ROMS -->
 - **Status:** Deployed
