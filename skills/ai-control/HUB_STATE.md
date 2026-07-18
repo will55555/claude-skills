@@ -1,36 +1,31 @@
 # Engineering Hub State
-<!-- Freshness: 2026-07-17 (rev 5) | v1.3 | Snapshots only — overwritten in place. History lives in DEV_LOGs. -->
+<!-- Freshness: 2026-07-17 (rev 6) | v1.3 | Snapshots only — overwritten in place. History lives in DEV_LOGs. -->
 <!-- New project? Copy the template from HUB_GUIDE.md → HUB_STATE Section Template. -->
 
 ## Terra API                                        <!-- prefix: TAPI -->
 - **Status:** Active — primary build
-- **Active Task:** None in progress — **TAPI-009 (post-Phase-4 codebase audit) +
-  TAPI-010 (runtime/build performance pass) both closed 2026-07-17:** full
-  file-by-file correctness pass across all 7 `src/main/java` packages, followed by a
-  throughput/build/startup pass. `./gradlew test` green after all fixes both times.
-- **Next Step:** TAPI-011 (Phase 5: Redis + Postgres audit migration) opened
-  2026-07-17, Planned/notes-only — no code yet. Both ADR triggers look unmet
-  (dashboard deleted so Redis's ">10 concurrent users" gate is moot; Postgres
-  audit migration's "query/reporting need" hasn't materialized) but Will's call
-  is to build it anyway as forward-looking prep. Full context: terra-api
-  TASKS.md → TAPI-011. Also still open: no real build/startup timing numbers
-  taken yet (TAPI-010 flagged this).
+- **Active Task:** TAPI-011 (Phase 5: Redis + Postgres audit migration) — In
+  Progress. Built on `phase-5-redis` 2026-07-17: Redis property-driven config
+  (ADR-001), Postgres `schema.sql` + `AuditLogRepository` (JdbcTemplate, dual-
+  write alongside the JSON audit log), insert moved off the hash-chain lock
+  via a bounded `@Async` executor, profile-gated+idempotency-guarded
+  `AuditLogBackfillRunner`, `docker-compose.yml` for local Redis+Postgres.
+  Caught and fixed a near-miss: the Redis dependency swap briefly broke the
+  unrelated `CaffeineRateLimitStore` (TAPI-002) by removing the raw Caffeine
+  library entirely — restored, noted in ADR-001.
+- **Next Step:** `./gradlew test` green (48/48) and committed locally at
+  `f4f8bc4` — **not yet pushed** (brand new branch, no remote tracking yet)
+  and not yet verified against a real running Postgres/Redis (only proven:
+  app boots and existing behavior is unbroken, not that the new dual-write/
+  backfill actually works end-to-end). Full context: terra-api TASKS.md →
+  TAPI-011, ADR-001 + ADR-007 both amended in Notion with what's actually
+  built vs. still planned.
 - **Blockers:** None
-- **Context:** TAPI-009 real fixes: `CacheConfig`/`EnvConfig` replaced with
-  property-driven config (`spring.cache.*` YAML, `DotenvEnvironmentPostProcessor`);
-  `TerraAuthProperties`/`QuarantinePolicyProperties` now `@Validated` (was 5 scattered
-  `@Value` injections / 8 redundant Java defaults); new `SecurityPaths` consolidates a
-  bypass-path list that had already drifted twice; `QuarantineService` per-record
-  updates now `synchronized` (volatile fields don't compose atomically across
-  `recordHeartbeat`'s request threads and the scheduled missed-heartbeat check);
-  `Heartbeat.status` now `@Pattern`-validated (was failing open to HEALTHY on any
-  unrecognized value); dead `EventBusController` + unused webflux/reactor-test
-  removed. Also fixed 2 pre-existing bugs (401-vs-403, `actuator/health` 404-via-
-  MockMvc) surfaced by a live test run, both already flagged in the TAPI-007 commit
-  message but never fixed until now. Full writeup: terra-api/DEV_LOG.md → TAPI-009
-  (concept-heavy — Java field-init ordering, volatile-vs-synchronized, Spring's
-  separate management-port child context, EnvironmentPostProcessor SPI). Machine:
-  `test`, single-nested path (see Machine Paths table).
+- **Context:** Phase 4 (TAPI-009/010) closed 2026-07-17 before Phase 5
+  started same day — full writeup terra-api/DEV_LOG.md → TAPI-009 (concept-
+  heavy: Java field-init ordering, volatile-vs-synchronized, Spring's
+  separate management-port child context, EnvironmentPostProcessor SPI).
+  Machine: `test`, single-nested path (see Machine Paths table).
 
 ## ROMS                                             <!-- prefix: ROMS -->
 - **Status:** Deployed
