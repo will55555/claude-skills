@@ -1,25 +1,31 @@
 # Engineering Hub State
-<!-- Freshness: 2026-07-17 (rev 6) | v1.3 | Snapshots only — overwritten in place. History lives in DEV_LOGs. -->
+<!-- Freshness: 2026-07-18 (rev 7) | v1.3 | Snapshots only — overwritten in place. History lives in DEV_LOGs. -->
 <!-- New project? Copy the template from HUB_GUIDE.md → HUB_STATE Section Template. -->
 
 ## Terra API                                        <!-- prefix: TAPI -->
 - **Status:** Active — primary build
-- **Active Task:** TAPI-011 (Phase 5: Redis + Postgres audit migration) — In
-  Progress. Built on `phase-5-redis` 2026-07-17: Redis property-driven config
-  (ADR-001), Postgres `schema.sql` + `AuditLogRepository` (JdbcTemplate, dual-
-  write alongside the JSON audit log), insert moved off the hash-chain lock
-  via a bounded `@Async` executor, profile-gated+idempotency-guarded
-  `AuditLogBackfillRunner`, `docker-compose.yml` for local Redis+Postgres.
-  Caught and fixed a near-miss: the Redis dependency swap briefly broke the
-  unrelated `CaffeineRateLimitStore` (TAPI-002) by removing the raw Caffeine
-  library entirely — restored, noted in ADR-001.
-- **Next Step:** `./gradlew test` green (48/48) and committed locally at
-  `f4f8bc4` — **not yet pushed** (brand new branch, no remote tracking yet)
-  and not yet verified against a real running Postgres/Redis (only proven:
-  app boots and existing behavior is unbroken, not that the new dual-write/
-  backfill actually works end-to-end). Full context: terra-api TASKS.md →
-  TAPI-011, ADR-001 + ADR-007 both amended in Notion with what's actually
-  built vs. still planned.
+- **Active Task:** None in progress — **TAPI-011 (Phase 5: Redis + Postgres
+  audit migration) Done, live-verified 2026-07-18.** Built on `phase-5-redis`:
+  Redis property-driven config (ADR-001), Postgres `schema.sql` +
+  `AuditLogRepository` (JdbcTemplate, dual-write alongside the JSON audit
+  log), insert moved off the hash-chain lock via a bounded `@Async` executor,
+  profile-gated+idempotency-guarded `AuditLogBackfillRunner`,
+  `docker-compose.yml` for local Redis+Postgres. `docker-compose up` +
+  a real request confirmed an actual row landed in `audit_log` end-to-end —
+  not just test-suite-clean. Two real bugs found only by live-running it:
+  `schema.sql`'s `CREATE INDEX` statements weren't idempotent (fixed to match
+  the table's `IF NOT EXISTS`), and a native Windows `postgres.exe` service
+  was competing for port 5432 with the Docker container (moved the
+  container's mapping to 5433 in both `docker-compose.yml` and
+  `application.yaml`). Also caught and fixed a near-miss: the Redis
+  dependency swap briefly broke the unrelated `CaffeineRateLimitStore`
+  (TAPI-002) — restored, noted in ADR-001.
+- **Next Step:** No next-phase task selected yet. `phase-5-redis` fully
+  committed (`03bc7bf`) and pushed to both `origin` and `bitbucket`; no PR
+  opened/merged yet — that's the one remaining step before this could be
+  considered fully shipped. Full context: terra-api TASKS.md → TAPI-011,
+  ADR-001 + ADR-007 both amended in Notion with the complete build+verify
+  writeup.
 - **Blockers:** None
 - **Context:** Phase 4 (TAPI-009/010) closed 2026-07-17 before Phase 5
   started same day — full writeup terra-api/DEV_LOG.md → TAPI-009 (concept-
