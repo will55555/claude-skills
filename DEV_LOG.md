@@ -227,3 +227,42 @@ structurally rather than adding another thing that has to stay synchronized.
   reachable from this machine — see Machine Paths). Their CLAUDE.md files carry the same
   duplication risk and should get the same pointer treatment next time they're touched from a
   machine that can reach them.
+
+---
+
+## 2026-07-17 — HUB.md: Startup Sequence gets an active-project staleness check
+
+### What changed
+A terra-api session hit the same failure twice independently: HUB_STATE.md's claims about the
+active project didn't match reality. First, Terra API's Next Step said `phase-4-governance` was
+"not pushed/committed" when `git log`/`git status` showed it already committed and pushed at
+`e05a1db`. Second, terra-hq-site's Active Task (THQ-001, "building public pages") was several
+shipped phases out of date against that repo's own CLAUDE.md (11 pages + a Three.js visualizer
+already live). Both were only caught by manually running local git checks against HUB_STATE text
+mid-session — the Startup Sequence itself never did this.
+
+### Fix
+`HUB.md` → `Startup Sequence`: new step 4 (renumbering the old 4/5 to 5/6) — after Linear Fetch
+Mode reads the active project's HUB_STATE section, run one cheap local check (`git log -1
+--oneline` + `git status --short` at that project's Machine Paths root) and compare against the
+Active Task/Next Step claims just read. Fold any mismatch into the orientation confirmation line
+rather than silently trusting HUB_STATE text. Explicitly scoped as one check per active project,
+not a trigger to re-derive the whole section from git history — the Linear Fetch Mode read-order
+discipline still holds. Freshness stamp bumped to `2026-07-17`.
+
+### Why not a broader HUB_STATE audit instead
+Considered making `load hub` diff the entire active section against DEV_LOG/TASKS.md every time.
+Rejected — that's exactly the "growth must never sit on the startup path" rule this hub already
+follows for Linear Fetch Mode; a full audit is `sync state`'s job (on explicit trigger), not
+something every `load hub` should pay for. The staleness check added here is deliberately narrow:
+one git log + one git status, nothing else.
+
+### Known limitations / next
+- Scoped to Claude Code sessions with the active project's repo reachable locally — web/Desktop
+  sessions reading GitHub raw have no local git to check, so they skip this the same way step 1's
+  `git pull` is already Claude-Code-only.
+- Only catches drift that shows up in `git log -1`/`git status` (e.g. "not committed" claims, or a
+  Next Step already superseded by a later commit). Drift in prose *content* accuracy (like
+  THQ-001's stale description, which was still a "clean" git state) needs a human or a deeper read
+  to catch — this check would not have caught THQ-001 on its own, only the Terra API case. Worth
+  revisiting if prose-level drift keeps recurring.

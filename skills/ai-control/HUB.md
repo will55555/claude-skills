@@ -32,8 +32,16 @@ model.
    - Lightweight only — not the full Notion/Obsidian/HUB_STATE pass `sync` does at session end.
 2) Detect active project from working folder (or from `load hub <project>` argument).
 3) Follow Linear Fetch Mode below. Read nothing outside it.
-4) Emit the orientation confirmation line.
-5) If required artifacts are missing, apply Bootstrap Rules (offer, never auto-create).
+4) Active-project staleness check (cheap, not a full audit — Claude Code only, local repo
+   reachable): one `git log -1 --oneline` + `git status --short` at the active project's Machine
+   Paths root, compared against the Active Task/Next Step claims just read from HUB_STATE. Flag a
+   mismatch (e.g. "not committed" when the tree is clean, a Next Step already superseded by a
+   later commit) inline in the orientation line — don't silently trust HUB_STATE text as current.
+   One check per active project, then continue; this is not a trigger to re-derive the whole
+   section from git history. (Added 2026-07-17 after HUB_STATE drift went unnoticed twice in one
+   session — see claude-skills root DEV_LOG.md.)
+5) Emit the orientation confirmation line (folding in any staleness flag from step 4).
+6) If required artifacts are missing, apply Bootstrap Rules (offer, never auto-create).
 
 ## Linear Fetch Mode (straight-line speed path)
 Fixed read order — never deviate, never parallelize:
