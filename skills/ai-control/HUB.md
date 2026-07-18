@@ -1,5 +1,5 @@
 # Engineering Hub (load hub)
-<!-- Freshness: 2026-07-11 | v1.3 | Home: claude-skills/skills/ai-control/ -->
+<!-- Freshness: 2026-07-17 | v1.3 | Home: claude-skills/skills/ai-control/ -->
 
 ## Mission
 Single control system for all personal coding/engineering work. Fast handoff, minimal re-discovery,
@@ -159,6 +159,7 @@ Fixed read order — never deviate, never parallelize:
   | terra-api (machine: test) | `C:\Users\test\Desktop\Programing\terra-api\` (single-nested, NOT double) | Confirmed reachable 2026-07-10 |
   | claude-skills (machine: test) | `C:\Users\test\Desktop\Programing\claude-skills\` | Confirmed reachable 2026-07-10 |
   | terra-hq-site | `C:\Users\solan\OneDrive\Desktop\SDE\terra-hq-site\` | Confirmed reachable 2026-07-09 |
+  | terra-hq-site (machine: test) | `C:\Users\test\Desktop\Programing\terra-hq-site\` | Cloned fresh 2026-07-17 (was previously not present on this machine) |
   | ROMS (restaurant-order-management-system) | `C:\Users\solan\OneDrive\Desktop\SDE\restaurant-order-management-system\` | Confirmed 2026-07-09 — folder is NOT named "roms" |
   | pios | no repo exists yet | n/a — add when PIOS moves to code |
   | Obsidian vault | `C:\Users\solan\iCloudDrive\iCloud~md~obsidian\iCloud\Obsidian Vault\` | Reachable; sync skill owns writes |
