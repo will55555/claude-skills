@@ -1,5 +1,5 @@
 # Engineering Hub State
-<!-- Freshness: 2026-07-18 (rev 7) | v1.3 | Snapshots only — overwritten in place. History lives in DEV_LOGs. -->
+<!-- Freshness: 2026-07-18 (rev 8) | v1.3 | Snapshots only — overwritten in place. History lives in DEV_LOGs. -->
 <!-- New project? Copy the template from HUB_GUIDE.md → HUB_STATE Section Template. -->
 
 ## Terra API                                        <!-- prefix: TAPI -->
@@ -49,20 +49,18 @@
 
 ## terra-hq-site                                    <!-- prefix: THQ -->
 - **Status:** Active — parallel track
-- **Active Task:** THQ-001 — public pages (index.html + products.html) — ⚠️ this
-  description looks stale against the repo's own CLAUDE.md (11 pages shipped,
-  no products.html listed); not reconciled this session, flagged only.
-- **Next Step:** THQ-002 opened 2026-07-17, Planned/notes-only — no code yet.
-  New behavior: visualizer cubes color by graduated health tier (ADR-005's
-  HEALTHY/YELLOW/ORANGE/RED via Terra API's `ecosystem-health` endpoint)
-  instead of today's binary connected/disconnected. Full context + open design
-  questions: terra-hq-site TASKS.md → THQ-002 (new file this session — repo had
-  no task tracking before). Repo cloned locally this session at
-  `C:\Users\test\Desktop\Programing\terra-hq-site` (machine: test) — now
-  recorded in HUB.md's Machine Paths table.
+- **Active Task:** THQ-002 (Visualizer health-tier coloring) opened 2026-07-17, Planned/notes-only.
+- **Next Step:** Implement color model (HEALTHY/YELLOW/ORANGE/RED tiers from Terra API
+  `ecosystem-health` endpoint) to replace binary connected/disconnected. Open design question:
+  per-cube polling vs. single Terra API ecosystem-health endpoint poll.
 - **Blockers:** None
-- **Context:** Static on Cloudflare Pages; dark gold/teal system. /internal pages get TAPI Phase 2/3
-  JWT protection later — site stays a client of Terra API, never merged into it.
+- **Context:** 2026-07-18 session completed: (1) Clarified dual-visualizer architecture (terra-hq-site
+  public + terra-api-fe scoped both read from Terra API ecosystem-health endpoint — single source
+  of truth); (2) Refactored terra_api_strategy.html (removed 430 lines embedded WebGL, added
+  domain-prefixed ADRs terra-api-adr-001–010, linked to build phases); (3) Fixed product pages
+  (ROMS/PIOS using domain-prefixed ADRs roms-adr-001–005, pios-adr-011–015); (4) Cleaned up Notion
+  CI/CD pages (renamed ADR-009→terra-api-adr-010, updated status/references). All changes staged for
+  commit. CLAUDE.md, TASKS.md, terra_api_strategy.html modified locally; ready to commit.
 
 ## DSA Practice                                     <!-- prefix: DSA -->
 - **Status:** Active — recurring
