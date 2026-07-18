@@ -1,37 +1,21 @@
 # Engineering Hub State
-<!-- Freshness: 2026-07-18 (rev 8) | v1.3 | Snapshots only — overwritten in place. History lives in DEV_LOGs. -->
+<!-- Freshness: 2026-07-18 (rev 9) | v1.3 | Snapshots only — overwritten in place. History lives in DEV_LOGs. -->
 <!-- New project? Copy the template from HUB_GUIDE.md → HUB_STATE Section Template. -->
 
 ## Terra API                                        <!-- prefix: TAPI -->
-- **Status:** Active — primary build
-- **Active Task:** None in progress — **TAPI-011 (Phase 5: Redis + Postgres
-  audit migration) Done, live-verified 2026-07-18.** Built on `phase-5-redis`:
-  Redis property-driven config (ADR-001), Postgres `schema.sql` +
-  `AuditLogRepository` (JdbcTemplate, dual-write alongside the JSON audit
-  log), insert moved off the hash-chain lock via a bounded `@Async` executor,
-  profile-gated+idempotency-guarded `AuditLogBackfillRunner`,
-  `docker-compose.yml` for local Redis+Postgres. `docker-compose up` +
-  a real request confirmed an actual row landed in `audit_log` end-to-end —
-  not just test-suite-clean. Two real bugs found only by live-running it:
-  `schema.sql`'s `CREATE INDEX` statements weren't idempotent (fixed to match
-  the table's `IF NOT EXISTS`), and a native Windows `postgres.exe` service
-  was competing for port 5432 with the Docker container (moved the
-  container's mapping to 5433 in both `docker-compose.yml` and
-  `application.yaml`). Also caught and fixed a near-miss: the Redis
-  dependency swap briefly broke the unrelated `CaffeineRateLimitStore`
-  (TAPI-002) — restored, noted in ADR-001.
-- **Next Step:** No next-phase task selected yet. `phase-5-redis` fully
-  committed (`03bc7bf`) and pushed to both `origin` and `bitbucket`; no PR
-  opened/merged yet — that's the one remaining step before this could be
-  considered fully shipped. Full context: terra-api TASKS.md → TAPI-011,
-  ADR-001 + ADR-007 both amended in Notion with the complete build+verify
-  writeup.
-- **Blockers:** None
-- **Context:** Phase 4 (TAPI-009/010) closed 2026-07-17 before Phase 5
-  started same day — full writeup terra-api/DEV_LOG.md → TAPI-009 (concept-
-  heavy: Java field-init ordering, volatile-vs-synchronized, Spring's
-  separate management-port child context, EnvironmentPostProcessor SPI).
-  Machine: `test`, single-nested path (see Machine Paths table).
+- **Status:** Active — Phase 5 complete, pivoting to CI/CD infrastructure (terra-api-adr-010)
+- **Active Task:** TAPI-012 — Ecosystem CI/CD & Deployment Infrastructure (terra-api-adr-010)
+- **Next Step:** (On different machine per user request) Set up Jenkinsfile in terra-api repo
+  mirroring ROMS's pipeline; extract terra-jenkins (move Jenkins server config from ROMS repo
+  into neutral home); define thin shared library (buildAndPushImage + deploySSH). Blocked on
+  SEC-001 (plaintext GitHub PAT + AWS keys at SDE root → password manager).
+- **Blockers:** SEC-001 must resolve before credential setup
+- **Context:** TAPI-011 (Phase 5: Redis + Postgres audit migration) complete 2026-07-18,
+  pushed to both origin + bitbucket (branch: phase-4-governance, 12 commits ahead locally).
+  Local machine (`solan`) has clean working tree. Work continues on different machine.
+  Full context: terra-api/TASKS.md → TAPI-011, terra-api/DEV_LOG.md → Phase 4/5 writeups.
+  terra-api-adr-010 finalized in Notion + terra_api_strategy.html (domain-prefixed naming
+  formalized 2026-07-18).
 
 ## ROMS                                             <!-- prefix: ROMS -->
 - **Status:** Deployed
