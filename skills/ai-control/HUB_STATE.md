@@ -1,5 +1,5 @@
 # Engineering Hub State
-<!-- Freshness: 2026-07-18 (rev 9) | v1.3 | Snapshots only — overwritten in place. History lives in DEV_LOGs. -->
+<!-- Freshness: 2026-07-18 (rev 10) | v1.3 | Snapshots only — overwritten in place. History lives in DEV_LOGs. -->
 <!-- New project? Copy the template from HUB_GUIDE.md → HUB_STATE Section Template. -->
 
 ## Terra API                                        <!-- prefix: TAPI -->
@@ -52,6 +52,12 @@
 - **Next Step:** First Arrays problem via 3-phase methodology
 - **Blockers:** None
 - **Context:** Java default. Arrays → Strings → Linked Lists → Trees → Graphs → DP.
+
+## Cross-Project Notes                              <!-- no prefix — ecosystem-wide, not project-scoped -->
+- **SonarQube gate (noted 2026-07-18):** Ecosystem-wide code-quality pass planned across all
+  projects, once, before full deployment — not a per-project or per-PR blocker. Intent: keep
+  developing/adding functionality now, run it later, likely wired into the CI/CD pipeline being
+  built under Terra API's TAPI-012. No task ID yet — too early to scope.
 
 ## claude-skills                                    <!-- prefix: SKILLS -->
 - **Status:** Active — hub v1.1 complete, pointers placed, both open decisions resolved
