@@ -1,5 +1,5 @@
 # Engineering Hub Guide
-<!-- Freshness: 2026-07-11 | v1.2 | Cold storage: sections load ONLY via HUB.md Trigger Map -->
+<!-- Freshness: 2026-07-18 | v1.3 | Cold storage: sections load ONLY via HUB.md Trigger Map -->
 <!-- Lego rule: every section below is self-contained and deletable without breaking any other. -->
 
 ## Agent Stance
@@ -247,3 +247,12 @@ Run once per new machine. Do NOT assume laptop 2 mirrors laptop 1's paths, MCP c
 7. **Every session after setup, on ANY machine:** the Startup Sequence's step 1 (HUB.md) now
    handles this automatically — confirm/pull before trusting local files. Nothing extra to do
    here; noted for awareness that this applies beyond just first-time setup.
+8. **Re-grant the Hub Self-Sync Exception's tool permissions on THIS machine** (added 2026-07-18).
+   HUB.md's Hub Self-Sync Exception lets Claude pull/commit/push `skills/ai-control/` files
+   without asking, but the actual permission-prompt suppression lives in `~/.claude/settings.json`
+   (`permissions.allow` + `additionalDirectories`), keyed to THIS machine's absolute claude-skills
+   path — it does not travel with a git pull, and the path differs per machine (see Machine Paths
+   table) so an entry copied verbatim from another machine's settings.json will not match. Add
+   `additionalDirectories` for this machine's `skills/ai-control/` path, `Read(...)`/`Edit(...)`
+   allow rules for the same, and a `Bash(cd "<this machine's claude-skills path>" && git *)` allow
+   rule. One-time per machine, not per session.
