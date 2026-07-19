@@ -1,19 +1,28 @@
 # Engineering Hub State
-<!-- Freshness: 2026-07-19 (rev 11) | v1.3 | Snapshots only — overwritten in place. History lives in DEV_LOGs. -->
+<!-- Freshness: 2026-07-19 (rev 12) | v1.3 | Snapshots only — overwritten in place. History lives in DEV_LOGs. -->
 <!-- New project? Copy the template from HUB_GUIDE.md → HUB_STATE Section Template. -->
 
 ## Terra API                                        <!-- prefix: TAPI -->
-- **Status:** Active — Phase 5 complete; CI/CD (terra-api-adr-010) design complete, scaffolding next
-- **Active Task:** TAPI-012 (Ecosystem CI/CD, terra-api-adr-010) — brainstorm complete 2026-07-19
-- **Next Step:** Scaffold terra-api/terra-jenkins/ folder + Jenkinsfile. Decisions locked: terra-jenkins
-  in terra-api (folder), shared library in terra-api/terra-shared-lib/ (vars/buildAndPushImage.groovy,
-  deploySSH.groovy), credentials in Jenkins UI (GitHub deploy key, SSH key, Docker Hub), branch
-  tiering (master→prod auto, phase-*→staging manual→prod via merge, feature branches CI only).
-  Deploy target: EC2 AWS, images to terra-api Docker Hub org. SEC-001 done.
-- **Blockers:** None
-- **Context:** On `phase-5-redis` (`03bc7bf`). Brainstorm session 2026-07-19 settled all
-  open items from ADR-010 (terra-jenkins repo-vs-folder, branch policy tiering, shared library
-  placement, credential strategy). Ready to move to scaffolding phase.
+- **Status:** Active — TAPI-012 Jenkinsfile scaffolded through Push to Docker Hub; Deploy
+  staged but commented out (EC2 not provisioned yet)
+- **Active Task:** TAPI-012 (Ecosystem CI/CD, terra-api-adr-010) — in progress
+- **Next Step:** Provision the EC2 box (one instance, both tiers — staging/prod share the host,
+  kept apart via `-p <project-name>` + separate compose files with distinct ports;
+  `STAGING_SSH_TARGET`/`PROD_SSH_TARGET` env vars already scaffolded in the Jenkinsfile so
+  splitting to 2 boxes later is a 1-line change, no stage rewrite). Create
+  `docker-compose.staging.yml`/`docker-compose.prod.yml` (neither exists yet), then uncomment
+  the two Deploy stages. Shared library (`terra-shared-lib`) deliberately NOT built yet — ADR's
+  own ordering extracts it once both services' pipelines exist, not before.
+- **Blockers:** None (SEC-001 done)
+- **Context:** `terra-jenkins/` relocated out of ROMS's repo into `terra-api/terra-jenkins/`
+  (jenkins.Dockerfile bumped `lts-jdk17`→`lts-jdk21` for the now-shared server; compose file
+  neutralized, `jenkins_home` volume deliberately left pinned to preserve existing data).
+  `Jenkinsfile` built stage-by-stage off ROMS's pattern: Checkout/Build/Test/Build Docker
+  Image/Push to Docker Hub all live (Gradle not Maven, single-module, image renamed
+  `terra-api-be`, branch-tiering `when` gates added — ROMS is flat, terra-api isn't). Frontend
+  stages and Deploy both commented out with explanatory headers (terra-api-fe / EC2 don't exist
+  yet). **Nothing committed to git yet** — `Dockerfile` modified, `Jenkinsfile` + `terra-jenkins/`
+  untracked, still on `phase-5-redis` (`03bc7bf`).
 
 ## ROMS                                             <!-- prefix: ROMS -->
 - **Status:** Deployed
