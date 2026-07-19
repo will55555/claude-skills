@@ -247,12 +247,21 @@ Run once per new machine. Do NOT assume laptop 2 mirrors laptop 1's paths, MCP c
 7. **Every session after setup, on ANY machine:** the Startup Sequence's step 1 (HUB.md) now
    handles this automatically — confirm/pull before trusting local files. Nothing extra to do
    here; noted for awareness that this applies beyond just first-time setup.
-8. **Re-grant the Hub Self-Sync Exception's tool permissions on THIS machine** (added 2026-07-18).
-   HUB.md's Hub Self-Sync Exception lets Claude pull/commit/push `skills/ai-control/` files
-   without asking, but the actual permission-prompt suppression lives in `~/.claude/settings.json`
-   (`permissions.allow` + `additionalDirectories`), keyed to THIS machine's absolute claude-skills
-   path — it does not travel with a git pull, and the path differs per machine (see Machine Paths
-   table) so an entry copied verbatim from another machine's settings.json will not match. Add
-   `additionalDirectories` for this machine's `skills/ai-control/` path, `Read(...)`/`Edit(...)`
-   allow rules for the same, and a `Bash(cd "<this machine's claude-skills path>" && git *)` allow
-   rule. One-time per machine, not per session.
+8. **Re-grant the Hub Self-Sync Exception's tool permissions on THIS machine** (added 2026-07-18,
+   revised same day once tested live). HUB.md's Hub Self-Sync Exception lets Claude pull/commit/
+   push `skills/ai-control/` files without asking, but the actual permission-prompt suppression
+   lives in `~/.claude/settings.json`, which is per-machine and does NOT travel with a git pull.
+   Two parts, only one of which is path-dependent:
+   - `permissions.additionalDirectories` + `Read(...)`/`Edit(...)` allow rules scoped to THIS
+     machine's absolute `skills/ai-control/` path (see Machine Paths table) — an entry copied
+     verbatim from another machine's settings.json will not match, since the path differs.
+   - `Bash(git *)` allow rule — this one is NOT path-scoped and can be copied as-is to any
+     machine. Tried scoping it to the hub directory via a `Bash(cd "<path>" && git *)` pattern
+     first; doesn't work, because the permission engine checks each `&&`-chained command
+     segment independently, so neither the `cd` nor the `git` half ever matches alone. There is
+     no rule syntax that fences a Bash allow to "only when cwd is X" — global `git *` (any repo,
+     any directory) or a prompt every time are the only two options. Went with global allow,
+     2026-07-18 — Claude still self-restricts to just `skills/ai-control/` per this section and
+     the general git-remote-ops boundary for every other repo; the permission grant is a ceiling,
+     not a mandate, so scope is enforced by instruction-following, not by the tool layer.
+   One-time per machine, not per session.
