@@ -61,7 +61,12 @@ model.
 
 ## Linear Fetch Mode (straight-line speed path)
 Fixed read order — never deviate, never parallelize:
-`HUB.md → HUB_STATE.md [active project section ONLY] → TASKS.md [active task ONLY] → DEV_LOG.md [latest checkpoint ONLY]`
+`HUB.md → HUB_STATE.md [active project section + Cross-Project Notes section] → TASKS.md [active task ONLY] → DEV_LOG.md [latest checkpoint ONLY]`
+- Cross-Project Notes (added 2026-07-18) is a fixed-size, ecosystem-wide section (not per-project) —
+  read it every time alongside the active project section, not just when scoped there. If it has
+  any entry, fold a one-line mention into the orientation confirmation (e.g.
+  `| note: SonarQube gate — later, all-projects, not a blocker`). Empty section = nothing to add,
+  say nothing (same quiet-by-default rule as the Promotion Engine).
 - Each step: extract only what the immediate next step needs, then continue forward.
 - HUB_GUIDE.md is OFF-PATH. Its sections load only when the Trigger Map fires them — never at startup.
 - If blocked: read ONE additional file that unblocks the path, then return to the line.
