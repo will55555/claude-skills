@@ -3,16 +3,17 @@
 <!-- New project? Copy the template from HUB_GUIDE.md → HUB_STATE Section Template. -->
 
 ## Terra API                                        <!-- prefix: TAPI -->
-- **Status:** Active — Phase 5 complete; CI/CD (terra-api-adr-010) in progress (TAPI-012)
-- **Active Task:** TAPI-012 (Ecosystem CI/CD, terra-api-adr-010) started 2026-07-19
-- **Next Step:** Move Jenkins server config to `terra-jenkins`, scaffold terra-api's Jenkinsfile,
-  extract thin shared library (`buildAndPushImage`/`deploySSH`). SEC-001 resolved (credentials
-  migrated to Bitwarden, plaintext files deleted).
+- **Status:** Active — Phase 5 complete; CI/CD (terra-api-adr-010) design complete, scaffolding next
+- **Active Task:** TAPI-012 (Ecosystem CI/CD, terra-api-adr-010) — brainstorm complete 2026-07-19
+- **Next Step:** Scaffold terra-api/terra-jenkins/ folder + Jenkinsfile. Decisions locked: terra-jenkins
+  in terra-api (folder), shared library in terra-api/terra-shared-lib/ (vars/buildAndPushImage.groovy,
+  deploySSH.groovy), credentials in Jenkins UI (GitHub deploy key, SSH key, Docker Hub), branch
+  tiering (master→prod auto, phase-*→staging manual→prod via merge, feature branches CI only).
+  Deploy target: EC2 AWS, images to terra-api Docker Hub org. SEC-001 done.
 - **Blockers:** None
-- **Context:** On `phase-5-redis` branch (`03bc7bf`). TAPI-011 live-verified. terra-api-adr-010
-  Accepted: per-service Jenkinsfile, neutral `terra-jenkins` home, thin no-business-logic shared
-  library; open items: `terra-jenkins` repo-vs-folder, Terra API's own branch-tier deploy policy
-  (only prior sketch exists). Full details: terra-api-adr-010 + Terra CI/CD tracker (Notion).
+- **Context:** On `phase-5-redis` (`03bc7bf`). Brainstorm session 2026-07-19 settled all
+  open items from ADR-010 (terra-jenkins repo-vs-folder, branch policy tiering, shared library
+  placement, credential strategy). Ready to move to scaffolding phase.
 
 ## ROMS                                             <!-- prefix: ROMS -->
 - **Status:** Deployed
