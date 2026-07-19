@@ -19,7 +19,11 @@ model.
 - Auto-activation: in Claude Code, a repo CLAUDE.md pointer loads this hub without the trigger phrase.
   Both activation modes follow the same Startup Sequence.
 - First response after activation MUST confirm orientation in one line:
-  `Hub loaded → [project] | [active task ID] | next: [next step]`.
+  `Hub loaded → [project] | [active task ID] | next: [next step] | claude-skills: [sync result]`.
+  The `claude-skills: [sync result]` segment reports the Startup Sequence step 1 self-sync pull
+  that already runs every load — surface it (e.g. "up to date (9afa750)" or "pulled 2 new commits
+  (abc123→def456)") instead of doing it silently. Claude Code only — web/Desktop sessions reading
+  GitHub raw omit this segment (nothing was pulled).
 - Access: Claude Code reads local files; web/Desktop sessions read the pushed GitHub copy
   (raw.githubusercontent.com/will55555/claude-skills/master/skills/ai-control/). Pushed state = visible state.
 
