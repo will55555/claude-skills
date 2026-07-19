@@ -3,19 +3,18 @@
 <!-- New project? Copy the template from HUB_GUIDE.md → HUB_STATE Section Template. -->
 
 ## Terra API                                        <!-- prefix: TAPI -->
-- **Status:** Active — Phase 5 complete, pivoting to CI/CD infrastructure (terra-api-adr-010)
-- **Active Task:** TAPI-012 — Ecosystem CI/CD & Deployment Infrastructure (terra-api-adr-010)
-- **Next Step:** (On different machine per user request) Set up Jenkinsfile in terra-api repo
-  mirroring ROMS's pipeline; extract terra-jenkins (move Jenkins server config from ROMS repo
-  into neutral home); define thin shared library (buildAndPushImage + deploySSH). Blocked on
-  SEC-001 (plaintext GitHub PAT + AWS keys at SDE root → password manager).
-- **Blockers:** SEC-001 must resolve before credential setup
-- **Context:** TAPI-011 (Phase 5: Redis + Postgres audit migration) complete 2026-07-18,
-  pushed to both origin + bitbucket (branch: phase-4-governance, 12 commits ahead locally).
-  Local machine (`solan`) has clean working tree. Work continues on different machine.
-  Full context: terra-api/TASKS.md → TAPI-011, terra-api/DEV_LOG.md → Phase 4/5 writeups.
-  terra-api-adr-010 finalized in Notion + terra_api_strategy.html (domain-prefixed naming
-  formalized 2026-07-18).
+- **Status:** Active — Phase 5 complete; CI/CD (terra-api-adr-010) planned, not yet started
+- **Active Task:** None started — TAPI-012 (Ecosystem CI/CD, terra-api-adr-010) queued, not begun
+- **Next Step:** Resolve SEC-001 first (ADR's own step order) — then move Jenkins server config
+  to `terra-jenkins`, scaffold terra-api's Jenkinsfile, extract thin shared library
+  (`buildAndPushImage`/`deploySSH`). Plan re-confirmed live against Notion 2026-07-19.
+- **Blockers:** SEC-001 (plaintext GitHub PAT + AWS keys) blocks Jenkins credential setup
+- **Context:** TAPI-011 done/live-verified, pushed to both remotes (`03bc7bf`), clean tree —
+  unchanged this session; `phase-4-governance` is actually 3 commits BEHIND `phase-5-redis` on
+  both remotes (corrects a prior stale entry here — not diverged/ahead). terra-api-adr-010
+  Accepted: per-service Jenkinsfile, neutral `terra-jenkins` home, thin no-business-logic shared
+  library; open items: `terra-jenkins` repo-vs-folder, Terra API's own branch-tier deploy policy
+  (only a prior sketch exists). Full: terra-api-adr-010 + Terra CI/CD tracker (Notion).
 
 ## ROMS                                             <!-- prefix: ROMS -->
 - **Status:** Deployed
