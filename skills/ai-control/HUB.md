@@ -1,5 +1,5 @@
 # Engineering Hub (load hub)
-<!-- Freshness: 2026-07-17 | v1.3 | Home: claude-skills/skills/ai-control/ -->
+<!-- Freshness: 2026-07-18 | v1.4 | Home: claude-skills/skills/ai-control/ -->
 
 ## Mission
 Single control system for all personal coding/engineering work. Fast handoff, minimal re-discovery,
@@ -25,8 +25,12 @@ model.
 
 ## Startup Sequence (mandatory order)
 1) Startup sync (lightweight, not a full session-end pass):
-   - Claude Code only: confirm/pull before trusting local files (`git pull` at the repo root from
-     Machine Paths). Web/Desktop reading GitHub raw skip this — always current by definition.
+   - Claude Code only, claude-skills repo ONLY (see Hub Self-Sync Exception below): Claude runs
+     `git pull` at the claude-skills repo root itself, silently, no confirmation needed — this is
+     the one repo where that's pre-authorized. Any OTHER project repo's Machine Paths root still
+     follows the general git-remote-ops boundary (fetch/pull/push are never run by Claude there
+     without being asked). Web/Desktop reading GitHub raw skip this entirely — always current by
+     definition.
    - Any session type: drain any Pending `#target:git` entries from the Notion Sync Queue if git
      is now reachable (full mechanism: session-context-sync → Universal Sync & Fallback Queue).
    - Lightweight only — not the full Notion/Obsidian/HUB_STATE pass `sync` does at session end.
@@ -199,10 +203,31 @@ or dev logs — everything here lands in git. Work-at-home HUB_STATE sections ho
   pre-existing "push to Notion"/"deploy" phrases for OTHER skills; see root DEV_LOG.md).
 - Agent CAN write/edit local claude-skills files directly (real edit, when reachable — check
   `Filesystem:list_allowed_directories` each session, don't assume).
-- Agent CANNOT run git commands or call the GitHub API — no exec access, credentials prohibited.
-  Always supplies exact commands for Will to run; never claims a push succeeded without Will's
-  confirmation.
+- Agent CANNOT run git commands or call the GitHub API on claude-skills files OUTSIDE
+  `skills/ai-control/` (other skills' content, root docs, etc.) — no exec access there, credentials
+  prohibited. Always supplies exact commands for Will to run for those; never claims a push
+  succeeded without Will's confirmation.
 - Pull-before-edit: confirm this machine's local copy is current before writing (multi-machine
   safety) — same principle as Startup Sequence step 1, applied before edits too.
 - Full step-by-step procedure (preview → write → supply commands → fallback if unreachable):
-  GUIDE → Skill Update Procedure.
+  GUIDE → Skill Update Procedure. (Superseded for `ai-control/` files by the Hub Self-Sync
+  Exception below — no command hand-off needed there.)
+
+## Hub Self-Sync Exception (added 2026-07-18, by explicit request — removes pull/push friction)
+- Scope: ONLY files under `skills/ai-control/` (`HUB.md`, `HUB_STATE.md`, `HUB_GUIDE.md`,
+  `TASKS.md` if added there) in the claude-skills repo. Nothing else — not other skills in this
+  repo, not any project repo (terra-api, etc.), which keep the general git-remote-ops boundary
+  (Claude never runs fetch/pull/push there unasked).
+- Within that scope, Claude runs a **finite pull → commit → push loop itself**, no per-instance
+  confirmation, no supplying commands for Will to run instead: pull first, apply the edit, then
+  commit and push, verify the push landed, then STOP — this is one bounded cycle per hub touch,
+  not a standing/background process. Applies to BOTH the Startup Sequence pull (step 1) AND any
+  hub edit made via `sync state`/`sync hub` during a session.
+- Still applies unchanged: preview the actual file content change before writing it (edits to
+  hub rules/state are still visible and reviewable — this exception removes the git-command
+  hand-off, not the content preview); verify the push actually landed (`git log -1` / `git
+  ls-remote`) before reporting success, same evidentiary bar as before — just self-verified
+  instead of Will-confirmed.
+- Rationale: hub files are low-risk, frequently-touched, single-purpose sync artifacts (not
+  product code) — the repeated "here are the commands, please run them" cycle for this one
+  narrow path was pure friction with no safety benefit, per Will's explicit 2026-07-18 request.

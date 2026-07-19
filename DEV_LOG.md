@@ -266,3 +266,31 @@ one git log + one git status, nothing else.
   THQ-001's stale description, which was still a "clean" git state) needs a human or a deeper read
   to catch — this check would not have caught THQ-001 on its own, only the Terra API case. Worth
   revisiting if prose-level drift keeps recurring.
+
+## 2026-07-18 — HUB.md v1.4: Hub Self-Sync Exception (Claude runs hub's own git loop)
+
+### What changed
+A terra-api session surfaced real friction: every HUB_STATE.md edit meant Claude drafting the
+change, then handing back `git add`/`commit`/`push` commands for Will to paste, every single
+time — the "Agent CANNOT run git commands" rule in Skill Update Trigger applied uniformly across
+all of claude-skills, hub included. Will explicitly asked for a standing exception, scoped to just
+the hub, that removes this back-and-forth entirely — no permission needed per instance, run it as
+a loop.
+
+### Fix
+`HUB.md` gets a new `## Hub Self-Sync Exception` section: for files under `skills/ai-control/`
+ONLY (`HUB.md`, `HUB_STATE.md`, `HUB_GUIDE.md`), Claude runs a bounded pull → commit → push cycle
+itself (self-verified via `git log -1`/`git ls-remote`, then stops — not a background/standing
+loop). `Skill Update Trigger`'s existing "Agent CANNOT run git commands" language narrowed to
+apply only OUTSIDE `skills/ai-control/` (other skills, root docs, etc.), which still hand off
+commands as before. `Startup Sequence` step 1 updated to match: Claude pulls the claude-skills
+repo itself at hub load, silently: General git-remote-ops boundary (no fetch/pull/push without
+being asked) is explicitly preserved for every OTHER repo, including terra-api — this exception is
+intentionally narrow. Freshness stamp bumped to `2026-07-18`, version to `v1.4`.
+
+### Why scoped this narrowly
+Hub files are low-risk, frequently-touched, single-purpose sync artifacts, not product code — the
+repeated command hand-off had no safety benefit there. The same logic doesn't extend to project
+repos (terra-api, etc.): those pushes are visible/shared-state changes on real product work, where
+the existing confirm-first default still holds. Content preview before writing is unchanged either
+way — this exception removes the git-command hand-off, not the review step.
