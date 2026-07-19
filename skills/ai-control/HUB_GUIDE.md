@@ -255,13 +255,20 @@ Run once per new machine. Do NOT assume laptop 2 mirrors laptop 1's paths, MCP c
    - `permissions.additionalDirectories` + `Read(...)`/`Edit(...)` allow rules scoped to THIS
      machine's absolute `skills/ai-control/` path (see Machine Paths table) — an entry copied
      verbatim from another machine's settings.json will not match, since the path differs.
-   - `Bash(git *)` allow rule — this one is NOT path-scoped and can be copied as-is to any
-     machine. Tried scoping it to the hub directory via a `Bash(cd "<path>" && git *)` pattern
-     first; doesn't work, because the permission engine checks each `&&`-chained command
-     segment independently, so neither the `cd` nor the `git` half ever matches alone. There is
-     no rule syntax that fences a Bash allow to "only when cwd is X" — global `git *` (any repo,
+   - `Bash(git *)` AND `Bash(cd *)` allow rules — neither is path-scoped, both copy as-is to any
+     machine. Tried scoping to the hub directory via a `Bash(cd "<path>" && git *)` combined
+     pattern first; doesn't work, because the permission engine checks each `&&`-chained command
+     segment independently, so neither half ever matches alone against one combined rule. There
+     is no rule syntax that fences a Bash allow to "only when cwd is X" — global allow (any repo,
      any directory) or a prompt every time are the only two options. Went with global allow,
      2026-07-18 — Claude still self-restricts to just `skills/ai-control/` per this section and
      the general git-remote-ops boundary for every other repo; the permission grant is a ceiling,
      not a mandate, so scope is enforced by instruction-following, not by the tool layer.
+   - Both `git *` and `cd *` are needed, not just `git *` — a compound command like
+     `cd "<path>" && git log ... && git pull ... && git log ...` has `cd` as its own independent
+     segment too. Even with `git *` allowed, an un-allowed `cd` (or worse, a variable-assignment
+     segment like `BEFORE=$(git log ...)`, which matches neither rule) still triggers a prompt.
+     Keep hub self-sync commands to plain sequential `cd`/`git` segments only — no shell variable
+     capture, no `echo` — see HUB.md's Trigger Contract implementation note for the concrete
+     command shape this settled on.
    One-time per machine, not per session.

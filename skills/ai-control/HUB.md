@@ -24,6 +24,14 @@ model.
   that already runs every load — surface it (e.g. "up to date (9afa750)" or "pulled 2 new commits
   (abc123→def456)") instead of doing it silently. Claude Code only — web/Desktop sessions reading
   GitHub raw omit this segment (nothing was pulled).
+  **Implementation note (2026-07-18):** run this as plain sequential `cd`/`git` commands only —
+  `cd "<path>" && git log -1 --oneline && git pull origin master && git log -1 --oneline` — and
+  read the before/after SHAs straight from that output. Do NOT use shell variable capture
+  (`BEFORE=$(...)`) or `echo` to compare them: the Bash permission allow-rules (`Bash(git *)`,
+  `Bash(cd *)`) are checked per `&&`-chained segment, and a variable-assignment or `echo` segment
+  matches neither rule, which silently re-triggers a permission prompt on every load even though
+  the git/cd parts are fully allowed. See HUB_GUIDE.md's New Machine Setup item 8 for the
+  underlying permission-syntax limitation.
 - Access: Claude Code reads local files; web/Desktop sessions read the pushed GitHub copy
   (raw.githubusercontent.com/will55555/claude-skills/master/skills/ai-control/). Pushed state = visible state.
 
