@@ -3,18 +3,16 @@
 <!-- New project? Copy the template from HUB_GUIDE.md → HUB_STATE Section Template. -->
 
 ## Terra API                                        <!-- prefix: TAPI -->
-- **Status:** Active — Phase 5 complete; CI/CD (terra-api-adr-010) planned, not yet started
-- **Active Task:** None started — TAPI-012 (Ecosystem CI/CD, terra-api-adr-010) queued, not begun
-- **Next Step:** Resolve SEC-001 first (ADR's own step order) — then move Jenkins server config
-  to `terra-jenkins`, scaffold terra-api's Jenkinsfile, extract thin shared library
-  (`buildAndPushImage`/`deploySSH`). Plan re-confirmed live against Notion 2026-07-19.
-- **Blockers:** SEC-001 (plaintext GitHub PAT + AWS keys) blocks Jenkins credential setup
-- **Context:** TAPI-011 done/live-verified, pushed to both remotes (`03bc7bf`), clean tree —
-  unchanged this session; `phase-4-governance` is actually 3 commits BEHIND `phase-5-redis` on
-  both remotes (corrects a prior stale entry here — not diverged/ahead). terra-api-adr-010
+- **Status:** Active — Phase 5 complete; CI/CD (terra-api-adr-010) in progress (TAPI-012)
+- **Active Task:** TAPI-012 (Ecosystem CI/CD, terra-api-adr-010) started 2026-07-19
+- **Next Step:** Move Jenkins server config to `terra-jenkins`, scaffold terra-api's Jenkinsfile,
+  extract thin shared library (`buildAndPushImage`/`deploySSH`). SEC-001 resolved (credentials
+  migrated to Bitwarden, plaintext files deleted).
+- **Blockers:** None
+- **Context:** On `phase-5-redis` branch (`03bc7bf`). TAPI-011 live-verified. terra-api-adr-010
   Accepted: per-service Jenkinsfile, neutral `terra-jenkins` home, thin no-business-logic shared
   library; open items: `terra-jenkins` repo-vs-folder, Terra API's own branch-tier deploy policy
-  (only a prior sketch exists). Full: terra-api-adr-010 + Terra CI/CD tracker (Notion).
+  (only prior sketch exists). Full details: terra-api-adr-010 + Terra CI/CD tracker (Notion).
 
 ## ROMS                                             <!-- prefix: ROMS -->
 - **Status:** Deployed
