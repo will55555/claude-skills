@@ -1,28 +1,26 @@
 # Engineering Hub State
-<!-- Freshness: 2026-07-19 (rev 12) | v1.3 | Snapshots only — overwritten in place. History lives in DEV_LOGs. -->
+<!-- Freshness: 2026-07-19 (rev 13) | v1.3 | Snapshots only — overwritten in place. History lives in DEV_LOGs. -->
 <!-- New project? Copy the template from HUB_GUIDE.md → HUB_STATE Section Template. -->
 
 ## Terra API                                        <!-- prefix: TAPI -->
-- **Status:** Active — TAPI-012 Jenkinsfile scaffolded through Push to Docker Hub; Deploy
-  staged but commented out (EC2 not provisioned yet)
+- **Status:** Active — TAPI-012 CI/CD on its own branch `phase-6-cicd` now (moved off
+  `phase-5-redis`, which is TAPI-011-only again, verified clean at `03bc7bf` on both remotes).
+  EC2 box is live; Jenkins itself + the compose files are what's left.
 - **Active Task:** TAPI-012 (Ecosystem CI/CD, terra-api-adr-010) — in progress
-- **Next Step:** Provision the EC2 box (one instance, both tiers — staging/prod share the host,
-  kept apart via `-p <project-name>` + separate compose files with distinct ports;
-  `STAGING_SSH_TARGET`/`PROD_SSH_TARGET` env vars already scaffolded in the Jenkinsfile so
-  splitting to 2 boxes later is a 1-line change, no stage rewrite). Create
-  `docker-compose.staging.yml`/`docker-compose.prod.yml` (neither exists yet), then uncomment
-  the two Deploy stages. Shared library (`terra-shared-lib`) deliberately NOT built yet — ADR's
-  own ordering extracts it once both services' pipelines exist, not before.
+- **Next Step:** Create `docker-compose.staging.yml`/`docker-compose.prod.yml`, uncomment the
+  two Deploy stages, stand up Jenkins (`terra-jenkins/docker-compose.jenkins.yml`) and do its
+  setup (SSH Agent plugin, `server-ssh`/`dockerhub-credentials`/GitHub credentials,
+  `DOCKERHUB_USERNAME` global env var, Pipeline job). `terra-shared-lib` deliberately not built
+  yet — ADR's own ordering extracts it once both services' pipelines exist, not before.
 - **Blockers:** None (SEC-001 done)
-- **Context:** `terra-jenkins/` relocated out of ROMS's repo into `terra-api/terra-jenkins/`
-  (jenkins.Dockerfile bumped `lts-jdk17`→`lts-jdk21` for the now-shared server; compose file
-  neutralized, `jenkins_home` volume deliberately left pinned to preserve existing data).
-  `Jenkinsfile` built stage-by-stage off ROMS's pattern: Checkout/Build/Test/Build Docker
-  Image/Push to Docker Hub all live (Gradle not Maven, single-module, image renamed
-  `terra-api-be`, branch-tiering `when` gates added — ROMS is flat, terra-api isn't). Frontend
-  stages and Deploy both commented out with explanatory headers (terra-api-fe / EC2 don't exist
-  yet). **Nothing committed to git yet** — `Dockerfile` modified, `Jenkinsfile` + `terra-jenkins/`
-  untracked, still on `phase-5-redis` (`03bc7bf`).
+- **Context:** EC2 live — `t3.micro`, Ubuntu 24.04, Elastic IP `100.60.61.209`, security group
+  SSH-only (staging kept internal-only on purpose, no public port; prod's port TBD). Docker +
+  Compose v2 installed, SSH deploy key on GitHub (read-only). `~/terra-api-prod` (tracks
+  `master`) and `~/terra-api-staging` (currently on old `phase-5-redis` checkout — needs
+  `git checkout phase-6-cicd` next) both cloned on the box. `Jenkinsfile` live through Push to
+  Docker Hub (Gradle, single-module, image `terra-api-be`, branch-tiered); Deploy/Frontend
+  stages commented out with explanatory headers. Committed as `3b46754` on `phase-6-cicd`,
+  pushed to both remotes.
 
 ## ROMS                                             <!-- prefix: ROMS -->
 - **Status:** Deployed
