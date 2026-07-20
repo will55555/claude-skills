@@ -1,26 +1,25 @@
 # Engineering Hub State
-<!-- Freshness: 2026-07-19 (rev 13) | v1.3 | Snapshots only — overwritten in place. History lives in DEV_LOGs. -->
+<!-- Freshness: 2026-07-20 (rev 14) | v1.3 | Snapshots only — overwritten in place. History lives in DEV_LOGs. -->
 <!-- New project? Copy the template from HUB_GUIDE.md → HUB_STATE Section Template. -->
 
 ## Terra API                                        <!-- prefix: TAPI -->
-- **Status:** Active — TAPI-012 CI/CD on its own branch `phase-6-cicd` now (moved off
-  `phase-5-redis`, which is TAPI-011-only again, verified clean at `03bc7bf` on both remotes).
-  EC2 box is live; Jenkins itself + the compose files are what's left.
-- **Active Task:** TAPI-012 (Ecosystem CI/CD, terra-api-adr-010) — in progress
-- **Next Step:** Create `docker-compose.staging.yml`/`docker-compose.prod.yml`, uncomment the
-  two Deploy stages, stand up Jenkins (`terra-jenkins/docker-compose.jenkins.yml`) and do its
-  setup (SSH Agent plugin, `server-ssh`/`dockerhub-credentials`/GitHub credentials,
-  `DOCKERHUB_USERNAME` global env var, Pipeline job). `terra-shared-lib` deliberately not built
-  yet — ADR's own ordering extracts it once both services' pipelines exist, not before.
-- **Blockers:** None (SEC-001 done)
+- **Status:** Active — TAPI-012 (Ecosystem CI/CD) Done, live-verified 2026-07-20. Full
+  pipeline green end-to-end on `phase-6-cicd`: Checkout → Build → Test → Build Docker Image
+  → Push to Docker Hub → Deploy to Staging, containers confirmed `Up` on the real EC2 box.
+- **Active Task:** None — TAPI-012 complete. Not yet merged anywhere (still on `phase-6-cicd`).
+- **Next Step:** No next-phase task selected yet. Open items, none blocking: prod's EC2
+  security-group port (TBD), `terra-api-fe` stages (commented out, not built), `terra-shared-lib`
+  extraction (deliberately deferred), GitHub App `Pull requests`/`Commit statuses` permissions
+  (deferred, not needed yet). Full context: terra-api/TASKS.md → TAPI-012, terra-api/DEV_LOG.md
+  → TAPI-012 (complete runbook — every step, every bug found, every fix).
+- **Blockers:** None
 - **Context:** EC2 live — `t3.micro`, Ubuntu 24.04, Elastic IP `100.60.61.209`, security group
-  SSH-only (staging kept internal-only on purpose, no public port; prod's port TBD). Docker +
-  Compose v2 installed, SSH deploy key on GitHub (read-only). `~/terra-api-prod` (tracks
-  `master`) and `~/terra-api-staging` (currently on old `phase-5-redis` checkout — needs
-  `git checkout phase-6-cicd` next) both cloned on the box. `Jenkinsfile` live through Push to
-  Docker Hub (Gradle, single-module, image `terra-api-be`, branch-tiered); Deploy/Frontend
-  stages commented out with explanatory headers. Committed as `3b46754` on `phase-6-cicd`,
-  pushed to both remotes.
+  SSH-only (staging deliberately internal-only, SSH-tunnel-verified). Jenkins running locally
+  (`localhost:8090`), Multibranch Pipeline job `terra-api-pipeline`, GitHub App
+  (`github-app-terra-api`, Contents: Read-only) used for checkout instead of a PAT. `Jenkinsfile`
+  fully live (Gradle, single-module, image `terra-api-be`, branch-tiered `when` gates,
+  Deploy-to-Staging/Prod both live); only frontend stages stay commented out (`terra-api-fe`
+  doesn't exist yet). Full history on `phase-6-cicd`, pushed to both remotes.
 
 ## ROMS                                             <!-- prefix: ROMS -->
 - **Status:** Deployed
