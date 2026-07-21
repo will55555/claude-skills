@@ -1,5 +1,5 @@
 # Engineering Hub State
-<!-- Freshness: 2026-07-20 (rev 15) | v1.3 | Snapshots only — overwritten in place. History lives in DEV_LOGs. -->
+<!-- Freshness: 2026-07-20 (rev 16) | v1.3 | Snapshots only — overwritten in place. History lives in DEV_LOGs. -->
 <!-- New project? Copy the template from HUB_GUIDE.md → HUB_STATE Section Template. -->
 
 ## Terra API                                        <!-- prefix: TAPI -->
@@ -72,6 +72,16 @@
   projects, once, before full deployment — not a per-project or per-PR blocker. Intent: keep
   developing/adding functionality now, run it later, likely wired into the CI/CD pipeline being
   built under Terra API's TAPI-012. No task ID yet — too early to scope.
+- **"Launch and forget" production-hardening goal (noted 2026-07-20):** End-state goal across
+  every deployed service — running reliably without needing to babysit it (Will's own framing:
+  "like a site like apple"). Already in place per-service via TAPI-012's pattern: container
+  `restart: unless-stopped`, CI/CD auto-deploy on merge, `/actuator/health`-style endpoints.
+  Genuinely missing, ecosystem-wide, none built yet: (1) monitoring/alerting — nothing currently
+  notifies if a service goes down, has to be noticed manually; (2) automated database backups;
+  (3) OS-level security patching automation; (4) domain names + TLS (everything is raw
+  IP:port right now — ROMS included, which has had zero domain since its own 2026-05-04 deploy).
+  Deliberately not being built now — same "don't build ahead of the actual need" pattern as
+  everything else here. No task ID yet.
 
 ## claude-skills                                    <!-- prefix: SKILLS -->
 - **Status:** Active — hub v1.1 complete, pointers placed, both open decisions resolved
