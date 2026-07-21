@@ -1,25 +1,35 @@
 # Engineering Hub State
-<!-- Freshness: 2026-07-20 (rev 14) | v1.3 | Snapshots only — overwritten in place. History lives in DEV_LOGs. -->
+<!-- Freshness: 2026-07-20 (rev 15) | v1.3 | Snapshots only — overwritten in place. History lives in DEV_LOGs. -->
 <!-- New project? Copy the template from HUB_GUIDE.md → HUB_STATE Section Template. -->
 
 ## Terra API                                        <!-- prefix: TAPI -->
 - **Status:** Active — TAPI-012 (Ecosystem CI/CD) Done, live-verified 2026-07-20. Full
   pipeline green end-to-end on `phase-6-cicd`: Checkout → Build → Test → Build Docker Image
   → Push to Docker Hub → Deploy to Staging, containers confirmed `Up` on the real EC2 box.
-- **Active Task:** None — TAPI-012 complete. Not yet merged anywhere (still on `phase-6-cicd`).
-- **Next Step:** No next-phase task selected yet. Open items, none blocking: prod's EC2
+  Phase 5 (TAPI-011, Redis+Postgres audit log) also Done, live-verified 2026-07-18 on
+  `phase-5-redis`.
+- **Active Task:** Open PRs for `phase-5-redis` (TAPI-011) and `phase-6-cicd` (TAPI-012) into
+  master. Neither branch has a PR opened yet.
+- **Next Step:** Cut a pre-PR branch off each of `phase-5-redis` and `phase-6-cicd` (new standing
+  convention, see Context). Run SonarQube (IntelliJ-embedded) on each, strip dev comments, confirm
+  compliance/green tests, then open the PR from the pre-PR branch into master. Do both in parallel.
+  After both land, shift build focus to PIOS. Other open items, none blocking: prod's EC2
   security-group port (TBD), `terra-api-fe` stages (commented out, not built), `terra-shared-lib`
   extraction (deliberately deferred), GitHub App `Pull requests`/`Commit statuses` permissions
   (deferred, not needed yet). Full context: terra-api/TASKS.md → TAPI-012, terra-api/DEV_LOG.md
   → TAPI-012 (complete runbook — every step, every bug found, every fix).
 - **Blockers:** None
-- **Context:** EC2 live — `t3.micro`, Ubuntu 24.04, Elastic IP `100.60.61.209`, security group
-  SSH-only (staging deliberately internal-only, SSH-tunnel-verified). Jenkins running locally
-  (`localhost:8090`), Multibranch Pipeline job `terra-api-pipeline`, GitHub App
-  (`github-app-terra-api`, Contents: Read-only) used for checkout instead of a PAT. `Jenkinsfile`
-  fully live (Gradle, single-module, image `terra-api-be`, branch-tiered `when` gates,
-  Deploy-to-Staging/Prod both live); only frontend stages stay commented out (`terra-api-fe`
-  doesn't exist yet). Full history on `phase-6-cicd`, pushed to both remotes.
+- **Context:** Pre-PR branch convention adopted 2026-07-20 — before merging any phase/feature branch
+  to master, cut a separate pre-PR branch first, run SonarQube + cleanup there, keep the original
+  phase branch untouched with full history. Applies to all future phase/feature merges. EC2 live —
+  `t3.micro`, Ubuntu 24.04, Elastic IP `100.60.61.209`, security group SSH-only (staging
+  deliberately internal-only, SSH-tunnel-verified). Jenkins running locally (`localhost:8090`),
+  Multibranch Pipeline job `terra-api-pipeline`, GitHub App (`github-app-terra-api`, Contents:
+  Read-only) used for checkout instead of a PAT. `Jenkinsfile` fully live (Gradle, single-module,
+  image `terra-api-be`, branch-tiered `when` gates, Deploy-to-Staging/Prod both live); only
+  frontend stages stay commented out (`terra-api-fe` doesn't exist yet). Full history on
+  `phase-6-cicd`, pushed to both remotes. ROMS/Terra Solar status cross-checked against Notion
+  2026-07-20, confirmed accurate.
 
 ## ROMS                                             <!-- prefix: ROMS -->
 - **Status:** Deployed
