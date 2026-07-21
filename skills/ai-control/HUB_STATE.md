@@ -1,5 +1,5 @@
 # Engineering Hub State
-<!-- Freshness: 2026-07-20 (rev 16) | v1.3 | Snapshots only — overwritten in place. History lives in DEV_LOGs. -->
+<!-- Freshness: 2026-07-20 (rev 17) | v1.3 | Snapshots only — overwritten in place. History lives in DEV_LOGs. -->
 <!-- New project? Copy the template from HUB_GUIDE.md → HUB_STATE Section Template. -->
 
 ## Terra API                                        <!-- prefix: TAPI -->
@@ -13,11 +13,22 @@
 - **Next Step:** Cut a pre-PR branch off each of `phase-5-redis` and `phase-6-cicd` (new standing
   convention, see Context). Run SonarQube (IntelliJ-embedded) on each, strip dev comments, confirm
   compliance/green tests, then open the PR from the pre-PR branch into master. Do both in parallel.
-  After both land, shift build focus to PIOS. Other open items, none blocking: prod's EC2
-  security-group port (TBD), `terra-api-fe` stages (commented out, not built), `terra-shared-lib`
-  extraction (deliberately deferred), GitHub App `Pull requests`/`Commit statuses` permissions
-  (deferred, not needed yet). Full context: terra-api/TASKS.md → TAPI-012, terra-api/DEV_LOG.md
-  → TAPI-012 (complete runbook — every step, every bug found, every fix).
+  **Also queued: extract `terra-jenkins` out of the terra-api repo entirely** — decided 2026-07-20,
+  NOT executed anywhere yet (still nested in `terra-api/terra-jenkins/` on both machines). Plan: own
+  git repo (GitHub + Bitbucket, plain `main`, no branching needed — matches claude-skills' own
+  pattern), physically one level up from the inner repo on each machine (on `solan`'s double-nested
+  layout: `SDE\terra-api\terra-jenkins\`, sibling to `SDE\terra-api\terra-api\`). Reasoning: it's
+  neutral ecosystem infra (ROMS+terra-api+future PIOS), already has real edit history this session
+  (JDK bump, CRLF fix, `.gitattributes` hardening), and cross-machine sync needs a shared source of
+  truth instead of manual copies. Each machine also needs its own local `docker compose down` →
+  move → `up` for its actual running/future Jenkins container — that's a per-machine Docker/filesystem
+  step, doesn't travel via git. Does NOT affect deploy (Deploy stages target the EC2 box directly,
+  Jenkins' own state lives in the pinned `infra_jenkins_home` volume, neither references this path).
+  After both PRs + the extraction land, shift build focus to PIOS. Other open items, none blocking:
+  prod's EC2 security-group port (TBD), `terra-api-fe` stages (commented out, not built),
+  `terra-shared-lib` extraction (deliberately deferred), GitHub App `Pull requests`/`Commit statuses`
+  permissions (deferred, not needed yet). Full context: terra-api/TASKS.md → TAPI-012,
+  terra-api/DEV_LOG.md → TAPI-012 (complete runbook — every step, every bug found, every fix).
 - **Blockers:** None
 - **Context:** Pre-PR branch convention adopted 2026-07-20 — before merging any phase/feature branch
   to master, cut a separate pre-PR branch first, run SonarQube + cleanup there, keep the original
