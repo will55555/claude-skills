@@ -1,5 +1,5 @@
 # Engineering Hub State
-<!-- Freshness: 2026-07-21 (rev 21) | v1.3 | Snapshots only — overwritten in place. History lives in DEV_LOGs. -->
+<!-- Freshness: 2026-07-22 (rev 22) | v1.3 | Snapshots only — overwritten in place. History lives in DEV_LOGs. -->
 <!-- New project? Copy the template from HUB_GUIDE.md → HUB_STATE Section Template. -->
 
 ## Terra API                                        <!-- prefix: TAPI -->
@@ -16,10 +16,14 @@
   stripped from both `phase-6-cicd` (`2535724`) and `phase-6-cicd-prepr` (`74333e2`, cherry-picked) —
   top-level `Jenkinsfile` (terra-api's own build pipeline) stays. terra-jenkins extraction itself DONE
   on both machines, confirmed 2026-07-21 (solan + test, `master` @ `a81ce01` each, both remotes
-  wired); Machine Paths rows added to HUB.md (`14fab15`). After the PR lands, shift focus to PIOS.
-  Other open items, none blocking: prod EC2 security-group port (TBD), `terra-api-fe` stages
-  (commented out), `terra-shared-lib` extraction (deferred), GitHub App permissions (deferred). Full
-  context: terra-api/TASKS.md → TAPI-011/TAPI-012, terra-api/DEV_LOG.md.
+  wired); Machine Paths rows added to HUB.md (`14fab15`). **After the PR lands, no concrete next
+  feature is queued** (corrected 2026-07-22 — previously said "shift focus to PIOS"): ROMS
+  integration, `terra-api-fe`, and PIOS are all theoretical until ROMS is actually redeployed, which
+  Will reconfirmed 2026-07-22 is still "not being redeployed until actually needed." Re-scope with
+  Will before picking a next feature rather than defaulting to PIOS. Other open items, none blocking:
+  prod EC2 security-group port (TBD), `terra-api-fe` stages (commented out), `terra-shared-lib`
+  extraction (deferred), GitHub App permissions (deferred). Full context: terra-api/TASKS.md →
+  TAPI-011/TAPI-012, terra-api/DEV_LOG.md.
 - **Blockers:** None
 - **Context:** Pre-PR branch convention adopted 2026-07-20 — before merging any phase/feature branch
   to master, cut a separate pre-PR branch first, run SonarQube + cleanup there, keep the original
@@ -36,11 +40,15 @@
   whether to gitignore it or whether it belongs in the repo at all.
 
 ## ROMS                                             <!-- prefix: ROMS -->
-- **Status:** Deployed
-- **Active Task:** ROMS-001 — first real integration target for Terra API shared services
-- **Next Step:** Define integration point — TAPI-001 (JWT auth) done 2026-07-10, unblocked
-- **Blockers:** None
-- **Context:** Spring Boot + React. First potential revenue source.
+- **Status:** Deployed but static — not being redeployed until actually needed (Will's call,
+  reconfirmed 2026-07-22; first made 2026-07-07). Effectively maintenance mode in practice, though
+  not officially declared as such.
+- **Active Task:** ROMS-001 — first real integration target for Terra API shared services, once live
+- **Next Step:** Blocked on Will's decision to actually redeploy ROMS — TAPI-001 (JWT auth) makes the
+  eventual integration technically unblocked, but there's no live target to integrate against yet.
+  Don't scope integration details further until that trigger fires.
+- **Blockers:** ROMS not redeployed — deliberate, no timeline
+- **Context:** Spring Boot + React. First potential revenue source, once actually integrated.
 
 ## PIOS                                             <!-- prefix: PIOS -->
 - **Status:** Design phase — no coding until ADR-013 resolves
