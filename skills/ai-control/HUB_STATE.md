@@ -1,5 +1,5 @@
 # Engineering Hub State
-<!-- Freshness: 2026-07-22 (rev 22) | v1.3 | Snapshots only — overwritten in place. History lives in DEV_LOGs. -->
+<!-- Freshness: 2026-07-22 (rev 23) | v1.3 | Snapshots only — overwritten in place. History lives in DEV_LOGs. -->
 <!-- New project? Copy the template from HUB_GUIDE.md → HUB_STATE Section Template. -->
 
 ## Terra API                                        <!-- prefix: TAPI -->
@@ -17,13 +17,20 @@
   top-level `Jenkinsfile` (terra-api's own build pipeline) stays. terra-jenkins extraction itself DONE
   on both machines, confirmed 2026-07-21 (solan + test, `master` @ `a81ce01` each, both remotes
   wired); Machine Paths rows added to HUB.md (`14fab15`). **After the PR lands, no concrete next
-  feature is queued** (corrected 2026-07-22 — previously said "shift focus to PIOS"): ROMS
-  integration, `terra-api-fe`, and PIOS are all theoretical until ROMS is actually redeployed, which
-  Will reconfirmed 2026-07-22 is still "not being redeployed until actually needed." Re-scope with
-  Will before picking a next feature rather than defaulting to PIOS. Other open items, none blocking:
-  prod EC2 security-group port (TBD), `terra-api-fe` stages (commented out), `terra-shared-lib`
-  extraction (deferred), GitHub App permissions (deferred). Full context: terra-api/TASKS.md →
-  TAPI-011/TAPI-012, terra-api/DEV_LOG.md.
+  backend feature is queued** (corrected 2026-07-22 — previously said "shift focus to PIOS"): ROMS
+  integration and PIOS are theoretical until ROMS is actually redeployed, which Will reconfirmed
+  2026-07-22 is still "not being redeployed until actually needed." **`terra-api-fe` is NOT gated on
+  that** (corrected same day — it visualizes Terra API's own `ecosystem-health` endpoint; ROMS just
+  shows "disconnected" until live) and is actively being scoped: 2026-07-22 decided monorepo
+  subdirectory (`terra-api/terra-api-fe/`, ROMS-style split) + same-origin deploy on the existing EC2
+  box (resolves CORS for free, matches the Jenkinsfile's existing commented placeholder). Dual
+  visualizer also decided same day — terra-hq-site keeps a simplified public version, terra-api-fe
+  gets the authenticated detailed one, both reading the same endpoint. Full reasoning: terra-api/
+  CLAUDE.md Key Decisions Log 2026-07-22; terra-hq-site/CLAUDE.md Key Decisions Log 2026-07-22 (both
+  edited locally, not yet committed). Not yet started: no `terra-api-fe/` directory created, Jenkinsfile
+  frontend stages still commented out. Other open items, none blocking: prod EC2 security-group port
+  (TBD), `terra-shared-lib` extraction (deferred), GitHub App permissions (deferred). Full context:
+  terra-api/TASKS.md → TAPI-011/TAPI-012, terra-api/DEV_LOG.md.
 - **Blockers:** None
 - **Context:** Pre-PR branch convention adopted 2026-07-20 — before merging any phase/feature branch
   to master, cut a separate pre-PR branch first, run SonarQube + cleanup there, keep the original
