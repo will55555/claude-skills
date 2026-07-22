@@ -1,5 +1,5 @@
 # Engineering Hub State
-<!-- Freshness: 2026-07-21 (rev 19) | v1.3 | Snapshots only — overwritten in place. History lives in DEV_LOGs. -->
+<!-- Freshness: 2026-07-21 (rev 20) | v1.3 | Snapshots only — overwritten in place. History lives in DEV_LOGs. -->
 <!-- New project? Copy the template from HUB_GUIDE.md → HUB_STATE Section Template. -->
 
 ## Terra API                                        <!-- prefix: TAPI -->
@@ -10,7 +10,7 @@
   `phase-5-redis`.
 - **Active Task:** Open PRs for `phase-5-redis` (TAPI-011) and `phase-6-cicd` (TAPI-012) into
   master. Neither branch has a PR opened yet.
-- **Next Step:** **(A) Pre-PR workflow (immediate)** — Cut pre-PR branches from `phase-5-redis` (TAPI-011) and `phase-6-cicd` (TAPI-012), run SonarQube, strip dev comments, open PRs to master (parallel). **(B) terra-jenkins extraction DONE 2026-07-21** — Extracted to `SDE\terra-api\terra-jenkins\` (sibling to terra-api repo), own GitHub+Bitbucket remotes (`will55555/terra-jenkins`, `terra-inc-dev/terra-jenkins`), `master` branch canonical. Initial commit `a81ce01` pushed to both. Nested folder deleted; Jenkinsfile remains at terra-api/terra-api/Jenkinsfile (configures terra-api build). Neutral ecosystem infra for ROMS+terra-api+PIOS CI/CD. Per-machine Docker setup stays local (doesn't travel via git); EC2 deploy unaffected. After option A completes, shift focus to PIOS. Other open items, none blocking: prod EC2 security-group port (TBD), `terra-api-fe` stages (commented out), `terra-shared-lib` extraction (deferred), GitHub App permissions (deferred). Full context: terra-api/TASKS.md, terra-api/DEV_LOG.md.
+- **Next Step:** **(A) Pre-PR workflow (immediate)** — Cut pre-PR branches from `phase-5-redis` (TAPI-011) and `phase-6-cicd` (TAPI-012), run SonarQube, strip dev comments, open PRs to master (parallel). **(B) terra-jenkins extraction — DONE on both machines**, confirmed 2026-07-21 (solan + test, `master` @ `a81ce01` on each, both remotes wired); Machine Paths rows added to HUB.md (`14fab15`). After (A) completes, shift focus to PIOS. Other open items, none blocking: prod EC2 security-group port (TBD), `terra-api-fe` stages (commented out), `terra-shared-lib` extraction (deferred), GitHub App permissions (deferred). Full context: terra-api/TASKS.md, terra-api/DEV_LOG.md.
 - **Blockers:** None
 - **Context:** Pre-PR branch convention adopted 2026-07-20 — before merging any phase/feature branch
   to master, cut a separate pre-PR branch first, run SonarQube + cleanup there, keep the original
@@ -22,7 +22,9 @@
   image `terra-api-be`, branch-tiered `when` gates, Deploy-to-Staging/Prod both live); only
   frontend stages stay commented out (`terra-api-fe` doesn't exist yet). Full history on
   `phase-6-cicd`, pushed to both remotes. ROMS/Terra Solar status cross-checked against Notion
-  2026-07-20, confirmed accurate.
+  2026-07-20, confirmed accurate. **Unresolved, flagged 2026-07-21:** `terra-api-key.pem` sitting
+  untracked and un-gitignored in the terra-api repo root (test machine) — awaiting Will's call on
+  whether to gitignore it or whether it belongs in the repo at all.
 
 ## ROMS                                             <!-- prefix: ROMS -->
 - **Status:** Deployed
