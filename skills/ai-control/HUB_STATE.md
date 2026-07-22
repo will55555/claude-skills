@@ -1,5 +1,5 @@
 # Engineering Hub State
-<!-- Freshness: 2026-07-21 (rev 20) | v1.3 | Snapshots only — overwritten in place. History lives in DEV_LOGs. -->
+<!-- Freshness: 2026-07-21 (rev 21) | v1.3 | Snapshots only — overwritten in place. History lives in DEV_LOGs. -->
 <!-- New project? Copy the template from HUB_GUIDE.md → HUB_STATE Section Template. -->
 
 ## Terra API                                        <!-- prefix: TAPI -->
@@ -8,9 +8,18 @@
   → Push to Docker Hub → Deploy to Staging, containers confirmed `Up` on the real EC2 box.
   Phase 5 (TAPI-011, Redis+Postgres audit log) also Done, live-verified 2026-07-18 on
   `phase-5-redis`.
-- **Active Task:** Open PRs for `phase-5-redis` (TAPI-011) and `phase-6-cicd` (TAPI-012) into
-  master. Neither branch has a PR opened yet.
-- **Next Step:** **(A) Pre-PR workflow (immediate)** — Cut pre-PR branches from `phase-5-redis` (TAPI-011) and `phase-6-cicd` (TAPI-012), run SonarQube, strip dev comments, open PRs to master (parallel). **(B) terra-jenkins extraction — DONE on both machines**, confirmed 2026-07-21 (solan + test, `master` @ `a81ce01` on each, both remotes wired); Machine Paths rows added to HUB.md (`14fab15`). After (A) completes, shift focus to PIOS. Other open items, none blocking: prod EC2 security-group port (TBD), `terra-api-fe` stages (commented out), `terra-shared-lib` extraction (deferred), GitHub App permissions (deferred). Full context: terra-api/TASKS.md, terra-api/DEV_LOG.md.
+- **Active Task:** **Single PR** from `phase-6-cicd-prepr` → master now covers both TAPI-011 and
+  TAPI-012 — `phase-5-redis-prepr` confirmed 2026-07-21 (via `git merge-base --is-ancestor`) to be a
+  strict ancestor of `phase-6-cicd-prepr`, so it was closed as redundant, no separate PR for it.
+- **Next Step:** Run SonarQube on `phase-6-cicd-prepr`, strip dev comments, confirm compliance/green
+  tests, open the one PR to master. `terra-jenkins/` (Jenkins-server infra, now its own repo) already
+  stripped from both `phase-6-cicd` (`2535724`) and `phase-6-cicd-prepr` (`74333e2`, cherry-picked) —
+  top-level `Jenkinsfile` (terra-api's own build pipeline) stays. terra-jenkins extraction itself DONE
+  on both machines, confirmed 2026-07-21 (solan + test, `master` @ `a81ce01` each, both remotes
+  wired); Machine Paths rows added to HUB.md (`14fab15`). After the PR lands, shift focus to PIOS.
+  Other open items, none blocking: prod EC2 security-group port (TBD), `terra-api-fe` stages
+  (commented out), `terra-shared-lib` extraction (deferred), GitHub App permissions (deferred). Full
+  context: terra-api/TASKS.md → TAPI-011/TAPI-012, terra-api/DEV_LOG.md.
 - **Blockers:** None
 - **Context:** Pre-PR branch convention adopted 2026-07-20 — before merging any phase/feature branch
   to master, cut a separate pre-PR branch first, run SonarQube + cleanup there, keep the original
