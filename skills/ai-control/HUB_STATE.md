@@ -1,5 +1,5 @@
 # Engineering Hub State
-<!-- Freshness: 2026-07-23 (rev 26) | v1.3 | Snapshots only — overwritten in place. History lives in DEV_LOGs. -->
+<!-- Freshness: 2026-07-23 (rev 27) | v1.3 | Snapshots only — overwritten in place. History lives in DEV_LOGs. -->
 <!-- New project? Copy the template from HUB_GUIDE.md → HUB_STATE Section Template. -->
 
 ## Terra API                                        <!-- prefix: TAPI -->
@@ -13,16 +13,28 @@
   now in sync at `534dd1b` across local, `origin` (GitHub), and `bitbucket` — confirmed identical on
   all three. `phase-6-cicd-prepr` retired everywhere (local + both remotes); `phase-6-cicd` (original,
   untouched) stays per the pre-PR convention.
-- **Next Step:** **Resolved 2026-07-23** — `master` didn't auto-trigger `terra-api-pipeline` on the
-  merge push because it was genuinely new to that job's branch list (Jenkins was set up entirely on
-  phase branches while `master` sat stale); a one-time manual "Scan Multibranch Pipeline Now" picked
-  it up. Not a webhook/polling gap — future `master` pushes should trigger normally like the phase
-  branches already do. **No automatic next feature is queued** — re-scope with Will; terra-api-fe
-  scaffolding (monorepo subdirectory + same-origin EC2 deploy, architecture resolved 2026-07-22) is
+- **Next Step:** **Correction 2026-07-23 — real gap, not resolved.** A second push to `master`
+  (`c83028f`, real bug fixes) also failed to auto-trigger `terra-api-pipeline`, needing another
+  manual "Scan Multibranch Pipeline Now" — ruling out the earlier "just first-time branch discovery"
+  explanation. No GitHub webhook is actually reaching Jenkins; every trigger this session (including
+  the original `phase-6-cicd-prepr` build) has been a manual scan, not push-triggered. Real fix
+  needed for "launch and forget": either SCM polling (Jenkins reaches out to GitHub — works fine
+  from Jenkins' local-machine `localhost:8090`, no exposure needed) or actually exposing Jenkins
+  publicly (tunnel/port-forward) for real webhook delivery — not yet decided which. **Separately:**
+  a live TAPI-011/012 regression was found and fixed post-merge — `SecurityConfig`'s
+  `.csrf(AbstractHttpConfigurer::disable)` got commented out during the SonarQube cleanup pass
+  (missed because `SecurityConfig.java` went dirty *after* the original bug-hunt pass), breaking
+  every auth-dependent test with 403s. Also fixed in the same pass: missing `testCompileOnly`/
+  `testAnnotationProcessor` Lombok deps in `build.gradle.kts`, a stripped WHY comment in
+  `TokenIssuer.java`, and a broken Dockerfile `RUN` (trailing backslash, then Alpine-style `-S`
+  flags that don't work unambiguously on this Debian-based image — needed `--system`/`--ingroup`).
+  Committed as `46c19d6`/`c83028f`, pushed to `origin`. **No automatic next feature is queued** —
+  re-scope with Will; terra-api-fe scaffolding (monorepo subdirectory + same-origin EC2 deploy) is
   the leading candidate, not gated on ROMS. PIOS/ROMS integration stay deferred until ROMS is
   actually redeployed. Other open items, none blocking: prod EC2 security-group port (TBD),
   `terra-shared-lib` extraction (deferred), GitHub App `Pull requests`/`Commit statuses` permissions
-  (deferred). Full context: terra-api/TASKS.md → TAPI-011/TAPI-012, terra-api/DEV_LOG.md.
+  (deferred), Jenkins webhook fix (above). Full context: terra-api/TASKS.md → TAPI-011/TAPI-012,
+  terra-api/DEV_LOG.md.
 - **Blockers:** None
 - **Context:** Pre-PR branch convention adopted 2026-07-20 — before merging any phase/feature branch
   to master, cut a separate pre-PR branch first, run SonarQube + cleanup there, keep the original
