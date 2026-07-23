@@ -1,5 +1,5 @@
 # Engineering Hub State
-<!-- Freshness: 2026-07-23 (rev 24) | v1.3 | Snapshots only — overwritten in place. History lives in DEV_LOGs. -->
+<!-- Freshness: 2026-07-23 (rev 25) | v1.3 | Snapshots only — overwritten in place. History lives in DEV_LOGs. -->
 <!-- New project? Copy the template from HUB_GUIDE.md → HUB_STATE Section Template. -->
 
 ## Terra API                                        <!-- prefix: TAPI -->
@@ -8,25 +8,22 @@
   → Push to Docker Hub → Deploy to Staging, containers confirmed `Up` on the real EC2 box.
   Phase 5 (TAPI-011, Redis+Postgres audit log) also Done, live-verified 2026-07-18 on
   `phase-5-redis`.
-- **Active Task:** **Single PR** from `phase-6-cicd-prepr` → master now covers both TAPI-011 and
-  TAPI-012 — `phase-5-redis-prepr` confirmed 2026-07-21 (via `git merge-base --is-ancestor`) to be a
-  strict ancestor of `phase-6-cicd-prepr`, so it was closed as redundant, no separate PR for it.
-- **Next Step:** **Opening the single PR now** (`phase-6-cicd-prepr` → master, TAPI-011+012
-  combined). SonarQube pass completed and clean 2026-07-23 (`d31d397`, pushed both remotes) — one
-  justified/suppressed `java:S2143` finding (JJWT 0.12.x's `JwtBuilder` only accepts
-  `java.util.Date`, documented inline with a NOSONAR + upstream issue reference). The pass caught 2
-  real bugs during manual cleanup, not just style: a compile error (`.collect(Stream.toList())`, not
-  a valid Collector) and a lost `volatile` on `FeatureFlagStore`'s `flags` field (real visibility
-  bug). Also reverted an incorrect SonarQube-driven fix that had truncated a JWT `issuedAt` claim to
-  midnight UTC. terra-jenkins extraction and PR consolidation (`phase-5-redis-prepr` closed as
-  redundant) both already complete — see 2026-07-21/22 history. terra-api-fe architecture already
-  resolved 2026-07-22 (monorepo subdirectory + same-origin EC2 deploy, dual visualizer with
-  terra-hq-site) and committed to both CLAUDE.md files. **After the PR lands, no automatic next
-  feature** — re-scope with Will; terra-api-fe scaffolding is the leading candidate (not gated on
-  ROMS), PIOS/ROMS integration stay deferred until ROMS is actually redeployed. Other open items,
-  none blocking: prod EC2 security-group port (TBD), `terra-shared-lib` extraction (deferred),
-  GitHub App permissions (deferred). Full context: terra-api/TASKS.md → TAPI-011/TAPI-012,
-  terra-api/DEV_LOG.md.
+- **Active Task:** **PR #1 merged 2026-07-23** — `phase-6-cicd-prepr` → `master` (TAPI-011+012
+  combined), SonarQube clean beforehand (one justified/suppressed `java:S2143` finding). `master`
+  now in sync at `534dd1b` across local, `origin` (GitHub), and `bitbucket` — confirmed identical on
+  all three. `phase-6-cicd-prepr` retired everywhere (local + both remotes); `phase-6-cicd` (original,
+  untouched) stays per the pre-PR convention.
+- **Next Step:** **Unconfirmed: did Jenkins auto-trigger on the `master` push?** Will merged via
+  GitHub's web UI — untested whether a GitHub webhook actually notifies Jenkins or whether
+  `terra-api-pipeline` only picks it up via periodic polling. Check Jenkins UI for a `master` build;
+  if nothing fired, "Scan Multibranch Pipeline Now" forces it, but the underlying webhook-vs-polling
+  gap should get resolved properly for a real "launch and forget" setup. **After that's resolved, no
+  automatic next feature is queued** — re-scope with Will; terra-api-fe scaffolding (monorepo
+  subdirectory + same-origin EC2 deploy, architecture resolved 2026-07-22) is the leading candidate,
+  not gated on ROMS. PIOS/ROMS integration stay deferred until ROMS is actually redeployed. Other
+  open items, none blocking: prod EC2 security-group port (TBD), `terra-shared-lib` extraction
+  (deferred), GitHub App `Pull requests`/`Commit statuses` permissions (deferred). Full context:
+  terra-api/TASKS.md → TAPI-011/TAPI-012, terra-api/DEV_LOG.md.
 - **Blockers:** None
 - **Context:** Pre-PR branch convention adopted 2026-07-20 — before merging any phase/feature branch
   to master, cut a separate pre-PR branch first, run SonarQube + cleanup there, keep the original
