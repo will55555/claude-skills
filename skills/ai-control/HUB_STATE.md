@@ -1,5 +1,5 @@
 # Engineering Hub State
-<!-- Freshness: 2026-07-23 (rev 25) | v1.3 | Snapshots only — overwritten in place. History lives in DEV_LOGs. -->
+<!-- Freshness: 2026-07-23 (rev 26) | v1.3 | Snapshots only — overwritten in place. History lives in DEV_LOGs. -->
 <!-- New project? Copy the template from HUB_GUIDE.md → HUB_STATE Section Template. -->
 
 ## Terra API                                        <!-- prefix: TAPI -->
@@ -13,17 +13,16 @@
   now in sync at `534dd1b` across local, `origin` (GitHub), and `bitbucket` — confirmed identical on
   all three. `phase-6-cicd-prepr` retired everywhere (local + both remotes); `phase-6-cicd` (original,
   untouched) stays per the pre-PR convention.
-- **Next Step:** **Unconfirmed: did Jenkins auto-trigger on the `master` push?** Will merged via
-  GitHub's web UI — untested whether a GitHub webhook actually notifies Jenkins or whether
-  `terra-api-pipeline` only picks it up via periodic polling. Check Jenkins UI for a `master` build;
-  if nothing fired, "Scan Multibranch Pipeline Now" forces it, but the underlying webhook-vs-polling
-  gap should get resolved properly for a real "launch and forget" setup. **After that's resolved, no
-  automatic next feature is queued** — re-scope with Will; terra-api-fe scaffolding (monorepo
-  subdirectory + same-origin EC2 deploy, architecture resolved 2026-07-22) is the leading candidate,
-  not gated on ROMS. PIOS/ROMS integration stay deferred until ROMS is actually redeployed. Other
-  open items, none blocking: prod EC2 security-group port (TBD), `terra-shared-lib` extraction
-  (deferred), GitHub App `Pull requests`/`Commit statuses` permissions (deferred). Full context:
-  terra-api/TASKS.md → TAPI-011/TAPI-012, terra-api/DEV_LOG.md.
+- **Next Step:** **Resolved 2026-07-23** — `master` didn't auto-trigger `terra-api-pipeline` on the
+  merge push because it was genuinely new to that job's branch list (Jenkins was set up entirely on
+  phase branches while `master` sat stale); a one-time manual "Scan Multibranch Pipeline Now" picked
+  it up. Not a webhook/polling gap — future `master` pushes should trigger normally like the phase
+  branches already do. **No automatic next feature is queued** — re-scope with Will; terra-api-fe
+  scaffolding (monorepo subdirectory + same-origin EC2 deploy, architecture resolved 2026-07-22) is
+  the leading candidate, not gated on ROMS. PIOS/ROMS integration stay deferred until ROMS is
+  actually redeployed. Other open items, none blocking: prod EC2 security-group port (TBD),
+  `terra-shared-lib` extraction (deferred), GitHub App `Pull requests`/`Commit statuses` permissions
+  (deferred). Full context: terra-api/TASKS.md → TAPI-011/TAPI-012, terra-api/DEV_LOG.md.
 - **Blockers:** None
 - **Context:** Pre-PR branch convention adopted 2026-07-20 — before merging any phase/feature branch
   to master, cut a separate pre-PR branch first, run SonarQube + cleanup there, keep the original
