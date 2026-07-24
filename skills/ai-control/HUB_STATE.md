@@ -1,5 +1,5 @@
 # Engineering Hub State
-<!-- Freshness: 2026-07-24 (rev 32) | v1.3 | Snapshots only — overwritten in place. History lives in DEV_LOGs. -->
+<!-- Freshness: 2026-07-24 (rev 33) | v1.3 | Snapshots only — overwritten in place. History lives in DEV_LOGs. -->
 <!-- New project? Copy the template from HUB_GUIDE.md → HUB_STATE Section Template. -->
 
 ## Terra API                                        <!-- prefix: TAPI -->
@@ -59,14 +59,14 @@
   mirroring the terra-jenkins extraction precedent — NOT a subdirectory of the terra-api repo, which
   is what ADR-009's original 2026-07-22 wording said; corrected via 2026-07-24 ADR amendment). CRA
   (not Vite) also confirmed deliberate — scope-fit call, not drift (see ADR-009 amendment).
-- **Next Step:** On `phase-1-auth-shell` (cut 2026-07-24, local only, not pushed yet) — build login
-  flow + JWT storage/attach against terra-api's existing auth endpoints, protected-route shell. No
-  visualizer work in this phase (TFE-005/006 blocked on the backend health endpoint + entitlement
-  table from ADR-005/ADR-011, neither built yet). All four design decisions this repo was blocked on
-  are resolved (2026-07-24, see ADR-009/ADR-005/ADR-011): repo topology (standalone sibling), build
-  tool (CRA, no TS), same-origin serving (Spring embeds the CRA build via a Jenkins copy step — no
-  nginx), ecosystem-health exposure (new `GET /api/v1/ecosystem/health` on 8081) + its entitlement
-  dependency (seeded single-row `customer_service_access` table). Bitbucket mirror resynced same day.
+- **Next Step:** Work TFE-101/102/103 on `phase-1-auth-shell` (cut 2026-07-24, local only, not
+  pushed yet) — login flow + JWT storage/attach against terra-api's existing auth endpoints,
+  protected-route shell, env-based endpoint config. Full 4-phase build sequence now documented in
+  ADR-009's "Build Sequence" section (added 2026-07-24, mirrors ADR-001's pattern) and mirrored in
+  this repo's TASKS.md: Phase 1 Auth Shell (this repo) → Phase 2 Same-Origin Deploy Wiring (spans
+  this repo + terra-api) → Phase 3 Backend Health/Entitlement/Role-Claim (terra-api repo) → Phase 4
+  Visualizer Integration (this repo, depends on Phase 3). All design decisions blocking this work
+  are resolved (see ADR-009/ADR-005/ADR-011). Bitbucket mirror resynced 2026-07-24.
 - **Blockers:** None
 - **Context:** CRA (React 19, plain JS — no TypeScript), `main` branch. Dual-remote: `origin`
   (`will55555/terra-api-fe`, GitHub) + `bitbucket` (`terra-inc-dev/terra-api-fe`) — Bitbucket repo
