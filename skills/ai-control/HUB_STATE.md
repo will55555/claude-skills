@@ -1,5 +1,5 @@
 # Engineering Hub State
-<!-- Freshness: 2026-07-24 (rev 31) | v1.3 | Snapshots only — overwritten in place. History lives in DEV_LOGs. -->
+<!-- Freshness: 2026-07-24 (rev 32) | v1.3 | Snapshots only — overwritten in place. History lives in DEV_LOGs. -->
 <!-- New project? Copy the template from HUB_GUIDE.md → HUB_STATE Section Template. -->
 
 ## Terra API                                        <!-- prefix: TAPI -->
@@ -59,16 +59,14 @@
   mirroring the terra-jenkins extraction precedent — NOT a subdirectory of the terra-api repo, which
   is what ADR-009's original 2026-07-22 wording said; corrected via 2026-07-24 ADR amendment). CRA
   (not Vite) also confirmed deliberate — scope-fit call, not drift (see ADR-009 amendment).
-- **Next Step:** Push local `main` to `bitbucket` to resync the mirror (was behind at the pre-CLAUDE.md/
-  TASKS.md commit when the remote was re-added). All four design decisions this repo was blocked on
-  are now resolved (2026-07-24, see ADR-009/ADR-005/ADR-011): repo topology (standalone sibling),
-  build tool (CRA, no TS), same-origin serving (Spring embeds the CRA build via a Jenkins copy step —
-  no nginx), ecosystem-health exposure (new `GET /api/v1/ecosystem/health` on 8081) + the customer
-  entitlement gap it depends on (seeded single-row `customer_service_access` table, real assignment
-  deferred to a second-customer trigger). Nothing built yet on any of these. Next real step: cut the
-  first phase branch, per terra-api's phase-branch workflow (Will confirmed 2026-07-24: one branch
-  per phase, pre-PR branch + SonarQube cleanup before merging to `main`, original phase branch kept
-  untouched).
+- **Next Step:** On `phase-1-auth-shell` (cut 2026-07-24, local only, not pushed yet) — build login
+  flow + JWT storage/attach against terra-api's existing auth endpoints, protected-route shell. No
+  visualizer work in this phase (TFE-005/006 blocked on the backend health endpoint + entitlement
+  table from ADR-005/ADR-011, neither built yet). All four design decisions this repo was blocked on
+  are resolved (2026-07-24, see ADR-009/ADR-005/ADR-011): repo topology (standalone sibling), build
+  tool (CRA, no TS), same-origin serving (Spring embeds the CRA build via a Jenkins copy step — no
+  nginx), ecosystem-health exposure (new `GET /api/v1/ecosystem/health` on 8081) + its entitlement
+  dependency (seeded single-row `customer_service_access` table). Bitbucket mirror resynced same day.
 - **Blockers:** None
 - **Context:** CRA (React 19, plain JS — no TypeScript), `main` branch. Dual-remote: `origin`
   (`will55555/terra-api-fe`, GitHub) + `bitbucket` (`terra-inc-dev/terra-api-fe`) — Bitbucket repo
