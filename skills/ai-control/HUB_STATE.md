@@ -1,5 +1,5 @@
 # Engineering Hub State
-<!-- Freshness: 2026-07-24 (rev 29) | v1.3 | Snapshots only — overwritten in place. History lives in DEV_LOGs. -->
+<!-- Freshness: 2026-07-24 (rev 30) | v1.3 | Snapshots only — overwritten in place. History lives in DEV_LOGs. -->
 <!-- New project? Copy the template from HUB_GUIDE.md → HUB_STATE Section Template. -->
 
 ## Terra API                                        <!-- prefix: TAPI -->
@@ -54,19 +54,26 @@
 
 ## terra-api-fe                                     <!-- prefix: TFE -->
 - **Status:** Active — scaffolded 2026-07-24, pre-feature (CRA default app, nothing custom built yet)
-- **Active Task:** TFE-001 — standalone-repo architecture confirmed (not monorepo subdir); dual-remote
-  now wired (see Context) — remaining: same-origin EC2 deploy plan
+- **Active Task:** TFE-001 — DONE: standalone sibling-repo architecture confirmed correct (own
+  GitHub/Bitbucket remotes, sits alongside terra-api + terra-jenkins under the same outer folder,
+  mirroring the terra-jenkins extraction precedent — NOT a subdirectory of the terra-api repo, which
+  is what ADR-009's original 2026-07-22 wording said; corrected via 2026-07-24 ADR amendment). CRA
+  (not Vite) also confirmed deliberate — scope-fit call, not drift (see ADR-009 amendment).
 - **Next Step:** Push local `main` to `bitbucket` to resync the mirror (was behind at the pre-CLAUDE.md/
-  TASKS.md commit when the remote was re-added); then cut the first phase branch (e.g. `phase-1-<name>`)
-  once first feature is scoped — Will confirmed 2026-07-24 this repo follows terra-api's phase-branch
-  workflow (one branch per phase; pre-PR branch + SonarQube cleanup before merging to `main`, original
-  phase branch kept untouched — see TAPI Context for the full convention).
+  TASKS.md commit when the remote was re-added). Then remaining open design decisions before feature
+  work starts: (1) same-origin serving mechanism for EC2 deploy (Spring-static vs. reverse proxy),
+  (2) ecosystem-health data exposure (new public-safe endpoint on 8081 vs. proxying management port
+  8082) — both still unresolved, see ADR-009/ADR-005. Then cut the first phase branch once scoped,
+  per terra-api's phase-branch workflow (Will confirmed 2026-07-24: one branch per phase, pre-PR
+  branch + SonarQube cleanup before merging to `main`, original phase branch kept untouched).
 - **Blockers:** None
-- **Context:** CRA (React 19), `main` branch. Dual-remote as of 2026-07-24: `origin`
-  (`will55555/terra-api-fe`, GitHub) + `bitbucket` (`terra-inc-dev/terra-api-fe`) — the Bitbucket repo
-  already existed (pre-created, in sync at `8fbfc77`) and was just re-wired locally, matching terra-api's
-  pattern. Branching convention: same phase-branch + pre-PR model as terra-api (Will's call, 2026-07-24).
-  `CLAUDE.md`/`TASKS.md` added and pushed to `origin` same day (`41c5ebd`).
+- **Context:** CRA (React 19, plain JS — no TypeScript), `main` branch. Dual-remote: `origin`
+  (`will55555/terra-api-fe`, GitHub) + `bitbucket` (`terra-inc-dev/terra-api-fe`) — Bitbucket repo
+  pre-existed, re-wired locally 2026-07-24. Lives on disk as a sibling to `terra-api` and
+  `terra-jenkins` under the same outer folder (`New folder\` on the test machine — see HUB.md Machine
+  Paths). Auth/backend note: building this repo's `/customer` section is the trigger ADR-010 named for
+  adding the `role`/`aud` JWT claim — that's now live scope, not deferred. `CLAUDE.md`/`TASKS.md`
+  added and pushed to `origin` (`41c5ebd`).
 
 ## ROMS                                             <!-- prefix: ROMS -->
 - **Status:** Deployed but static — not being redeployed until actually needed (Will's call,
