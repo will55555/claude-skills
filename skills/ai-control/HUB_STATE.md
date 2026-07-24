@@ -1,5 +1,5 @@
 # Engineering Hub State
-<!-- Freshness: 2026-07-24 (rev 28) | v1.3 | Snapshots only — overwritten in place. History lives in DEV_LOGs. -->
+<!-- Freshness: 2026-07-24 (rev 29) | v1.3 | Snapshots only — overwritten in place. History lives in DEV_LOGs. -->
 <!-- New project? Copy the template from HUB_GUIDE.md → HUB_STATE Section Template. -->
 
 ## Terra API                                        <!-- prefix: TAPI -->
@@ -54,17 +54,19 @@
 
 ## terra-api-fe                                     <!-- prefix: TFE -->
 - **Status:** Active — scaffolded 2026-07-24, pre-feature (CRA default app, nothing custom built yet)
-- **Active Task:** TFE-001 — confirm deploy architecture (standalone repo vs. the originally-planned
-  monorepo-subdirectory-of-terra-api) + same-origin EC2 deploy plan
-- **Next Step:** Decide frontend scaffolding direction with Will; once decided, wire the frontend
-  stages in terra-api's `Jenkinsfile` (currently commented out — terra-api-fe didn't exist yet
-  when TAPI-012 shipped)
+- **Active Task:** TFE-001 — standalone-repo architecture confirmed (not monorepo subdir); dual-remote
+  now wired (see Context) — remaining: same-origin EC2 deploy plan
+- **Next Step:** Push local `main` to `bitbucket` to resync the mirror (was behind at the pre-CLAUDE.md/
+  TASKS.md commit when the remote was re-added); then cut the first phase branch (e.g. `phase-1-<name>`)
+  once first feature is scoped — Will confirmed 2026-07-24 this repo follows terra-api's phase-branch
+  workflow (one branch per phase; pre-PR branch + SonarQube cleanup before merging to `main`, original
+  phase branch kept untouched — see TAPI Context for the full convention).
 - **Blockers:** None
-- **Context:** CRA (React 19), `main` branch, own GitHub remote (`will55555/terra-api-fe`) only.
-  Merge history references `bitbucket/main` (`Merge bitbucket/main: resolve gitignore conflict`)
-  but no Bitbucket remote is currently configured — unconfirmed whether a mirror should be added
-  to match terra-api's dual-remote (GitHub + Bitbucket) pattern. `CLAUDE.md`/`TASKS.md` added
-  2026-07-24.
+- **Context:** CRA (React 19), `main` branch. Dual-remote as of 2026-07-24: `origin`
+  (`will55555/terra-api-fe`, GitHub) + `bitbucket` (`terra-inc-dev/terra-api-fe`) — the Bitbucket repo
+  already existed (pre-created, in sync at `8fbfc77`) and was just re-wired locally, matching terra-api's
+  pattern. Branching convention: same phase-branch + pre-PR model as terra-api (Will's call, 2026-07-24).
+  `CLAUDE.md`/`TASKS.md` added and pushed to `origin` same day (`41c5ebd`).
 
 ## ROMS                                             <!-- prefix: ROMS -->
 - **Status:** Deployed but static — not being redeployed until actually needed (Will's call,

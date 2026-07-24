@@ -1,5 +1,5 @@
 # Engineering Hub (load hub)
-<!-- Freshness: 2026-07-22 | v1.4 | Home: claude-skills/skills/ai-control/ -->
+<!-- Freshness: 2026-07-24 | v1.4 | Home: claude-skills/skills/ai-control/ -->
 
 ## Mission
 Single control system for all personal coding/engineering work. Fast handoff, minimal re-discovery,
@@ -185,7 +185,8 @@ Fixed read order — never deviate, never parallelize:
   |---|---|---|
   | claude-skills repo | `C:\Users\solan\OneDrive\Desktop\SDE\claude-skills\` | Confirmed reachable 2026-07-09 — edit in place |
   | terra-api | `C:\Users\solan\OneDrive\Desktop\SDE\terra-api\terra-api\` (double-nested!) | Confirmed reachable 2026-07-09 |
-  | terra-api (machine: test) | `C:\Users\test\Desktop\Programing\terra-api\` (single-nested, NOT double) | Confirmed reachable 2026-07-10 |
+  | terra-api (machine: test) | `C:\Users\test\Desktop\Programing\New folder\terra-api\` (single-nested, NOT double) | CORRECTED 2026-07-24 — prior path (`Programing\terra-api\` without `New folder\`) was stale/unreachable; actual location verified while wiring terra-api-fe's Bitbucket remote |
+  | terra-api-fe (machine: test) | `C:\Users\test\Desktop\Programing\New folder\terra-api-fe\` | Scaffolded 2026-07-24; own GitHub remote (`will55555/terra-api-fe`) + Bitbucket mirror (`terra-inc-dev/terra-api-fe`) wired same day, matching terra-api's dual-remote pattern |
   | terra-jenkins | `C:\Users\solan\OneDrive\Desktop\SDE\terra-api\terra-jenkins\` (sibling to terra-api repo) | Extracted from nested `terra-api/terra-jenkins/` 2026-07-21; own GitHub+Bitbucket remotes (`will55555/terra-jenkins`, `terra-inc-dev/terra-jenkins`), `master` branch canonical |
   | terra-jenkins (machine: test) | `C:\Users\test\Desktop\Programing\terra-jenkins\` (sibling to terra-api repo, single-nested layout) | Extracted 2026-07-21; confirmed reachable same day — `master` @ `a81ce01`, both remotes wired |
   | claude-skills (machine: test) | `C:\Users\test\Desktop\Programing\claude-skills\` | Confirmed reachable 2026-07-10 |
