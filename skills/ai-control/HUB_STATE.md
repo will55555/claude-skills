@@ -1,5 +1,5 @@
 # Engineering Hub State
-<!-- Freshness: 2026-07-23 (rev 27) | v1.3 | Snapshots only — overwritten in place. History lives in DEV_LOGs. -->
+<!-- Freshness: 2026-07-24 (rev 28) | v1.3 | Snapshots only — overwritten in place. History lives in DEV_LOGs. -->
 <!-- New project? Copy the template from HUB_GUIDE.md → HUB_STATE Section Template. -->
 
 ## Terra API                                        <!-- prefix: TAPI -->
@@ -29,8 +29,10 @@
   `TokenIssuer.java`, and a broken Dockerfile `RUN` (trailing backslash, then Alpine-style `-S`
   flags that don't work unambiguously on this Debian-based image — needed `--system`/`--ingroup`).
   Committed as `46c19d6`/`c83028f`, pushed to `origin`. **No automatic next feature is queued** —
-  re-scope with Will; terra-api-fe scaffolding (monorepo subdirectory + same-origin EC2 deploy) is
-  the leading candidate, not gated on ROMS. PIOS/ROMS integration stay deferred until ROMS is
+  re-scope with Will; terra-api-fe scaffolding is now underway (started 2026-07-24) as its own
+  standalone repo (`will55555/terra-api-fe`) — NOT the originally-floated monorepo-subdirectory —
+  see HUB_STATE's terra-api-fe (TFE) section below; same-origin EC2 deploy is still the plan, not
+  gated on ROMS. PIOS/ROMS integration stay deferred until ROMS is
   actually redeployed. Other open items, none blocking: prod EC2 security-group port (TBD),
   `terra-shared-lib` extraction (deferred), GitHub App `Pull requests`/`Commit statuses` permissions
   (deferred), Jenkins webhook fix (above). Full context: terra-api/TASKS.md → TAPI-011/TAPI-012,
@@ -49,6 +51,20 @@
   2026-07-20, confirmed accurate. **Unresolved, flagged 2026-07-21:** `terra-api-key.pem` sitting
   untracked and un-gitignored in the terra-api repo root (test machine) — awaiting Will's call on
   whether to gitignore it or whether it belongs in the repo at all.
+
+## terra-api-fe                                     <!-- prefix: TFE -->
+- **Status:** Active — scaffolded 2026-07-24, pre-feature (CRA default app, nothing custom built yet)
+- **Active Task:** TFE-001 — confirm deploy architecture (standalone repo vs. the originally-planned
+  monorepo-subdirectory-of-terra-api) + same-origin EC2 deploy plan
+- **Next Step:** Decide frontend scaffolding direction with Will; once decided, wire the frontend
+  stages in terra-api's `Jenkinsfile` (currently commented out — terra-api-fe didn't exist yet
+  when TAPI-012 shipped)
+- **Blockers:** None
+- **Context:** CRA (React 19), `main` branch, own GitHub remote (`will55555/terra-api-fe`) only.
+  Merge history references `bitbucket/main` (`Merge bitbucket/main: resolve gitignore conflict`)
+  but no Bitbucket remote is currently configured — unconfirmed whether a mirror should be added
+  to match terra-api's dual-remote (GitHub + Bitbucket) pattern. `CLAUDE.md`/`TASKS.md` added
+  2026-07-24.
 
 ## ROMS                                             <!-- prefix: ROMS -->
 - **Status:** Deployed but static — not being redeployed until actually needed (Will's call,
