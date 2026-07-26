@@ -1,5 +1,9 @@
 # Engineering Hub State
+<<<<<<< HEAD
 <!-- Freshness: 2026-07-26 (rev 20) | v1.3 | Snapshots only — overwritten in place. History lives in DEV_LOGs. -->
+=======
+<!-- Freshness: 2026-07-24 (rev 33) | v1.3 | Snapshots only — overwritten in place. History lives in DEV_LOGs. -->
+>>>>>>> 2020786b100c2ec98afb3a1508e8393c5117b08e
 <!-- New project? Copy the template from HUB_GUIDE.md → HUB_STATE Section Template. -->
 
 ## Terra API                                        <!-- prefix: TAPI -->
@@ -8,9 +12,35 @@
   → Push to Docker Hub → Deploy to Staging, containers confirmed `Up` on the real EC2 box.
   Phase 5 (TAPI-011, Redis+Postgres audit log) also Done, live-verified 2026-07-18 on
   `phase-5-redis`.
-- **Active Task:** Open PRs for `phase-5-redis` (TAPI-011) and `phase-6-cicd` (TAPI-012) into
-  master. Neither branch has a PR opened yet.
-- **Next Step:** **(A) Pre-PR workflow (immediate)** — Cut pre-PR branches from `phase-5-redis` (TAPI-011) and `phase-6-cicd` (TAPI-012), run SonarQube, strip dev comments, open PRs to master (parallel). **(B) terra-jenkins extraction DONE 2026-07-21** — Extracted to `SDE\terra-api\terra-jenkins\` (sibling to terra-api repo), own GitHub+Bitbucket remotes (`will55555/terra-jenkins`, `terra-inc-dev/terra-jenkins`), `master` branch canonical. Initial commit `a81ce01` pushed to both. Nested folder deleted; Jenkinsfile remains at terra-api/terra-api/Jenkinsfile (configures terra-api build). Neutral ecosystem infra for ROMS+terra-api+PIOS CI/CD. Per-machine Docker setup stays local (doesn't travel via git); EC2 deploy unaffected. After option A completes, shift focus to PIOS. Other open items, none blocking: prod EC2 security-group port (TBD), `terra-api-fe` stages (commented out), `terra-shared-lib` extraction (deferred), GitHub App permissions (deferred). Full context: terra-api/TASKS.md, terra-api/DEV_LOG.md.
+- **Active Task:** **PR #1 merged 2026-07-23** — `phase-6-cicd-prepr` → `master` (TAPI-011+012
+  combined), SonarQube clean beforehand (one justified/suppressed `java:S2143` finding). `master`
+  now in sync at `534dd1b` across local, `origin` (GitHub), and `bitbucket` — confirmed identical on
+  all three. `phase-6-cicd-prepr` retired everywhere (local + both remotes); `phase-6-cicd` (original,
+  untouched) stays per the pre-PR convention.
+- **Next Step:** **Correction 2026-07-23 — real gap, not resolved.** A second push to `master`
+  (`c83028f`, real bug fixes) also failed to auto-trigger `terra-api-pipeline`, needing another
+  manual "Scan Multibranch Pipeline Now" — ruling out the earlier "just first-time branch discovery"
+  explanation. No GitHub webhook is actually reaching Jenkins; every trigger this session (including
+  the original `phase-6-cicd-prepr` build) has been a manual scan, not push-triggered. Real fix
+  needed for "launch and forget": either SCM polling (Jenkins reaches out to GitHub — works fine
+  from Jenkins' local-machine `localhost:8090`, no exposure needed) or actually exposing Jenkins
+  publicly (tunnel/port-forward) for real webhook delivery — not yet decided which. **Separately:**
+  a live TAPI-011/012 regression was found and fixed post-merge — `SecurityConfig`'s
+  `.csrf(AbstractHttpConfigurer::disable)` got commented out during the SonarQube cleanup pass
+  (missed because `SecurityConfig.java` went dirty *after* the original bug-hunt pass), breaking
+  every auth-dependent test with 403s. Also fixed in the same pass: missing `testCompileOnly`/
+  `testAnnotationProcessor` Lombok deps in `build.gradle.kts`, a stripped WHY comment in
+  `TokenIssuer.java`, and a broken Dockerfile `RUN` (trailing backslash, then Alpine-style `-S`
+  flags that don't work unambiguously on this Debian-based image — needed `--system`/`--ingroup`).
+  Committed as `46c19d6`/`c83028f`, pushed to `origin`. **No automatic next feature is queued** —
+  re-scope with Will; terra-api-fe scaffolding is now underway (started 2026-07-24) as its own
+  standalone repo (`will55555/terra-api-fe`) — NOT the originally-floated monorepo-subdirectory —
+  see HUB_STATE's terra-api-fe (TFE) section below; same-origin EC2 deploy is still the plan, not
+  gated on ROMS. PIOS/ROMS integration stay deferred until ROMS is
+  actually redeployed. Other open items, none blocking: prod EC2 security-group port (TBD),
+  `terra-shared-lib` extraction (deferred), GitHub App `Pull requests`/`Commit statuses` permissions
+  (deferred), Jenkins webhook fix (above). Full context: terra-api/TASKS.md → TAPI-011/TAPI-012,
+  terra-api/DEV_LOG.md.
 - **Blockers:** None
 - **Context:** Pre-PR branch convention adopted 2026-07-20 — before merging any phase/feature branch
   to master, cut a separate pre-PR branch first, run SonarQube + cleanup there, keep the original
@@ -22,14 +52,47 @@
   image `terra-api-be`, branch-tiered `when` gates, Deploy-to-Staging/Prod both live); only
   frontend stages stay commented out (`terra-api-fe` doesn't exist yet). Full history on
   `phase-6-cicd`, pushed to both remotes. ROMS/Terra Solar status cross-checked against Notion
-  2026-07-20, confirmed accurate.
+  2026-07-20, confirmed accurate. **Unresolved, flagged 2026-07-21:** `terra-api-key.pem` sitting
+  untracked and un-gitignored in the terra-api repo root (test machine) — awaiting Will's call on
+  whether to gitignore it or whether it belongs in the repo at all.
+
+## terra-api-fe                                     <!-- prefix: TFE -->
+- **Status:** Active — scaffolded 2026-07-24, pre-feature (CRA default app, nothing custom built yet)
+- **Active Task:** TFE-001 — DONE: standalone sibling-repo architecture confirmed correct (own
+  GitHub/Bitbucket remotes, sits alongside terra-api + terra-jenkins under the same outer folder,
+  mirroring the terra-jenkins extraction precedent — NOT a subdirectory of the terra-api repo, which
+  is what ADR-009's original 2026-07-22 wording said; corrected via 2026-07-24 ADR amendment). CRA
+  (not Vite) also confirmed deliberate — scope-fit call, not drift (see ADR-009 amendment).
+- **Next Step:** Work TFE-101/102/103 on `phase-1-auth-shell` (cut 2026-07-24, local only, not
+  pushed yet) — login flow + JWT storage/attach against terra-api's existing auth endpoints,
+  protected-route shell, env-based endpoint config. Full 4-phase build sequence now documented in
+  ADR-009's "Build Sequence" section (added 2026-07-24, mirrors ADR-001's pattern) and mirrored in
+  this repo's TASKS.md: Phase 1 Auth Shell (this repo) → Phase 2 Same-Origin Deploy Wiring (spans
+  this repo + terra-api) → Phase 3 Backend Health/Entitlement/Role-Claim (terra-api repo) → Phase 4
+  Visualizer Integration (this repo, depends on Phase 3). All design decisions blocking this work
+  are resolved (see ADR-009/ADR-005/ADR-011). Bitbucket mirror resynced 2026-07-24.
+- **Blockers:** None
+- **Context:** CRA (React 19, plain JS — no TypeScript), `main` branch. Dual-remote: `origin`
+  (`will55555/terra-api-fe`, GitHub) + `bitbucket` (`terra-inc-dev/terra-api-fe`) — Bitbucket repo
+  pre-existed, re-wired locally 2026-07-24. Lives on disk as a sibling to `terra-api` and
+  `terra-jenkins` under the same outer folder (`New folder\` on the test machine — see HUB.md Machine
+  Paths). Deploy: Jenkins builds this repo, copies its `build/` output into terra-api's
+  `src/main/resources/static` pre-jar-package — accepted build-time coupling despite the git-level
+  independence (see ADR-009 2026-07-24 Update #2). Auth/backend note: building this repo's `/customer`
+  section is the trigger ADR-010 named for adding the `role`/`aud` JWT claim — that's now live scope,
+  not deferred; same session also added terra-api-adr-011 (customer entitlement table) as a new
+  backend dependency. `CLAUDE.md`/`TASKS.md` added and pushed to `origin` (`41c5ebd`).
 
 ## ROMS                                             <!-- prefix: ROMS -->
-- **Status:** Deployed
-- **Active Task:** ROMS-001 — first real integration target for Terra API shared services
-- **Next Step:** Define integration point — TAPI-001 (JWT auth) done 2026-07-10, unblocked
-- **Blockers:** None
-- **Context:** Spring Boot + React. First potential revenue source.
+- **Status:** Deployed but static — not being redeployed until actually needed (Will's call,
+  reconfirmed 2026-07-22; first made 2026-07-07). Effectively maintenance mode in practice, though
+  not officially declared as such.
+- **Active Task:** ROMS-001 — first real integration target for Terra API shared services, once live
+- **Next Step:** Blocked on Will's decision to actually redeploy ROMS — TAPI-001 (JWT auth) makes the
+  eventual integration technically unblocked, but there's no live target to integrate against yet.
+  Don't scope integration details further until that trigger fires.
+- **Blockers:** ROMS not redeployed — deliberate, no timeline
+- **Context:** Spring Boot + React. First potential revenue source, once actually integrated.
 
 ## PIOS                                             <!-- prefix: PIOS -->
 - **Status:** Design phase — no coding until ADR-013 resolves

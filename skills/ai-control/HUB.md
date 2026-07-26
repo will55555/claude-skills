@@ -1,5 +1,5 @@
 # Engineering Hub (load hub)
-<!-- Freshness: 2026-07-18 | v1.4 | Home: claude-skills/skills/ai-control/ -->
+<!-- Freshness: 2026-07-24 | v1.4 | Home: claude-skills/skills/ai-control/ -->
 
 ## Mission
 Single control system for all personal coding/engineering work. Fast handoff, minimal re-discovery,
@@ -185,13 +185,18 @@ Fixed read order — never deviate, never parallelize:
   |---|---|---|
   | claude-skills repo | `C:\Users\solan\OneDrive\Desktop\SDE\claude-skills\` | Confirmed reachable 2026-07-09 — edit in place |
   | terra-api | `C:\Users\solan\OneDrive\Desktop\SDE\terra-api\terra-api\` (double-nested!) | Confirmed reachable 2026-07-09 |
-  | terra-api (machine: test) | `C:\Users\test\Desktop\Programing\terra-api\` (single-nested, NOT double) | Confirmed reachable 2026-07-10 |
+  | terra-api (machine: test) | `C:\Users\test\Desktop\Programing\New folder\terra-api\` (single-nested, NOT double) | CORRECTED 2026-07-24 — prior path (`Programing\terra-api\` without `New folder\`) was stale/unreachable; actual location verified while wiring terra-api-fe's Bitbucket remote |
+  | terra-api-fe (machine: test) | `C:\Users\test\Desktop\Programing\New folder\terra-api-fe\` | Scaffolded 2026-07-24; own GitHub remote (`will55555/terra-api-fe`) + Bitbucket mirror (`terra-inc-dev/terra-api-fe`) wired same day, matching terra-api's dual-remote pattern. Confirmed 2026-07-24 as the correct placement — sibling repo inside the same outer folder as terra-api and terra-jenkins, mirroring the terra-jenkins extraction precedent (see ADR-009 2026-07-24 amendment), NOT a subdirectory of the terra-api repo despite ADR-009's original 2026-07-22 wording. |
+  | "New folder" container pattern (machine: test) | `C:\Users\test\Desktop\Programing\New folder\` | Test machine's equivalent of the primary machine's outer `SDE\terra-api\` container — holds terra-api, terra-api-fe, and terra-jenkins as sibling repos. Poorly named (literal "New folder") but functions the same way; noted 2026-07-24 so it isn't mistaken for scratch space. |
+  | terra-jenkins | `C:\Users\solan\OneDrive\Desktop\SDE\terra-api\terra-jenkins\` (sibling to terra-api repo) | Extracted from nested `terra-api/terra-jenkins/` 2026-07-21; own GitHub+Bitbucket remotes (`will55555/terra-jenkins`, `terra-inc-dev/terra-jenkins`), `master` branch canonical |
+  | terra-jenkins (machine: test) | `C:\Users\test\Desktop\Programing\New folder\terra-jenkins\` (sibling to terra-api repo, single-nested layout) | CORRECTED 2026-07-24 — prior path (`Programing\terra-jenkins\` without `New folder\`) was stale/unreachable, same bug as terra-api's entry; re-verified while resolving terra-api-fe's placement |
   | claude-skills (machine: test) | `C:\Users\test\Desktop\Programing\claude-skills\` | Confirmed reachable 2026-07-10 |
   | terra-hq-site | `C:\Users\solan\OneDrive\Desktop\SDE\terra-hq-site\` | Confirmed reachable 2026-07-09 |
   | terra-hq-site (machine: test) | `C:\Users\test\Desktop\Programing\terra-hq-site\` | Cloned fresh 2026-07-17 (was previously not present on this machine) |
   | ROMS (restaurant-order-management-system) | `C:\Users\solan\OneDrive\Desktop\SDE\restaurant-order-management-system\` | Confirmed 2026-07-09 — folder is NOT named "roms" |
   | pios | no repo exists yet | n/a — add when PIOS moves to code |
   | Obsidian vault | `C:\Users\solan\iCloudDrive\iCloud~md~obsidian\iCloud\Obsidian Vault\` | Reachable; sync skill owns writes |
+  | Obsidian vault (machine: test) | `C:\Users\test\Desktop\iCloudDrive\Obsidian Vault\` | Confirmed reachable 2026-07-22; sync skill owns writes |
   | Hub (canonical) | `claude-skills/skills/ai-control/` | Local in Code; GitHub raw elsewhere |
 
   Copy-paste command templates elsewhere in this hub (Skill Update Trigger, GUIDE bootstrap)
