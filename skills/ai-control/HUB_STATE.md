@@ -1,36 +1,34 @@
 # Engineering Hub State
-<!-- Freshness: 2026-07-26 (rev 35) | v1.3 | Snapshots only — overwritten in place. History lives in DEV_LOGs. -->
+<!-- Freshness: 2026-07-26 (rev 36) | v1.3 | Snapshots only — overwritten in place. History lives in DEV_LOGs. -->
 <!-- New project? Copy the template from HUB_GUIDE.md → HUB_STATE Section Template. -->
 
 ## Terra API                                        <!-- prefix: TAPI -->
-- **Status:** Active — Docker orchestration corrected 2026-07-26 (2nd session): the 2026-07-26
-  rev33 entry claimed root docker-compose.yml/docker.env/docker-compose.dev.yml all existed and
-  worked — audited against actual disk state and found none of them did (root compose was a
-  comment-only stub, no live services; docker.env and docker-compose.dev.yml didn't exist at all).
-  All four now genuinely exist and are correct. TAPI-012/Phase 5 EC2 live-verification (2026-07-20)
-  unaffected. `terra-api-home` confirmed as its own real repo (`will55555/terra-api-home`), not a
-  bare folder — clone flow documented in its own SETUP.md.
-- **Active Task:** Still no formal TAPI-0XX ID (last is TAPI-012) — flagged twice now, worth
-  opening one. Work done: root `docker-compose.yml` now uses Compose `include:` (pulls in
-  `terra-api/docker-compose.yml` + `docker-compose.dev.yml` + `terra-jenkins/docker-compose.jenkins.yml`,
-  untested end-to-end — needs Compose v2.20+ for `include:`, not yet confirmed on this machine);
-  `docker.env` created at parent level; `terra-api/docker-compose.dev.yml` created (JDBC via
-  `postgres:5432` container DNS, `REDIS_HOST=redis`); parent `.gitignore`/README/SETUP.md corrected
-  (removed a false "no compose files in child repos" rule — those files are required and the
-  parent `.gitignore` can't reach into a nested repo anyway; fixed stale branch-checkout
-  instructions and a memory-path pointer hardcoded to the wrong machine). Also found and deleted
-  `.github/modernize/java-upgrade/` — untracked VS Code Java-modernization-extension scaffold,
-  unrelated to the project, self-gitignored, safe to remove.
-- **Next Step:** Commit + push terra-api-home's 4 modified files (`.gitignore`, `README.md`,
-  `SETUP.md`, `docker-compose.yml`) and terra-api's new `docker-compose.dev.yml`. Then run
-  `docker compose --env-file docker.env up --build` for real to verify `include:` actually works
-  before trusting this state. Then terra-api-fe npm install → uncomment frontend service → full
-  stack verify → TFE-101/102/103.
+- **Status:** Active — Docker orchestration verified end-to-end 2026-07-26 (3rd session) via a live
+  `docker compose --env-file docker.env up --build` run: Postgres/Redis start clean, Hikari
+  connects with no auth error, app reaches `Started TerraApiApplication in 95.077 seconds`.
+  `include:` confirmed working. TAPI-012/Phase 5 EC2 live-verification (2026-07-20) unaffected.
+- **Active Task:** Still no formal TAPI-0XX ID (last is TAPI-012) — flagged three times now, worth
+  opening one. Found + fixed a real bug during verification: `terra-api/docker-compose.yml`
+  hardcoded Postgres's password, which only worked by coincidence because it matched
+  `terra-api/.env`'s `DATASOURCE_PASSWORD` — a future rotation would've silently broken auth. Fixed
+  in `docker-compose.yml` (postgres) + `docker-compose.dev.yml` (terra-api-be): both now read
+  `${DATASOURCE_USERNAME}`/`${DATASOURCE_PASSWORD}`/`${REDIS_PASSWORD}`/`${TERRA_AUTH_*}` via
+  interpolation from `docker.env`, replacing a hardcoded value + a separately-synced `env_file`
+  copy. `terra-api/.env` untouched — stays scoped to host-mode (`gradle bootRun`) only, per its
+  existing header comment.
+- **Next Step:** Commit + push the credential fix (2 files, still uncommitted:
+  `terra-api/docker-compose.yml` + `docker-compose.dev.yml`; commit message already drafted this
+  session). Then terra-api-fe: `npm install` → uncomment frontend service → full stack verify →
+  TFE-101/102/103.
 - **Blockers:** None
-- **Context:** `HUB.md`'s Machine Paths table still says this machine's container folder is
-  `New folder\` — stale, should say `terra-api-home\` (its own repo now, not a bare folder) —
-  flagged as a hub-improvement candidate, not yet applied (needs `sync framework`, not `sync state`).
-  Jenkins webhook auto-trigger still unresolved. `terra-api-key.pem` gitignore decision pending.
+- **Context:** Two pre-existing issues flagged during verification, not fixed (out of scope):
+  missing `feature-flags.yaml` (empty flag set served); Spring Security generated a default
+  in-memory password at boot, suggesting `SecurityConfig` may not fully override the default
+  `UserDetailsService` — worth checking later. Redis intentionally left unauthenticated (this
+  compose file is dev/CI-only, never deployed — prod/staging have their own separate, also-unfixed
+  no-auth-Redis gap). `HUB.md`'s Machine Paths table still stale (says `New folder\`, should say
+  `terra-api-home\` — hub-improvement candidate, not yet applied). Jenkins webhook auto-trigger
+  still unresolved. `terra-api-key.pem` gitignore decision pending.
 
 ## terra-api-fe                                     <!-- prefix: TFE -->
 - **Status:** Active — Dockerfile now actually present locally (was an unmerged orphan commit as
