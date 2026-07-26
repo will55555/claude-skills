@@ -294,3 +294,21 @@ repeated command hand-off had no safety benefit there. The same logic doesn't ex
 repos (terra-api, etc.): those pushes are visible/shared-state changes on real product work, where
 the existing confirm-first default still holds. Content preview before writing is unchanged either
 way — this exception removes the git-command hand-off, not the review step.
+
+## 2026-07-26 — HUB.md v1.5: Response Contract gains a commit-message step
+
+### What changed
+A terra-api-home session (fixing a Postgres/Redis credential-duplication bug across
+`docker-compose.yml`/`docker-compose.dev.yml`) surfaced a gap: the Response Contract had no step
+for supplying a commit message after code edits were applied, so Will had to ask for one by hand.
+
+### Fix
+`HUB.md`'s Response Contract gets a new item 5 — after code edits are actually applied in a turn,
+supply a ready-to-paste commit message (Conventional Commits format, per GUIDE: Commit
+Conventions — imperative mood, task ID if one exists). Explicitly skipped on turns with no applied
+edits, so it doesn't get pre-drafted speculatively. Working Memory block shifts to item 6.
+Freshness stamp bumped to `2026-07-26`, version to `v1.5`.
+
+### Why
+Small, mechanical, easy to codify once — same pattern as other Response Contract items (state it
+once as a standing step instead of Will re-requesting it per session).

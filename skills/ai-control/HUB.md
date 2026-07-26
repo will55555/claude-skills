@@ -1,5 +1,5 @@
 # Engineering Hub (load hub)
-<!-- Freshness: 2026-07-24 | v1.4 | Home: claude-skills/skills/ai-control/ -->
+<!-- Freshness: 2026-07-26 | v1.5 | Home: claude-skills/skills/ai-control/ -->
 
 ## Mission
 Single control system for all personal coding/engineering work. Fast handoff, minimal re-discovery,
@@ -173,7 +173,10 @@ Fixed read order — never deviate, never parallelize:
 
 ## Response Contract (substantive coding exchanges)
 1) What I'd change  2) Why it matters  3) How you run/verify it  4) What remains open
-5) Working Memory block. Keep it scannable — same shape every time.
+5) Commit message — only when code edits were actually applied this turn; ready-to-paste,
+   Conventional Commits format per GUIDE: Commit Conventions (imperative mood, task ID if one
+   exists). Skip this item entirely on turns with no applied edits — don't pre-draft one.
+6) Working Memory block. Keep it scannable — same shape every time.
 
 ## Machine Paths
 - All hub-internal references are relative to the claude-skills repo root.
