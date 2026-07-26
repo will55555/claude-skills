@@ -1,38 +1,54 @@
 # Engineering Hub State
-<!-- Freshness: 2026-07-26 (rev 34) | v1.3 | Snapshots only — overwritten in place. History lives in DEV_LOGs. -->
+<!-- Freshness: 2026-07-26 (rev 35) | v1.3 | Snapshots only — overwritten in place. History lives in DEV_LOGs. -->
 <!-- New project? Copy the template from HUB_GUIDE.md → HUB_STATE Section Template. -->
 
 ## Terra API                                        <!-- prefix: TAPI -->
-- **Status:** Active — Docker orchestration infrastructure built 2026-07-26. All services running
-  locally: Backend (8081/8082), Postgres (5433), Redis (6379), Jenkins (8090). TAPI-012 (CI/CD)
-  and Phase 5 (Redis+Postgres) both live-verified on EC2 as of 2026-07-20.
-- **Active Task:** Docker environment setup (2026-07-26): root docker-compose.yml created at
-  parent level; docker-compose.dev.yml updated with Docker-aware JDBC/Redis overrides
-  (postgres:5432 DNS, container networking). terra-api-fe Dockerfile written (multi-stage React).
-  All three sibling repos (terra-api, terra-api-fe, terra-jenkins) now have versioned compose
-  configs. Commits pushed to origin/bitbucket.
-- **Next Step:** Complete terra-api-fe npm install; uncomment frontend service in
-  docker-compose.dev.yml; verify full stack docker build. Then integrate FE into Jenkins pipeline
-  (TFE-101/102/103 phase-1-auth-shell branch work).
-- **Blockers:** None — local dev fully operational.
-- **Context:** Docker architecture: parent folder (non-repo) references child docker-compose files
-  per service. docker.env at parent level contains shared secrets + Docker-aware overrides. Jenkins
-  webhook auto-trigger still unresolved (manual "Scan Now" required; SCM polling vs public tunnel
-  TBD). terra-api-key.pem gitignore decision pending. Pre-PR branch convention (2026-07-20) still
-  active for all merges.
+- **Status:** Active — Docker orchestration corrected 2026-07-26 (2nd session): the 2026-07-26
+  rev33 entry claimed root docker-compose.yml/docker.env/docker-compose.dev.yml all existed and
+  worked — audited against actual disk state and found none of them did (root compose was a
+  comment-only stub, no live services; docker.env and docker-compose.dev.yml didn't exist at all).
+  All four now genuinely exist and are correct. TAPI-012/Phase 5 EC2 live-verification (2026-07-20)
+  unaffected. `terra-api-home` confirmed as its own real repo (`will55555/terra-api-home`), not a
+  bare folder — clone flow documented in its own SETUP.md.
+- **Active Task:** Still no formal TAPI-0XX ID (last is TAPI-012) — flagged twice now, worth
+  opening one. Work done: root `docker-compose.yml` now uses Compose `include:` (pulls in
+  `terra-api/docker-compose.yml` + `docker-compose.dev.yml` + `terra-jenkins/docker-compose.jenkins.yml`,
+  untested end-to-end — needs Compose v2.20+ for `include:`, not yet confirmed on this machine);
+  `docker.env` created at parent level; `terra-api/docker-compose.dev.yml` created (JDBC via
+  `postgres:5432` container DNS, `REDIS_HOST=redis`); parent `.gitignore`/README/SETUP.md corrected
+  (removed a false "no compose files in child repos" rule — those files are required and the
+  parent `.gitignore` can't reach into a nested repo anyway; fixed stale branch-checkout
+  instructions and a memory-path pointer hardcoded to the wrong machine). Also found and deleted
+  `.github/modernize/java-upgrade/` — untracked VS Code Java-modernization-extension scaffold,
+  unrelated to the project, self-gitignored, safe to remove.
+- **Next Step:** Commit + push terra-api-home's 4 modified files (`.gitignore`, `README.md`,
+  `SETUP.md`, `docker-compose.yml`) and terra-api's new `docker-compose.dev.yml`. Then run
+  `docker compose --env-file docker.env up --build` for real to verify `include:` actually works
+  before trusting this state. Then terra-api-fe npm install → uncomment frontend service → full
+  stack verify → TFE-101/102/103.
+- **Blockers:** None
+- **Context:** `HUB.md`'s Machine Paths table still says this machine's container folder is
+  `New folder\` — stale, should say `terra-api-home\` (its own repo now, not a bare folder) —
+  flagged as a hub-improvement candidate, not yet applied (needs `sync framework`, not `sync state`).
+  Jenkins webhook auto-trigger still unresolved. `terra-api-key.pem` gitignore decision pending.
 
 ## terra-api-fe                                     <!-- prefix: TFE -->
-- **Status:** Active — scaffolded 2026-07-24, Dockerfile written 2026-07-26 (multi-stage React build)
-- **Active Task:** TFE-001 — Docker build integration (completed 2026-07-26): Dockerfile created
-  (builder + runtime stages, serve on 3000). npm install pending locally before docker build works.
-  Pushed Dockerfile commit to origin/main (`efe1cb1`).
-- **Next Step:** Complete `npm install` in terra-api-fe root; uncomment frontend service in
-  docker-compose.dev.yml; verify full stack builds. Then work TFE-101/102/103 on `phase-1-auth-shell`
-  — login flow + JWT storage/attach against terra-api endpoints.
+- **Status:** Active — Dockerfile now actually present locally (was an unmerged orphan commit as
+  of the last sync; corrected 2026-07-26 2nd session).
+- **Active Task:** TFE-001 — the `efe1cb1` Dockerfile commit existed on `origin/main` but was never
+  pulled locally and predated `phase-1-auth-shell` (the active branch, cut from `main` before
+  `efe1cb1`). Fixed: fetched + fast-forwarded local `main` (`41c5ebd`→`efe1cb1`), then merged `main`
+  into `phase-1-auth-shell` (clean merge, no conflicts, commit `8f38475`). Dockerfile now on the
+  active branch's working tree.
+- **Next Step:** Push `8f38475` to `bitbucket/phase-1-auth-shell` (this branch has NO `origin`
+  counterpart — GitHub only ever had `main`). Then `npm install` locally, uncomment the frontend
+  service in `terra-api/docker-compose.dev.yml`, verify the full stack actually builds (untested).
+  Then resume TFE-101/102/103 — login flow + JWT storage/attach against terra-api endpoints.
 - **Blockers:** npm dependencies not yet installed locally (docker build will fail until resolved)
-- **Context:** CRA (React 19, plain JS — no TypeScript), `main` branch. Dual-remote: `origin`
-  (GitHub) + `bitbucket`. Sibling to terra-api + terra-jenkins under terra-api-home. Dockerfile
-  pushed 2026-07-26; awaiting local npm install to complete docker build cycle.
+- **Context:** CRA (React 19, plain JS — no TypeScript). Dual-remote repo overall, but
+  `phase-1-auth-shell` specifically only exists on `bitbucket`, not `origin` — don't assume both
+  remotes have every branch. Sibling to terra-api + terra-jenkins under `terra-api-home` (now
+  confirmed to be its own git repo, `will55555/terra-api-home`, not a bare folder).
 
 ## ROMS                                             <!-- prefix: ROMS -->
 - **Status:** Deployed but static — not being redeployed until actually needed (Will's call,
