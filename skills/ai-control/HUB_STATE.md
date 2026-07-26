@@ -1,5 +1,5 @@
 # Engineering Hub State
-<!-- Freshness: 2026-07-21 (rev 19) | v1.3 | Snapshots only — overwritten in place. History lives in DEV_LOGs. -->
+<!-- Freshness: 2026-07-26 (rev 20) | v1.3 | Snapshots only — overwritten in place. History lives in DEV_LOGs. -->
 <!-- New project? Copy the template from HUB_GUIDE.md → HUB_STATE Section Template. -->
 
 ## Terra API                                        <!-- prefix: TAPI -->
@@ -86,3 +86,19 @@
   (CLAUDE.md pointers, `sync skills`→`sync hub` rename, session-context-sync excluded from
   Notion flow, TAPI/ADR-003 correction) applied on disk, not yet committed. Git = sole source of
   truth for ai-control; Notion = informational dupe only.
+
+## Yahoo Mail MCP Server                            <!-- prefix: YMCP -->
+- **Status:** Active — OAuth persistence fix deployed 2026-07-26, live-verified via Render deploy logs
+- **Active Task:** YMCP-002 — reconnect Yahoo Mail MCP connector once in Claude to pick up token under new signing scheme
+- **Next Step:** After reconnect, confirm token holds across a natural idle/spin-down period without forcing re-auth
+- **Blockers:** None
+- **Context:** Repo `willtchouente/yahoo-mail-mcp-server` (fork of `jtokib/yahoo-mail-mcp-server`),
+  deployed on Render free tier. Session 1 (2026-06-22, YMCP-001) fixed IMAP-layer instability
+  (connection pooling, retry-with-backoff, SSE heartbeat) — necessary but not sufficient, since
+  reconnect complaints persisted. Session 2 (2026-07-26) found the actual root cause: OAuth
+  `validTokens`/`authCodes` were in-memory Set/Map, wiped every Render spin-down (~15min idle +
+  ephemeral filesystem). Fixed by making tokens stateless (HMAC-signed via Node `crypto`, no
+  jsonwebtoken dep, 30-day TTL via `ACCESS_TOKEN_TTL_SECONDS`). Added `.github/workflows/keep-alive.yml`
+  (10min health ping) as secondary defense against spin-down itself. Full history in repo's own
+  `DEV_LOG.md` (Phase 1 + Phase 2). Notion: PAI subproject page `📨 Yahoo Mail MCP Server`.
+
