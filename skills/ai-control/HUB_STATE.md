@@ -1,52 +1,59 @@
 # Engineering Hub State
-<!-- Freshness: 2026-07-26 (rev 36) | v1.3 | Snapshots only — overwritten in place. History lives in DEV_LOGs. -->
+<!-- Freshness: 2026-07-26 (rev 37) | v1.3 | Snapshots only — overwritten in place. History lives in DEV_LOGs. -->
 <!-- New project? Copy the template from HUB_GUIDE.md → HUB_STATE Section Template. -->
 
 ## Terra API                                        <!-- prefix: TAPI -->
-- **Status:** Active — Docker orchestration verified end-to-end 2026-07-26 (3rd session) via a live
-  `docker compose --env-file docker.env up --build` run: Postgres/Redis start clean, Hikari
-  connects with no auth error, app reaches `Started TerraApiApplication in 95.077 seconds`.
-  `include:` confirmed working. TAPI-012/Phase 5 EC2 live-verification (2026-07-20) unaffected.
-- **Active Task:** Still no formal TAPI-0XX ID (last is TAPI-012) — flagged three times now, worth
-  opening one. Found + fixed a real bug during verification: `terra-api/docker-compose.yml`
-  hardcoded Postgres's password, which only worked by coincidence because it matched
-  `terra-api/.env`'s `DATASOURCE_PASSWORD` — a future rotation would've silently broken auth. Fixed
-  in `docker-compose.yml` (postgres) + `docker-compose.dev.yml` (terra-api-be): both now read
-  `${DATASOURCE_USERNAME}`/`${DATASOURCE_PASSWORD}`/`${REDIS_PASSWORD}`/`${TERRA_AUTH_*}` via
-  interpolation from `docker.env`, replacing a hardcoded value + a separately-synced `env_file`
-  copy. `terra-api/.env` untouched — stays scoped to host-mode (`gradle bootRun`) only, per its
-  existing header comment.
-- **Next Step:** Commit + push the credential fix (2 files, still uncommitted:
-  `terra-api/docker-compose.yml` + `docker-compose.dev.yml`; commit message already drafted this
-  session). Then terra-api-fe: `npm install` → uncomment frontend service → full stack verify →
-  TFE-101/102/103.
-- **Blockers:** None
-- **Context:** Two pre-existing issues flagged during verification, not fixed (out of scope):
-  missing `feature-flags.yaml` (empty flag set served); Spring Security generated a default
-  in-memory password at boot, suggesting `SecurityConfig` may not fully override the default
-  `UserDetailsService` — worth checking later. Redis intentionally left unauthenticated (this
-  compose file is dev/CI-only, never deployed — prod/staging have their own separate, also-unfixed
-  no-auth-Redis gap). `HUB.md`'s Machine Paths table still stale (says `New folder\`, should say
-  `terra-api-home\` — hub-improvement candidate, not yet applied). Jenkins webhook auto-trigger
-  still unresolved. `terra-api-key.pem` gitignore decision pending.
+- **Status:** Active — Local Docker orchestration verified end-to-end 2026-07-26 (3rd session), but
+  **found a real production bug while pushing that fix live**: `~/terra-api-prod` on the EC2 box
+  was checked out on `phase-6-cicd`, not `master` — every prior "Deploy to Prod" run had silently
+  deployed the wrong branch. Fixed (`git checkout master && git pull`, box now correctly on
+  `master`), but the actual deploy is **still incomplete** — session ended mid-retry. Full
+  root-cause writeup in `terra-api/DEV_LOG.md`. Notion project page + `terra-api/CLAUDE.md` both
+  updated to match.
+- **Active Task:** Still no formal TAPI-0XX ID (last is TAPI-012) — flagged four times now, worth
+  opening one. This session: fixed the Postgres/Redis credential-duplication bug (docker.env now
+  the single source of truth for containerized runs), wired terra-api-fe into the local dev
+  compose stack, fixed a terra-api-fe Dockerfile bug (redundant runtime-stage `npm install`,
+  doubled build time/network exposure), found + fixed the prod wrong-branch bug above, hard-rebooted
+  the EC2 box after a deploy hung it unresponsive for ~50 min. All code committed + pushed to both
+  `origin` and `bitbucket`: `terra-api` @ `bc3df10`, `terra-api-fe` @ `4ee36c4`.
+- **Next Step:** **On the EC2 box** (`ssh -i terra-api/terra-api-key.pem ubuntu@100.60.61.209`,
+  already confirmed on `master`): retry the interrupted deploy —
+  `docker-compose-v2 -p terra-api-prod -f docker-compose.prod.yml pull/down/up -d` (last attempt
+  stalled on a redis image layer, network flakiness, not a config problem — check
+  `ps aux | grep docker` first for a stray process from the killed session before retrying). Also
+  re-trigger the `phase-6-cicd` "Deploy to Staging" job — it was killed by the same EC2 reboot.
+  After both are confirmed up: terra-api-fe local full-stack rebuild (Dockerfile fix applied, not
+  yet re-verified clean) → resume TFE-101/102/103.
+- **Blockers:** Prod deploy incomplete as of session end (see Next Step) — old prod containers are
+  presumed still running/serving (deploy never reached `down`), but not yet confirmed on this sync.
+- **Context:** Jenkins multibranch pipeline audited this session (read the job's `config.xml`
+  directly): already does what was asked — all branches auto-trigger CI, only `master`/`phase-*`
+  push/deploy. Uses 60s polling, not a webhook (can't switch yet — Jenkins runs locally, not on a
+  publicly reachable server; matches the repo's own documented future-migration plan). Two
+  pre-existing issues flagged, not fixed: missing `feature-flags.yaml`; Spring Security generated a
+  default in-memory password at boot (`SecurityConfig` may not fully override the default
+  `UserDetailsService`). Redis intentionally left unauthenticated on the local/CI compose file
+  (never deployed) — prod/staging have their own separate, still-unfixed no-auth-Redis gap.
+  `HUB.md`'s Machine Paths table still stale (`New folder\` → should be `terra-api-home\`).
+  `terra-api-key.pem` gitignore decision pending.
 
 ## terra-api-fe                                     <!-- prefix: TFE -->
-- **Status:** Active — Dockerfile now actually present locally (was an unmerged orphan commit as
-  of the last sync; corrected 2026-07-26 2nd session).
-- **Active Task:** TFE-001 — the `efe1cb1` Dockerfile commit existed on `origin/main` but was never
-  pulled locally and predated `phase-1-auth-shell` (the active branch, cut from `main` before
-  `efe1cb1`). Fixed: fetched + fast-forwarded local `main` (`41c5ebd`→`efe1cb1`), then merged `main`
-  into `phase-1-auth-shell` (clean merge, no conflicts, commit `8f38475`). Dockerfile now on the
-  active branch's working tree.
-- **Next Step:** Push `8f38475` to `bitbucket/phase-1-auth-shell` (this branch has NO `origin`
-  counterpart — GitHub only ever had `main`). Then `npm install` locally, uncomment the frontend
-  service in `terra-api/docker-compose.dev.yml`, verify the full stack actually builds (untested).
-  Then resume TFE-101/102/103 — login flow + JWT storage/attach against terra-api endpoints.
-- **Blockers:** npm dependencies not yet installed locally (docker build will fail until resolved)
-- **Context:** CRA (React 19, plain JS — no TypeScript). Dual-remote repo overall, but
-  `phase-1-auth-shell` specifically only exists on `bitbucket`, not `origin` — don't assume both
-  remotes have every branch. Sibling to terra-api + terra-jenkins under `terra-api-home` (now
-  confirmed to be its own git repo, `will55555/terra-api-home`, not a bare folder).
+- **Status:** Active — Dockerfile fixed and stack-integrated 2026-07-26 (3rd session): `npm install`
+  run (regenerated `package-lock.json`, was missing `react-router-dom`), a real Dockerfile bug
+  fixed (redundant runtime-stage `npm install`, was doubling build time), and the service wired
+  into `terra-api/docker-compose.dev.yml` (key renamed `frontend` → `terra-api-fe`).
+- **Active Task:** All local changes committed + pushed to **both** `origin` and `bitbucket` @
+  `4ee36c4` — correction to the prior entry below: `origin` does in fact have
+  `phase-1-auth-shell` now (was stale info), not bitbucket-only.
+- **Next Step:** Re-run the full local stack build (`docker compose --env-file docker.env up
+  --build` from `terra-api-home/`) to confirm terra-api-fe's image now builds clean end-to-end —
+  last attempt progressed further after the Dockerfile fix but wasn't confirmed complete before
+  the session ended (attention was on the terra-api prod-deploy incident, see TAPI). Then resume
+  TFE-101/102/103 — login flow + JWT storage/attach against terra-api endpoints.
+- **Blockers:** None
+- **Context:** CRA (React 19, plain JS — no TypeScript). Sibling to terra-api + terra-jenkins under
+  `terra-api-home` (its own git repo, `will55555/terra-api-home`, not a bare folder).
 
 ## ROMS                                             <!-- prefix: ROMS -->
 - **Status:** Deployed but static — not being redeployed until actually needed (Will's call,
