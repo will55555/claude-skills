@@ -261,9 +261,22 @@ Run once per new machine. Do NOT assume laptop 2 mirrors laptop 1's paths, MCP c
      segment independently, so neither half ever matches alone against one combined rule. There
      is no rule syntax that fences a Bash allow to "only when cwd is X" — global allow (any repo,
      any directory) or a prompt every time are the only two options. Went with global allow,
-     2026-07-18 — Claude still self-restricts to just `skills/ai-control/` per this section and
-     the general git-remote-ops boundary for every other repo; the permission grant is a ceiling,
-     not a mandate, so scope is enforced by instruction-following, not by the tool layer.
+     2026-07-18. The permission grant is a ceiling, not a mandate: scope is enforced by
+     instruction-following, not by the tool layer. Since 2026-07-27 the instruction side is
+     HUB.md's extended Hub Self-Sync Exception — `ai-control/` plus the active project's
+     HUB_STATE-listed repos, with pulls on `load hub` and commits/pushes on `sync`. The tool-layer
+     grant did not change; only what Claude is instructed to do with it did.
+   - **Permission rules needed for the extended (2026-07-27) scope**, since a `load hub` now pulls
+     several repos and a `sync` pushes them. Same per-machine caveat as above — these do NOT
+     travel with a git pull, so re-add them on each new machine or the unattended loop prompts
+     per repo and stalls:
+     `Bash(cd *)`, `Bash(git pull *)`, `Bash(git fetch *)`, `Bash(git status *)`,
+     `Bash(git log *)`, `Bash(git rev-parse *)`, `Bash(git branch *)`, `Bash(git remote *)`,
+     `Bash(git add *)`, `Bash(git commit *)`, `Bash(git push *)`.
+     The write three (`add`/`commit`/`push`) are deliberately included: Will syncs at session end
+     and expects every project's changes to go up in that one pass, unattended. The load/sync
+     phase split that keeps them from firing during a *load* is an instruction in HUB.md, not a
+     permission rule — the tool layer cannot express "only during sync."
    - Both `git *` and `cd *` are needed, not just `git *` — a compound command like
      `cd "<path>" && git log ... && git pull ... && git log ...` has `cd` as its own independent
      segment too. Even with `git *` allowed, an un-allowed `cd` (or worse, a variable-assignment
