@@ -3,40 +3,44 @@
 <!-- New project? Copy the template from HUB_GUIDE.md → HUB_STATE Section Template. -->
 
 ## Terra API                                        <!-- prefix: TAPI -->
-- **Status:** Active — Local Docker orchestration verified end-to-end 2026-07-26 (3rd session), but
-  **found a real production bug while pushing that fix live**: `~/terra-api-prod` on the EC2 box
-  was checked out on `phase-6-cicd`, not `master` — every prior "Deploy to Prod" run had silently
-  deployed the wrong branch. Fixed (`git checkout master && git pull`, box now correctly on
-  `master`), but the actual deploy is **still incomplete** — session ended mid-retry. Full
-  root-cause writeup in `terra-api/DEV_LOG.md`. Notion project page + `terra-api/CLAUDE.md` both
-  updated to match.
-- **Active Task:** Still no formal TAPI-0XX ID (last is TAPI-012) — flagged four times now, worth
-  opening one. This session: fixed the Postgres/Redis credential-duplication bug (docker.env now
-  the single source of truth for containerized runs), wired terra-api-fe into the local dev
-  compose stack, fixed a terra-api-fe Dockerfile bug (redundant runtime-stage `npm install`,
-  doubled build time/network exposure), found + fixed the prod wrong-branch bug above, hard-rebooted
-  the EC2 box after a deploy hung it unresponsive for ~50 min. All code committed + pushed to both
-  `origin` and `bitbucket`: `terra-api` @ `bc3df10`, `terra-api-fe` @ `4ee36c4`.
-- **Next Step:** **On the EC2 box** (`ssh -i terra-api/terra-api-key.pem ubuntu@100.60.61.209`,
-  already confirmed on `master`): retry the interrupted deploy —
-  `docker-compose-v2 -p terra-api-prod -f docker-compose.prod.yml pull/down/up -d` (last attempt
-  stalled on a redis image layer, network flakiness, not a config problem — check
-  `ps aux | grep docker` first for a stray process from the killed session before retrying). Also
-  re-trigger the `phase-6-cicd` "Deploy to Staging" job — it was killed by the same EC2 reboot.
-  After both are confirmed up: terra-api-fe local full-stack rebuild (Dockerfile fix applied, not
-  yet re-verified clean) → resume TFE-101/102/103.
-- **Blockers:** Prod deploy incomplete as of session end (see Next Step) — old prod containers are
-  presumed still running/serving (deploy never reached `down`), but not yet confirmed on this sync.
-- **Context:** Jenkins multibranch pipeline audited this session (read the job's `config.xml`
-  directly): already does what was asked — all branches auto-trigger CI, only `master`/`phase-*`
-  push/deploy. Uses 60s polling, not a webhook (can't switch yet — Jenkins runs locally, not on a
-  publicly reachable server; matches the repo's own documented future-migration plan). Two
-  pre-existing issues flagged, not fixed: missing `feature-flags.yaml`; Spring Security generated a
-  default in-memory password at boot (`SecurityConfig` may not fully override the default
-  `UserDetailsService`). Redis intentionally left unauthenticated on the local/CI compose file
-  (never deployed) — prod/staging have their own separate, still-unfixed no-auth-Redis gap.
+- **Status:** Active — **prod has been DOWN ~26h** (confirmed, not presumed: EC2 instance-status
+  check failed 2026-07-27 03:35 GMT-4 and the box never recovered). Local dev stack, by contrast,
+  is verified healthy 2026-07-28: `terra-api-be` + Postgres + Redis all `Up`, app boots in 24.5s,
+  `/actuator/health` returns `{"status":"UP"}` from inside the container.
+- **Active Task:** Still no formal TAPI-0XX ID (last is TAPI-012) — flagged five times now.
+  2026-07-28 session: merged `phase-6-cicd` → `master` (`54efe14`, the step TAPI-012 never
+  completed — Jenkinsfile states "merge IS the approval" for prod deploy); merged the two divergent
+  `docker.env` copies (this machine was missing `TERRA_AUTH_*`/`REDIS_PASSWORD`, the other laptop's
+  copy was missing the Notion keys + Docker networking overrides — now complete and verified, zero
+  unset-variable warnings); commented out `terra-api-fe` in dev compose (`1c4adda`) with the
+  blocker documented inline.
+- **Next Step:** **Diagnose the EC2 box before redeploying anything.** It has now frozen TWICE in
+  26h, the second time with Docker STOPPED and nothing running — which rules out the container
+  stack, Jenkins, and any deploy loop as the cause. Check `CloudWatch → CPUCreditBalance` first
+  (read-only, may answer it outright — a credit-exhausted `t3.micro` throttles to ~5% of a vCPU and
+  goes unresponsive while idle, which fits "froze doing nothing" far better than memory does), and
+  try **EC2 Serial Console** to reach it *while* frozen rather than restarting and losing the
+  evidence again. Only after that: stop→start, `sudo systemctl start docker`, assess inherited
+  containers, then deploy.
+- **Blockers:** EC2 box unresponsive (port 22 closed as of session end) — needs a stop→start to
+  return. Root cause of both freezes still UNKNOWN.
+- **Context:** ⚠️ **Two 2026-07-26 claims were disproven 2026-07-28 — do not trust them:** (1) the
+  "wrong branch on prod" fix was backwards — `master` was 71 commits BEHIND and lacked
+  `docker-compose.prod.yml` entirely; `phase-6-cicd` had the working files. Switching the box to
+  `master` moved it onto broken ones. Now moot: the merge landed. (2) "old prod containers presumed
+  still running/serving" — false; the box was fully down.
+  Jenkins runs LOCALLY (not on EC2), 60s polling, prod deploy auto-gated with no approval step —
+  so starting it deploys `master` immediately. Deliberately left un-started this session.
+  `terra-api-fe` blocked on a real peer conflict: lockfile records `tailwindcss@3.4.19` (a leftover
+  — NOT in `package.json`) needing `yaml@^2.4.2` while `react-scripts@5.0.1` pins `yaml@1.10.3`, so
+  `npm ci` refuses it. Fix verified: `rm -rf node_modules package-lock.json && npm install`.
+  **Never run `npm audit fix --force` there** — it downgrades `react-scripts` to `0.0.0` (empty
+  stub), removing ~1280 packages and the whole build toolchain (hit and reverted this session).
+  `terra-api-key.pem` gitignore decision was already resolved (`.gitignore:41` `*.pem`) — HUB_STATE
+  was stale. Key now on this machine too, ACL locked to `solan:(R)`.
   `HUB.md`'s Machine Paths table still stale (`New folder\` → should be `terra-api-home\`).
-  `terra-api-key.pem` gitignore decision pending.
+  Still unfixed: missing `feature-flags.yaml`; Spring Security default in-memory password at boot;
+  prod/staging no-auth-Redis gap.
 
 ## terra-api-fe                                     <!-- prefix: TFE -->
 - **Status:** Active — Dockerfile fixed and stack-integrated 2026-07-26 (3rd session): `npm install`
