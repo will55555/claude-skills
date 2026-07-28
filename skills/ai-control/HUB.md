@@ -1,5 +1,5 @@
 # Engineering Hub (load hub)
-<!-- Freshness: 2026-07-26 | v1.5 | Home: claude-skills/skills/ai-control/ -->
+<!-- Freshness: 2026-07-27 | v1.6 | Home: claude-skills/skills/ai-control/ -->
 
 ## Mission
 Single control system for all personal coding/engineering work. Fast handoff, minimal re-discovery,
@@ -24,6 +24,11 @@ model.
   that already runs every load — surface it (e.g. "up to date (9afa750)" or "pulled 2 new commits
   (abc123→def456)") instead of doing it silently. Claude Code only — web/Desktop sessions reading
   GitHub raw omit this segment (nothing was pulled).
+  Since 2026-07-27 that pull also covers the active project's repos, so the segment carries them
+  too — keep it to one line: name only what actually changed, and collapse the rest (e.g.
+  `repos: all current` or `repos: terra-api pulled 3 (a1b2c3→d4e5f6), rest current`). Flag any
+  repo that failed to pull or sits on an unexpected branch — that is a staleness signal, not
+  noise (step 4 covers the same ground for the active project).
   **Implementation note (2026-07-18):** run this as plain sequential `cd`/`git` commands only —
   `cd "<path>" && git log -1 --oneline && git pull origin master && git log -1 --oneline` — and
   read the before/after SHAs straight from that output. Do NOT use shell variable capture
@@ -37,12 +42,13 @@ model.
 
 ## Startup Sequence (mandatory order)
 1) Startup sync (lightweight, not a full session-end pass):
-   - Claude Code only, claude-skills repo ONLY (see Hub Self-Sync Exception below): Claude runs
-     `git pull` at the claude-skills repo root itself, silently, no confirmation needed — this is
-     the one repo where that's pre-authorized. Any OTHER project repo's Machine Paths root still
-     follows the general git-remote-ops boundary (fetch/pull/push are never run by Claude there
-     without being asked). Web/Desktop reading GitHub raw skip this entirely — always current by
-     definition.
+   - Claude Code only (see Hub Self-Sync Exception below): Claude runs `git pull` silently, no
+     confirmation needed, at the claude-skills repo root AND at the active project's repo plus
+     its related sibling repos from HUB_STATE Machine Paths — pulls only, never commit/push
+     during a load (extended 2026-07-27; was claude-skills-only). Each repo pulls on whatever
+     branch it is already on; never switch branches to make a pull succeed. Report the result
+     compactly in the orientation line rather than narrating each repo. Web/Desktop reading
+     GitHub raw skip this entirely — always current by definition.
    - Any session type: drain any Pending `#target:git` entries from the Notion Sync Queue if git
      is now reachable (full mechanism: session-context-sync → Universal Sync & Fallback Queue).
    - Lightweight only — not the full Notion/Obsidian/HUB_STATE pass `sync` does at session end.
@@ -238,16 +244,32 @@ or dev logs — everything here lands in git. Work-at-home HUB_STATE sections ho
   GUIDE → Skill Update Procedure. (Superseded for `ai-control/` files by the Hub Self-Sync
   Exception below — no command hand-off needed there.)
 
-## Hub Self-Sync Exception (added 2026-07-18, by explicit request — removes pull/push friction)
-- Scope: ONLY files under `skills/ai-control/` (`HUB.md`, `HUB_STATE.md`, `HUB_GUIDE.md`,
-  `TASKS.md` if added there) in the claude-skills repo. Nothing else — not other skills in this
-  repo, not any project repo (terra-api, etc.), which keep the general git-remote-ops boundary
-  (Claude never runs fetch/pull/push there unasked).
-- Within that scope, Claude runs a **finite pull → commit → push loop itself**, no per-instance
-  confirmation, no supplying commands for Will to run instead: pull first, apply the edit, then
-  commit and push, verify the push landed, then STOP — this is one bounded cycle per hub touch,
-  not a standing/background process. Applies to BOTH the Startup Sequence pull (step 1) AND any
-  hub edit made via `sync state`/`sync hub` during a session.
+## Hub Self-Sync Exception (added 2026-07-18; extended to project repos 2026-07-27)
+- Scope: files under `skills/ai-control/` (`HUB.md`, `HUB_STATE.md`, `HUB_GUIDE.md`, `TASKS.md`
+  if added there) in the claude-skills repo, PLUS the active project's repo and its related
+  sibling repos as listed in that project's HUB_STATE Machine Paths. For Terra API that is
+  `terra-api-home` + `terra-api` / `terra-api-fe` / `terra-jenkins`. NOT other skills in the
+  claude-skills repo, and not ambient repos that merely happen to sit under the same parent
+  folder — in-scope means named in HUB_STATE, nothing looser.
+- **Phase boundary (added 2026-07-27, by explicit request).** The read half and the write half
+  are gated by trigger, never merged:
+  - `load hub` / Startup Sequence → **fetch/pull ONLY**, unattended, across every in-scope repo.
+    A load is read-only against remotes: never `add`, `commit`, or `push` during one. Pull each
+    repo on its own current branch; do not switch branches to make a pull succeed.
+  - `sync` / `sync state` / `sync hub` → **commit/push**, unattended, across every in-scope repo.
+  - Rationale: pulling is always safe and is the friction Will actually hits every session;
+    writing belongs to a deliberate sync pass. An unattended `git add -A` during a *load* is what
+    committed three child repos as bare gitlinks on 2026-07-27 (fixed in `terra-api-home@b265076`)
+    — the phase split exists to make that class of mistake structurally impossible.
+- Within that scope, Claude runs a **finite loop itself**, no per-instance confirmation, no
+  supplying commands for Will to run instead — pull (and, in a sync, commit and push), verify,
+  then STOP. One bounded cycle per trigger, not a standing/background process.
+- **Never unattended, in either phase** (these always stop and ask): `push --force`, `reset
+  --hard`, `rebase`, branch switches/creation/deletion, tag pushes, and any pull that resolves to
+  a non-fast-forward merge. Report the situation and wait for direction.
+- Implementation: plain sequential `cd`/`git` segments only. Allow-rules are matched per
+  `&&`-chained segment, so a variable-assignment or `echo` segment silently re-prompts and stalls
+  the unattended loop — see Trigger Contract's implementation note for the same trap.
 - Still applies unchanged: preview the actual file content change before writing it (edits to
   hub rules/state are still visible and reviewable — this exception removes the git-command
   hand-off, not the content preview); verify the push actually landed (`git log -1` / `git
