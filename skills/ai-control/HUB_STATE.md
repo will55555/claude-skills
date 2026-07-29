@@ -31,16 +31,21 @@
   still running/serving" — false; the box was fully down.
   Jenkins runs LOCALLY (not on EC2), 60s polling, prod deploy auto-gated with no approval step —
   so starting it deploys `master` immediately.
-  **Jenkins instance decision (2026-07-29):** the `terra-jenkins` container on the `solan` machine
-  (`infra_jenkins_home` volume, port **8090** — not 8080, terra-api's app owns 8081/8082) is the
-  canonical home for ALL Terra product pipelines going forward; `roms-pipeline` on it is to be
-  RETIRED. Do not overwrite this volume with another machine's — that was considered and rejected
-  for exactly this reason. It currently holds only `roms-pipeline` plus credentials
-  `server-ssh` + `dockerhub-credentials` (both reusable as-is: same EC2 box, same registry) and a
-  ROMS-era `github-credentials` PAT. Still to build here: the terra-api multibranch pipeline, a
-  GitHub App credential to replace the PAT (repo-scoped, `Contents: Read-only`, needs
-  PKCS#1→PKCS#8 conversion — see DEV_LOG TAPI-012), and `DOCKERHUB_USERNAME` as a Jenkins GLOBAL
-  env var (silently resolves to `null` otherwise — a real bug found live during TAPI-012).
+  **Jenkins instance decision (2026-07-29):** **run terra-api pipelines on the OTHER laptop until
+  the EC2 move.** The `solan` machine's `terra-jenkins` container (`infra_jenkins_home` volume,
+  port **8090** — not 8080, terra-api's app owns 8081/8082) is the old ROMS instance: it has
+  `roms-pipeline` only, no terra-api job, plus credentials `server-ssh` +
+  `dockerhub-credentials` (reusable — same box, same registry) and a ROMS-era
+  `github-credentials` PAT. Building the terra-api pipeline here was scoped out (multibranch job,
+  a GitHub App credential to replace the PAT — repo-scoped, `Contents: Read-only`, needs
+  PKCS#1→PKCS#8 conversion per DEV_LOG TAPI-012 — and `DOCKERHUB_USERNAME` as a GLOBAL env var,
+  which silently resolves to `null` otherwise) and so was copying the job folder across from the
+  other machine's volume. **Both rejected**, and the reasoning is the durable part: Jenkins config
+  is NOT in git — only the `Jenkinsfile` is. Job definitions, credentials, build history, global
+  env vars, and users live solely in `JENKINS_HOME`, so a copy is a point-in-time snapshot that
+  starts drifting immediately and leaves two instances to maintain for a setup that's being
+  retired anyway. Long-lived Jenkins config should stay minimal on any local instance; put
+  substance in the versioned `Jenkinsfile`. `roms-pipeline` retires when ROMS does.
   Login note: Jenkins users live in the Docker volume, not git — each machine's instance is
   independent, so credentials do NOT carry across machines (this is why the other laptop's login
   doesn't work here; changing the password there has no effect on this instance).
