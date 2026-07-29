@@ -100,6 +100,18 @@
 - **Context:** Java default. Arrays → Strings → Linked Lists → Trees → Graphs → DP.
 
 ## Cross-Project Notes                              <!-- no prefix — ecosystem-wide, not project-scoped -->
+- **EC2 right-sizing back to `t3.micro` (noted 2026-07-29, TAPI):** Resized `t3.micro`→`t3.small`
+  (~$7.50→$15/mo) to stop the repeated OOM freezes, explicitly as a stabilizer — Will's call is to
+  engineer the footprint back down to `micro` later. Root cause measured, not guessed: the box runs
+  BOTH prod and staging stacks (6 containers, per TAPI-012's one-box design), two Spring Boot JVMs
+  at ~231MB RSS each, leaving **28Mi available of 911Mi with no swap** — i.e. at capacity while
+  idle, before any load. Ranked options to get back to `micro`: (1) **staging on-demand** — biggest
+  win, `down` by default and `up` only when a `phase-*` build deploys, reclaims ~250–300MB that two
+  idle JVMs hold 24/7 for a tier only used during deploys; (2) **cap JVM heaps** (`-Xmx256m`) —
+  nothing bounds them today, each reserves 2.7GB virtual and would grow until the kernel intervenes
+  (still true on `small`, just slower); (3) 2GB swapfile — free, removes the OOM cliff, worth doing
+  regardless; (4) Alpine JRE base instead of `jammy`, ~20–40MB/container; (5) trim snapd/SSM,
+  ~30–50MB. No task ID yet.
 - **SonarQube gate (noted 2026-07-18):** Ecosystem-wide code-quality pass planned across all
   projects, once, before full deployment — not a per-project or per-PR blocker. Intent: keep
   developing/adding functionality now, run it later, likely wired into the CI/CD pipeline being
