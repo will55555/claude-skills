@@ -1,13 +1,13 @@
 ---
 name: session-context-sync
 description: |
-  Unified session-end sync skill. Triggers at end of any substantial session — coding, planning, design, or learning. Handles three write targets in one pass: Notion (project state), Obsidian (note candidates), and the Engineering Hub's HUB_STATE.md (live project snapshot). Trigger on: "sync", "wrap up", "end of session", "push to Notion", "update Notion", "update Obsidian", "sync state", or proactively when meaningful work was done on any active project. Always prompt at session end — never skip when the session produced decisions, code, or learning artifacts.
+  Unified session-end sync skill. Triggers at end of any substantial session — coding, planning, design, or learning. Handles four write targets in one pass: Notion (project state), Obsidian (note candidates), the Engineering Hub's HUB_STATE.md (live project snapshot), and Tasks DB (actionable items). Trigger on: "sync", "wrap up", "end of session", "push to Notion", "update Notion", "update Obsidian", "sync state", or proactively when meaningful work was done on any active project. Always prompt at session end — never skip when the session produced decisions, code, or learning artifacts.
 ---
 
 # Session Sync Skill
 
-Unified end-of-session sync across three targets: Notion, Obsidian, and the Engineering
-Hub's HUB_STATE.md. Runs in a single pass at session end. Each target is independent —
+Unified end-of-session sync across four targets: Notion, Obsidian, the Engineering
+Hub's HUB_STATE.md, and Tasks DB. Runs in a single pass at session end. Each target is independent —
 one can be skipped without affecting the others.
 
 Note: Notion page IDs and the Projects DB reference are NOT stored in this file — they
@@ -29,6 +29,7 @@ to safely dual-author between Notion and git. Edit this file directly in the rep
 | **Notion** | Project state snapshot + progress log (page CONTENT) + Status/Last Synced (page PROPERTIES — see Step 4A-props); ALSO an informational mirror/dupe of hub state (never authoritative) | Session produced Notion-worthy content, or hub state changed | Desktop or Code |
 | **Obsidian** | Note candidate(s) distilled from session | Session produced a concept, pattern, or decision worth keeping | Desktop or Code |
 | **HUB_STATE.md** | Active project section snapshot (overwrite in place) | Session touched a hub-tracked project (any Terra project, DSA, claude-skills, etc.) | Desktop or Code |
+| **Tasks DB** | New task rows (actionable items for routing to appropriate tool/hub) | Session surfaced an actionable item not already in Tasks DB — from chat commitments, buried TODOs in a Notion page touched this session, or action items from Gmail/Calendar tool results this session | Desktop or Code |
 
 Both Claude Desktop and Claude Code sessions sync to all targets that apply.
 The session type determines what content is available, not which targets apply.
@@ -47,13 +48,13 @@ Every `sync` invocation attempts ALL applicable targets in one pass. If a target
 write normally. If a target is unreachable, don't drop the content — queue it instead.
 
 **Why Notion is the queue:** Notion is reachable from nearly every session type via MCP,
-even when the "real" target (git, Obsidian) isn't. So unreachable content gets written to
+even when the "real" target (git, Obsidian, Tasks DB) isn't. So unreachable content gets written to
 a **Notion Sync Queue** page, tagged with its true intended destination, and drained on a
 future sync once that destination is reachable again.
 
 ### Queue entry format (written to the Sync Queue page in Notion)
 ```
-#SyncQueue #target:<git|obsidian|notion>
+#SyncQueue #target:<git|obsidian|notion|tasks>
 Status: Pending
 Payload: [the content that couldn't be written to its real destination]
 Queued: [date]
@@ -61,7 +62,7 @@ Session type: [Desktop | Code | Mobile]
 ```
 
 ### Procedure
-1. On `sync`, attempt each applicable target (git/hub, Notion, Obsidian).
+1. On `sync`, attempt each applicable target (git/hub, Notion, Obsidian, Tasks DB).
 2. Any failure → write a queue entry to the Sync Queue page instead (create the page on
    first use; its ID then lives in Claude memory, not hardcoded in this skill).
 3. At the START of every sync, before writing new content, check the Sync Queue for
@@ -111,6 +112,10 @@ When in doubt: ask "did the project state change?" If no → skip Notion.
 - **Concepts learned** — patterns, tradeoffs, architecture principles
 - **Blockers** — anything flagged VERIFY, TODO, or unresolved
 - **Next action** — the most specific next step discussed (feeds HUB_STATE's Next Step field)
+- **Task candidates** — scan three ways, tag each with its Source:
+  1. *Claude-Chat*: commitment language in this session ("I need to", "I should", "remind me to", "have to follow up on", "next I'll") that isn't just a Next Action already captured above
+  2. *Notion-Note*: unchecked TODO/checkbox lines on any Notion page read or edited this session that aren't already rows in Tasks DB
+  3. *Email/Calendar*: actionable items surfaced in any Gmail/Calendar tool results returned this session (not a scheduled inbox scan — only what came up organically)
 
 ---
 
@@ -122,6 +127,7 @@ Session classification:
 → Notion: [yes — reason] / [no — reason]
 → Obsidian: [yes — candidate list] / [no]
 → HUB_STATE: [yes — which project section] / [no]
+→ Tasks DB: [yes — N candidates found] / [no]
 ```
 
 ---
@@ -150,10 +156,15 @@ Project section: [name — must match an existing HUB_STATE.md heading, or propo
                    a new one from the HUB_GUIDE section template]
 Updates: Status / Active Task / Next Step / Blockers / Context (≤3 lines)
 
+─── TASKS DB ─────────────────────────────
+1. [title] — Source: Claude-Chat — Domain: Coding — linked project: [name or none]
+2. [title] — Source: Notion-Note — Domain: Personal — from page: [page name]
+[list all candidates; omit section entirely if none found]
+
 ─── SYNC QUEUE (if any target unreachable) ──
 [target] unreachable → queued in Notion Sync Queue, will retry next sync
 
-Sync all? (yes / edit first / skip [notion|obsidian|hubstate])
+Sync all? (yes / edit first / skip [notion|obsidian|hubstate|tasks])
 ```
 
 ---
@@ -314,6 +325,62 @@ HUB_GUIDE.md and are not rewritten per session — live state lives in one place
 
 ---
 
+## Step 4D — Tasks DB sync
+
+### Database reference
+Tasks DB ID lives in Claude memory (userMemories), not here — same rule as Notion in Step 4A.
+
+### Dedup check (mandatory before any write)
+Query Tasks DB (title match, loose) for each candidate before creating it. If a
+matching open task already exists, skip it silently — do not create a duplicate or
+ask about it. Only net-new items go in the preview.
+
+### Row fields
+| Field | Value |
+|---|---|
+| Title | Short, action-first (e.g. "Follow up on Snorkel invoice timing") |
+| Source | Claude-Chat / Notion-Note / Email / Calendar — select property (added to Tasks DB) |
+| Domain | Coding / Engineering / Business / Finance / Personal / Work — existing select property on Tasks DB, reused for routing (do NOT create a separate "Type" property) |
+| Captured | Today's date |
+| Linked Project | Project page, if the task ties to one (ROMS, PIOS, Terra SDE, etc.) — else blank |
+| Notes | 1 line of context — where it came from, e.g. "mentioned in session re: X" |
+
+### Domain — routing taxonomy
+This is what lets a hub or tool fetch only the tasks relevant to it (e.g. Claude Code
+pulling only Coding tasks, Cowork pulling only Engineering/automation tasks). Reuses
+the Tasks DB's existing Domain property (Work/Finance/Personal/Business/Coding) with
+one addition — Engineering, added specifically for infra/automation/non-code build
+work — rather than inventing a second parallel property:
+
+| Domain | Covers | Typical fetcher |
+|---|---|---|
+| Coding | ROMS, PIOS, Terra API/SDE, any code change, bug, feature | Claude Code |
+| Engineering | Infra, automation, Notion architecture, non-code build/ops work | Cowork |
+| Work | FM-work-adjacent admin only (never FM technical detail — isolation rule applies) | Desktop/manual |
+| Business | Terra Inc entity ops, contracts, LLC/Rung actions | Desktop/manual |
+| Finance | Investing, PTOS, brokerage, debt strategy actions | Desktop/manual |
+| Personal | Everything else (travel, house-hack, non-Terra) | Desktop/manual |
+
+Inference order: (1) if Linked Project is set, inherit that project's Domain from the
+Step 4A mapping table; (2) otherwise infer from content; (3) if genuinely ambiguous,
+default to Personal and let Will re-tag in Notion rather than blocking the sync.
+FM-work tasks are never auto-captured here — the isolation rule in memory still
+applies; if a FM-related action item comes up, mention it in the sync preview as a
+flagged item Will should add manually, not as an auto-created row.
+
+### If the "Source" select property doesn't exist on Tasks DB yet
+Don't fail silently and don't invent a schema change unprompted. Create the task with
+Source prefixed in the title instead (e.g. "[Email] ..."), and flag once at the end
+of sync: "Tasks DB has no Source property — want me to add one, or keep using the
+title-prefix workaround?"
+
+### Write order
+Always show the TASKS preview (Step 3) and get confirmation before creating rows —
+same bar as Notion/Obsidian/HUB_STATE. Never auto-create tasks silently, even ones
+that look obvious.
+
+---
+
 ## Step 5 — Post-sync confirmation
 
 ```
@@ -322,6 +389,7 @@ HUB_GUIDE.md and are not rewritten per session — live state lives in one place
 Notion     → [project] content + properties (Status/Last Synced) updated (or: queued in Sync Queue, target unreachable)
 Obsidian   → [note title] written to [vault path] (or: queued)
 HUB_STATE  → [project] section overwritten (claude-skills/skills/ai-control/HUB_STATE.md)
+Tasks DB   → [N] task(s) created ([sources]) / none this session (or: queued)
 
 Remind: git add skills/ai-control/HUB_STATE.md && git commit && git push if not done.
 ```
@@ -368,3 +436,7 @@ in `/mnt/user-data/outputs/` with the same commands.
 | claude-skills repo not found | Fall back to GitHub URL, notify Will |
 | Target unreachable (any) | Write queue entry to Notion Sync Queue instead of dropping content |
 | Notion itself unreachable (queue can't be written) | Fall back to downloadable staged file; notify Will explicitly |
+| Tasks DB dedup match found | Skip creating that candidate silently, no prompt |
+| Tasks DB missing Source property | Use title-prefix workaround, flag once at sync end (Source now exists as of 2026-07 — this is a fallback for future schema drift only) |
+| Tasks DB missing Engineering Domain option | Same workaround — prefix title (e.g. "[Engineering] ..."), flag once (Engineering added to Domain as of 2026-07 — fallback only) |
+| Tasks DB query/write fails | Retry once; show candidates for manual paste if it fails again |
