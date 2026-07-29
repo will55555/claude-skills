@@ -150,6 +150,16 @@
   IP:port right now — ROMS included, which has had zero domain since its own 2026-05-04 deploy).
   Deliberately not being built now — same "don't build ahead of the actual need" pattern as
   everything else here. No task ID yet.
+  **Gap (1) stopped being hypothetical on 2026-07-27:** terra-api prod was down ~40h and surfaced
+  only because Will went looking. AWS *knew* — the EC2 instance-status check failed at 03:35
+  GMT-4 — there was simply no alarm wired to say so. Concrete fix, ~10 min of console work, first
+  actually-warranted piece of this gap: CloudWatch alarm on **`StatusCheckFailed`** for
+  `i-044e35066f956d506` (Maximum, 1-min period, threshold ≥1, 2-of-2 datapoints to avoid
+  single-blip noise) → SNS topic `terra-api-alerts` → email. **The SNS email subscription must be
+  confirmed from the inbox or the alarm fires into nothing.** Worth pairing with a free
+  `CPUUtilization > 90% for 15 min` alarm on the same topic, which would catch a thrash spiral
+  before a hard freeze (host memory isn't available as a CloudWatch metric without installing the
+  agent). Status: walked through 2026-07-29, not yet confirmed created.
 
 ## claude-skills                                    <!-- prefix: SKILLS -->
 - **Status:** Active — hub v1.1 complete, pointers placed, both open decisions resolved
