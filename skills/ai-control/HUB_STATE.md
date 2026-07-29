@@ -30,7 +30,26 @@
   `master` moved it onto broken ones. Now moot: the merge landed. (2) "old prod containers presumed
   still running/serving" — false; the box was fully down.
   Jenkins runs LOCALLY (not on EC2), 60s polling, prod deploy auto-gated with no approval step —
-  so starting it deploys `master` immediately. Deliberately left un-started this session.
+  so starting it deploys `master` immediately.
+  **Jenkins instance decision (2026-07-29):** the `terra-jenkins` container on the `solan` machine
+  (`infra_jenkins_home` volume, port **8090** — not 8080, terra-api's app owns 8081/8082) is the
+  canonical home for ALL Terra product pipelines going forward; `roms-pipeline` on it is to be
+  RETIRED. Do not overwrite this volume with another machine's — that was considered and rejected
+  for exactly this reason. It currently holds only `roms-pipeline` plus credentials
+  `server-ssh` + `dockerhub-credentials` (both reusable as-is: same EC2 box, same registry) and a
+  ROMS-era `github-credentials` PAT. Still to build here: the terra-api multibranch pipeline, a
+  GitHub App credential to replace the PAT (repo-scoped, `Contents: Read-only`, needs
+  PKCS#1→PKCS#8 conversion — see DEV_LOG TAPI-012), and `DOCKERHUB_USERNAME` as a Jenkins GLOBAL
+  env var (silently resolves to `null` otherwise — a real bug found live during TAPI-012).
+  Login note: Jenkins users live in the Docker volume, not git — each machine's instance is
+  independent, so credentials do NOT carry across machines (this is why the other laptop's login
+  doesn't work here; changing the password there has no effect on this instance).
+  Running locally is the INTERIM state, not the target: ADR-010 specifies "a relocated shared
+  Jenkins server", and eventual migration to EC2 is the agreed plan. That migration is what
+  unblocks webhooks (60s polling exists only because a local Jenkins isn't publicly reachable) and
+  what ends the per-machine setup cost — until then, anything built on this instance has to be
+  rebuilt by hand on any other machine. Not scheduled; the EC2 box was just resized for memory
+  pressure, so adding a Jenkins JVM there today would undo that.
   `terra-api-fe` blocked on a real peer conflict: lockfile records `tailwindcss@3.4.19` (a leftover
   — NOT in `package.json`) needing `yaml@^2.4.2` while `react-scripts@5.0.1` pins `yaml@1.10.3`, so
   `npm ci` refuses it. Fix verified: `rm -rf node_modules package-lock.json && npm install`.
