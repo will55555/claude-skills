@@ -270,6 +270,13 @@ or dev logs — everything here lands in git. Work-at-home HUB_STATE sections ho
 - Implementation: plain sequential `cd`/`git` segments only. Allow-rules are matched per
   `&&`-chained segment, so a variable-assignment or `echo` segment silently re-prompts and stalls
   the unattended loop — see Trigger Contract's implementation note for the same trap.
+- **If this loop is still prompting, it is a permissions-scope bug, not a hub-rule bug** (both
+  failure modes hit on 2026-07-27/28). Check two things before re-reading these rules: (1) the
+  allow-rules must be `Bash(cd *)` + `Bash(git *)` — enumerating subcommands never works, any
+  unlisted one (`check-ignore`, `merge`, `show`, `diff`, `checkout`, `rm`, …) stalls the loop;
+  (2) they must live in **`~/.claude/settings.json`**, not a project's `.claude/settings.local.json`
+  — project-scoped rules apply only inside that project, so a multi-repo loop pulls the project
+  fine and then prompts on every sibling. Full writeup: HUB_GUIDE → New Machine Setup item 8.
 - Still applies unchanged: preview the actual file content change before writing it (edits to
   hub rules/state are still visible and reviewable — this exception removes the git-command
   hand-off, not the content preview); verify the push actually landed (`git log -1` / `git

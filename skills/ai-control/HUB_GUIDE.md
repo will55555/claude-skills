@@ -267,16 +267,24 @@ Run once per new machine. Do NOT assume laptop 2 mirrors laptop 1's paths, MCP c
      HUB_STATE-listed repos, with pulls on `load hub` and commits/pushes on `sync`. The tool-layer
      grant did not change; only what Claude is instructed to do with it did.
    - **Permission rules needed for the extended (2026-07-27) scope**, since a `load hub` now pulls
-     several repos and a `sync` pushes them. Same per-machine caveat as above — these do NOT
-     travel with a git pull, so re-add them on each new machine or the unattended loop prompts
-     per repo and stalls:
-     `Bash(cd *)`, `Bash(git pull *)`, `Bash(git fetch *)`, `Bash(git status *)`,
-     `Bash(git log *)`, `Bash(git rev-parse *)`, `Bash(git branch *)`, `Bash(git remote *)`,
-     `Bash(git add *)`, `Bash(git commit *)`, `Bash(git push *)`.
-     The write three (`add`/`commit`/`push`) are deliberately included: Will syncs at session end
-     and expects every project's changes to go up in that one pass, unattended. The load/sync
-     phase split that keeps them from firing during a *load* is an instruction in HUB.md, not a
-     permission rule — the tool layer cannot express "only during sync."
+     several repos and a `sync` pushes them. Exactly two rules, and both must be wildcards:
+     **`Bash(cd *)` and `Bash(git *)`.**
+     - **Do NOT enumerate subcommands.** Tried `Bash(git pull *)`, `Bash(git fetch *)`,
+       `Bash(git status *)` etc. on 2026-07-27 — it prompts constantly, because the list can never
+       be complete. `check-ignore`, `merge`, `show`, `diff`, `checkout`, `ls-files`, `cat-file`,
+       `rev-list`, `merge-base`, `ls-remote`, `rm` all fell through within one session. Any
+       subcommand not literally listed stalls the unattended loop. `Bash(git *)` covers all of them.
+     - **Scope them to `~/.claude/settings.json` (user), NOT a project's
+       `.claude/settings.local.json`.** Project-scoped rules apply ONLY inside that project's
+       directory. Since `load hub`/`sync` walk several sibling repos, rules parked in
+       `terra-api-home/.claude/settings.local.json` silently do nothing for claude-skills or any
+       other repo — the loop pulls terra-api-home fine, then prompts on the hub's own sync. Cost a
+       full session of "why is it still asking?" on 2026-07-28 before the scope was spotted.
+     - The write side (`add`/`commit`/`push`, all covered by `Bash(git *)`) is deliberately
+       allowed: Will syncs at session end and expects every project's changes to go up in that one
+       pass, unattended. The load/sync phase split that keeps writes from firing during a *load* is
+       an instruction in HUB.md, not a permission rule — the tool layer cannot express "only during
+       sync." Grant is a ceiling; scope is enforced by instruction-following.
    - Both `git *` and `cd *` are needed, not just `git *` — a compound command like
      `cd "<path>" && git log ... && git pull ... && git log ...` has `cd` as its own independent
      segment too. Even with `git *` allowed, an un-allowed `cd` (or worse, a variable-assignment
