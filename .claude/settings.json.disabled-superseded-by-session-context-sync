@@ -1,0 +1,14 @@
+{
+  "hooks": {
+    "SessionEnd": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python \"C:\\Users\\solan\\OneDrive\\Desktop\\SDE\\claude-skills\\scripts\\code-session-sync.py\""
+          }
+        ]
+      }
+    ]
+  }
+}

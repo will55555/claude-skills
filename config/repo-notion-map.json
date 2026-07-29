@@ -1,0 +1,27 @@
+{
+  "restaurant-order-management-system": {
+    "notion_project": "ROMS",
+    "notion_page_id": "36f89370d4978171b111e09ba33ec354",
+    "notion_url": "https://app.notion.com/36f89370d4978171b111e09ba33ec354"
+  },
+  "terra-api-home": {
+    "notion_project": "Terra API",
+    "notion_page_id": "37789370d49781908780e2b4e7a6c480",
+    "notion_url": "https://app.notion.com/37789370d49781908780e2b4e7a6c480"
+  },
+  "terra-hq-site": {
+    "notion_project": "Terra HQ Site",
+    "notion_page_id": "3a189370d49781e18e2dff03d3e02f25",
+    "notion_url": "https://app.notion.com/3a189370d49781e18e2dff03d3e02f25"
+  },
+  "claude-skills": {
+    "notion_project": "claude-skills",
+    "notion_page_id": "37089370d4978123a87de47bcd96f0e7",
+    "notion_url": "https://app.notion.com/37089370d4978123a87de47bcd96f0e7"
+  },
+  "yahoo-mail-mcp-server": {
+    "notion_project": "Yahoo Mail MCP Server",
+    "notion_page_id": "3ab89370d49781d4a728c8b2b6bc80dd",
+    "notion_url": "https://app.notion.com/p/3ab89370d49781d4a728c8b2b6bc80dd"
+  }
+}

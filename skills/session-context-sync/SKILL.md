@@ -26,7 +26,7 @@ to safely dual-author between Notion and git. Edit this file directly in the rep
 | Target | What gets written | Trigger condition | Source |
 |---|---|---|---|
 | **Git (ai-control hub)** | HUB.md/HUB_GUIDE.md/HUB_STATE.md/TASKS.md — AUTHORITATIVE | Any hub/skill file edited | Local write + git commands supplied (never auto-pushed) |
-| **Notion** | Project state snapshot + progress log; ALSO an informational mirror/dupe of hub state (never authoritative) | Session produced Notion-worthy content, or hub state changed | Desktop or Code |
+| **Notion** | Project state snapshot + progress log (page CONTENT) + Status/Last Synced (page PROPERTIES — see Step 4A-props); ALSO an informational mirror/dupe of hub state (never authoritative) | Session produced Notion-worthy content, or hub state changed | Desktop or Code |
 | **Obsidian** | Note candidate(s) distilled from session | Session produced a concept, pattern, or decision worth keeping | Desktop or Code |
 | **HUB_STATE.md** | Active project section snapshot (overwrite in place) | Session touched a hub-tracked project (any Terra project, DSA, claude-skills, etc.) | Desktop or Code |
 
@@ -137,6 +137,7 @@ Current State: [1-2 sentences]
 Next Action: [1 sentence]
 Blockers: [list or "None"]
 Log entry: [date + 2-3 bullet summary]
+Properties: Status → [Active/Blocked/Done, from session outcome] | Last Synced → [today]
 
 ─── OBSIDIAN ────────────────────────────
 Note: [title]
@@ -193,6 +194,28 @@ two places (this table drifted from session-rules' copy before consolidation).
 | Terra Inc entity ops, strategy | Business |
 | Investing, PIOS-governed capital | Finance |
 | Everything else | Personal |
+
+### Step 4A-props — Update DB properties (required, not optional)
+
+Content sections (Current State, Next Action, etc.) are page CONTENT. The
+command-center.html dashboard and the tracker-sync skill read page
+PROPERTIES only (Status, Priority, Last Synced) — they never parse page
+body content. Writing content without updating properties means the
+dashboard silently never reflects the sync, even though Notion looks
+updated when you open the page directly.
+
+Every Notion sync MUST also update, as actual database properties (not
+text in the body):
+- **Last Synced** → today's date, always, if any Notion write happened.
+- **Status** → set from session outcome: session ended with the project
+  blocked → "Blocked"; project finished/shipped → "Done"; anything else
+  with real progress → "Active". Don't downgrade Active → Not Started
+  just because a session was quiet — only move it to Not Started if the
+  session explicitly determined no work has started yet.
+
+Use `notion-update-page` with the property fields directly (same call
+shape used elsewhere for Status/Priority/date properties) — do not encode
+these as text inside the page body.
 
 ### Step 4A-new — Handle unknown projects
 
@@ -296,7 +319,7 @@ HUB_GUIDE.md and are not rewritten per session — live state lives in one place
 ```
 ✅ Session sync complete
 
-Notion     → [project] updated (or: queued in Sync Queue, target unreachable)
+Notion     → [project] content + properties (Status/Last Synced) updated (or: queued in Sync Queue, target unreachable)
 Obsidian   → [note title] written to [vault path] (or: queued)
 HUB_STATE  → [project] section overwritten (claude-skills/skills/ai-control/HUB_STATE.md)
 
