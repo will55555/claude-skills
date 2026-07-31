@@ -84,15 +84,25 @@
   `terra-api-home` (its own git repo, `will55555/terra-api-home`, not a bare folder).
 
 ## ROMS                                             <!-- prefix: ROMS -->
-- **Status:** Deployed but static — not being redeployed until actually needed (Will's call,
-  reconfirmed 2026-07-22; first made 2026-07-07). Effectively maintenance mode in practice, though
-  not officially declared as such.
+- **Status:** ⚠️ "Deployed but static" is now DOUBTFUL — **the ROMS EC2 instance may no longer
+  exist.** Noticed 2026-07-29: the us-east-1 console listed "Instances (1)", `terra-api-server`
+  only, no ROMS box. Deliberately not chased — Will's call to resolve it when ROMS integration
+  actually starts, not before. Otherwise unchanged: not being redeployed until needed (call first
+  made 2026-07-07, reconfirmed 2026-07-22), effectively maintenance mode.
 - **Active Task:** ROMS-001 — first real integration target for Terra API shared services, once live
 - **Next Step:** Blocked on Will's decision to actually redeploy ROMS — TAPI-001 (JWT auth) makes the
   eventual integration technically unblocked, but there's no live target to integrate against yet.
   Don't scope integration details further until that trigger fires.
 - **Blockers:** ROMS not redeployed — deliberate, no timeline
 - **Context:** Spring Boot + React. First potential revenue source, once actually integrated.
+  **When ROMS integration does start, check this FIRST** (deferred from 2026-07-29): is the
+  instance gone, or just in another region? Cheapest check is EC2 → **AWS Global View**, which
+  lists resources across all regions at once — the console was on N. Virginia (us-east-1) when the
+  absence was spotted, and a box launched elsewhere simply wouldn't appear. Also worth checking
+  EBS **Snapshots** (is there anything to restore from?) and **Elastic IPs** (an unassociated one
+  both confirms the box existed and quietly bills). Low stakes either way: the ROMS repo is intact
+  locally and on both remotes, so what's potentially lost is the deployment, not the code — and
+  ROMS-001 assumes a redeploy regardless.
 
 ## PIOS                                             <!-- prefix: PIOS -->
 - **Status:** Design phase — no coding until ADR-013 resolves
