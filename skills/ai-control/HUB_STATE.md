@@ -1,68 +1,28 @@
 # Engineering Hub State
-<!-- Freshness: 2026-07-26 (rev 37) | v1.3 | Snapshots only — overwritten in place. History lives in DEV_LOGs. -->
+<!-- Freshness: 2026-08-01 (rev 38) | v1.3 | Snapshots only — overwritten in place. History lives in DEV_LOGs. -->
 <!-- New project? Copy the template from HUB_GUIDE.md → HUB_STATE Section Template. -->
 
 ## Terra API                                        <!-- prefix: TAPI -->
-- **Status:** Active — **prod has been DOWN ~26h** (confirmed, not presumed: EC2 instance-status
-  check failed 2026-07-27 03:35 GMT-4 and the box never recovered). Local dev stack, by contrast,
-  is verified healthy 2026-07-28: `terra-api-be` + Postgres + Redis all `Up`, app boots in 24.5s,
-  `/actuator/health` returns `{"status":"UP"}` from inside the container.
-- **Active Task:** Still no formal TAPI-0XX ID (last is TAPI-012) — flagged five times now.
-  2026-07-28 session: merged `phase-6-cicd` → `master` (`54efe14`, the step TAPI-012 never
-  completed — Jenkinsfile states "merge IS the approval" for prod deploy); merged the two divergent
-  `docker.env` copies (this machine was missing `TERRA_AUTH_*`/`REDIS_PASSWORD`, the other laptop's
-  copy was missing the Notion keys + Docker networking overrides — now complete and verified, zero
-  unset-variable warnings); commented out `terra-api-fe` in dev compose (`1c4adda`) with the
-  blocker documented inline.
-- **Next Step:** **Diagnose the EC2 box before redeploying anything.** It has now frozen TWICE in
-  26h, the second time with Docker STOPPED and nothing running — which rules out the container
-  stack, Jenkins, and any deploy loop as the cause. Check `CloudWatch → CPUCreditBalance` first
-  (read-only, may answer it outright — a credit-exhausted `t3.micro` throttles to ~5% of a vCPU and
-  goes unresponsive while idle, which fits "froze doing nothing" far better than memory does), and
-  try **EC2 Serial Console** to reach it *while* frozen rather than restarting and losing the
-  evidence again. Only after that: stop→start, `sudo systemctl start docker`, assess inherited
-  containers, then deploy.
-- **Blockers:** EC2 box unresponsive (port 22 closed as of session end) — needs a stop→start to
-  return. Root cause of both freezes still UNKNOWN.
-- **Context:** ⚠️ **Two 2026-07-26 claims were disproven 2026-07-28 — do not trust them:** (1) the
-  "wrong branch on prod" fix was backwards — `master` was 71 commits BEHIND and lacked
-  `docker-compose.prod.yml` entirely; `phase-6-cicd` had the working files. Switching the box to
-  `master` moved it onto broken ones. Now moot: the merge landed. (2) "old prod containers presumed
-  still running/serving" — false; the box was fully down.
-  Jenkins runs LOCALLY (not on EC2), 60s polling, prod deploy auto-gated with no approval step —
-  so starting it deploys `master` immediately.
-  **Jenkins instance decision (2026-07-29):** **run terra-api pipelines on the OTHER laptop until
-  the EC2 move.** The `solan` machine's `terra-jenkins` container (`infra_jenkins_home` volume,
-  port **8090** — not 8080, terra-api's app owns 8081/8082) is the old ROMS instance: it has
-  `roms-pipeline` only, no terra-api job, plus credentials `server-ssh` +
-  `dockerhub-credentials` (reusable — same box, same registry) and a ROMS-era
-  `github-credentials` PAT. Building the terra-api pipeline here was scoped out (multibranch job,
-  a GitHub App credential to replace the PAT — repo-scoped, `Contents: Read-only`, needs
-  PKCS#1→PKCS#8 conversion per DEV_LOG TAPI-012 — and `DOCKERHUB_USERNAME` as a GLOBAL env var,
-  which silently resolves to `null` otherwise) and so was copying the job folder across from the
-  other machine's volume. **Both rejected**, and the reasoning is the durable part: Jenkins config
-  is NOT in git — only the `Jenkinsfile` is. Job definitions, credentials, build history, global
-  env vars, and users live solely in `JENKINS_HOME`, so a copy is a point-in-time snapshot that
-  starts drifting immediately and leaves two instances to maintain for a setup that's being
-  retired anyway. Long-lived Jenkins config should stay minimal on any local instance; put
-  substance in the versioned `Jenkinsfile`. `roms-pipeline` retires when ROMS does.
-  Login note: Jenkins users live in the Docker volume, not git — each machine's instance is
-  independent, so credentials do NOT carry across machines (this is why the other laptop's login
-  doesn't work here; changing the password there has no effect on this instance).
-  Running locally is the INTERIM state, not the target: ADR-010 specifies "a relocated shared
-  Jenkins server", and eventual migration to EC2 is the agreed plan. That migration is what
-  unblocks webhooks (60s polling exists only because a local Jenkins isn't publicly reachable) and
-  what ends the per-machine setup cost — until then, anything built on this instance has to be
-  rebuilt by hand on any other machine. Not scheduled; the EC2 box was just resized for memory
-  pressure, so adding a Jenkins JVM there today would undo that.
-  `terra-api-fe` blocked on a real peer conflict: lockfile records `tailwindcss@3.4.19` (a leftover
-  — NOT in `package.json`) needing `yaml@^2.4.2` while `react-scripts@5.0.1` pins `yaml@1.10.3`, so
-  `npm ci` refuses it. Fix verified: `rm -rf node_modules package-lock.json && npm install`.
-  **Never run `npm audit fix --force` there** — it downgrades `react-scripts` to `0.0.0` (empty
-  stub), removing ~1280 packages and the whole build toolchain (hit and reverted this session).
-  `terra-api-key.pem` gitignore decision was already resolved (`.gitignore:41` `*.pem`) — HUB_STATE
-  was stale. Key now on this machine too, ACL locked to `solan:(R)`.
-  `HUB.md`'s Machine Paths table still stale (`New folder\` → should be `terra-api-home\`).
+- **Status:** Active — prod healthy (recovered 2026-07-29 under TAPI-013; the "prod DOWN ~26h"
+  text above was already stale before today). 2026-08-01: found + fully remediated a credential
+  leak in terra-api's git history (see Context).
+- **Active Task:** TAPI-013 (In Progress) — prod OOM outage RCA + hardening. (Prior "no formal
+  TAPI-0XX ID" claim here was itself stale — repo had already opened TAPI-013 on 2026-07-29.)
+- **Next Step:** On the OTHER laptop: `git fetch --all && git reset --hard origin/<branch>` for
+  master/phase-2-auth/phase-3-resilience/phase-4-governance/phase-5-redis/phase-6-cicd — terra-api
+  history was rewritten twice today to scrub a leaked credential, a plain pull will fail there.
+  Then resume TAPI-013's open items: confirm the CloudWatch `StatusCheckFailed` alarm exists,
+  apply the already-committed JVM heap caps on the next deploy, bring staging back up.
+- **Blockers:** None.
+- **Context:** **Credential incident (2026-08-01):** a Notion API key was committed live in
+  terra-api's `.env` since 2026-07-05 and copied into `DEV_LOG.md` 2026-07-26. Rotated by Will;
+  scrubbed from git history via two `git-filter-repo` passes (2nd pass needed for a 1-char-shorter
+  historic variant the 1st missed), force-pushed to `origin`+`bitbucket`, verified clean via full
+  local (incl. unreachable loose objects) + remote history scans. Pre-scrub backup bundle:
+  `terra-api-home/terra-api-backup-before-history-scrub-2026-08-01.bundle`.
+  Jenkins runs on the `solan` machine (port 8090) until the ADR-010 EC2 migration — not scheduled.
+  `terra-api-fe` npm peer-conflict fix verified: `rm -rf node_modules package-lock.json && npm
+  install`. Never `npm audit fix --force` there (guts `react-scripts`).
   Still unfixed: missing `feature-flags.yaml`; Spring Security default in-memory password at boot;
   prod/staging no-auth-Redis gap.
 
