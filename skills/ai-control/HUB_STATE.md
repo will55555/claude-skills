@@ -1,5 +1,5 @@
 # Engineering Hub State
-<!-- Freshness: 2026-07-26 (rev 37) | v1.3 | Snapshots only — overwritten in place. History lives in DEV_LOGs. -->
+<!-- Freshness: 2026-08-01 (rev 38) | v1.3 | Snapshots only — overwritten in place. History lives in DEV_LOGs. -->
 <!-- New project? Copy the template from HUB_GUIDE.md → HUB_STATE Section Template. -->
 
 ## Terra API                                        <!-- prefix: TAPI -->
@@ -67,21 +67,42 @@
   prod/staging no-auth-Redis gap.
 
 ## terra-api-fe                                     <!-- prefix: TFE -->
-- **Status:** Active — Dockerfile fixed and stack-integrated 2026-07-26 (3rd session): `npm install`
-  run (regenerated `package-lock.json`, was missing `react-router-dom`), a real Dockerfile bug
-  fixed (redundant runtime-stage `npm install`, was doubling build time), and the service wired
-  into `terra-api/docker-compose.dev.yml` (key renamed `frontend` → `terra-api-fe`).
-- **Active Task:** All local changes committed + pushed to **both** `origin` and `bitbucket` @
-  `4ee36c4` — correction to the prior entry below: `origin` does in fact have
-  `phase-1-auth-shell` now (was stale info), not bitbucket-only.
-- **Next Step:** Re-run the full local stack build (`docker compose --env-file docker.env up
-  --build` from `terra-api-home/`) to confirm terra-api-fe's image now builds clean end-to-end —
-  last attempt progressed further after the Dockerfile fix but wasn't confirmed complete before
-  the session ended (attention was on the terra-api prod-deploy incident, see TAPI). Then resume
-  TFE-101/102/103 — login flow + JWT storage/attach against terra-api endpoints.
-- **Blockers:** None
+- **Status:** Active — regressed. Was Dockerfile-fixed and stack-integrated 2026-07-26 (3rd
+  session, pushed to both origin and bitbucket @ `4ee36c4`), but a lockfile conflict reintroduced
+  itself and the service was commented out of `terra-api/docker-compose.dev.yml` again 2026-07-28
+  (`1c4adda`) — confirmed still broken as of 2026-07-31 (Notion task, Status: Todo).
+- **Active Task:** Fix the lockfile conflict and restore to dev compose; separately, UI design
+  direction for the dashboard was accepted 2026-08-01 (Concept AB, see Context) — implementation
+  not started, blocked behind the build fix below.
+- **Next Step:** `rm -rf node_modules package-lock.json && npm install` (verified fix — the
+  lockfile carries a leftover `tailwindcss@3.4.19` not in `package.json`, which needs
+  `yaml@^2.4.2` while `react-scripts@5.0.1` pins `yaml@1.10.3`, so `npm ci` refuses it). Then
+  uncomment the service in `docker-compose.dev.yml`, commit the regenerated lockfile, confirm the
+  full stack builds clean end-to-end. Unblocks TFE-101/102/103 (login flow + JWT storage). Once
+  unblocked, implement the accepted Concept AB dashboard layout.
+- **Blockers:** Lockfile conflict above (fix verified, not yet applied). **Never run
+  `npm audit fix --force`** — downgrades `react-scripts` to `0.0.0` (empty stub), strips ~1280
+  packages and the whole build toolchain (hit and reverted 2026-07-28). Also noticed, not yet
+  investigated: stray `package-lock.json;C` / `package.json;C` directories in terra-api-fe —
+  possibly related to the lockfile conflict, worth a look when fixing it.
 - **Context:** CRA (React 19, plain JS — no TypeScript). Sibling to terra-api + terra-jenkins under
-  `terra-api-home` (its own git repo, `will55555/terra-api-home`, not a bare folder).
+  `terra-api-home` (its own git repo, `will55555/terra-api-home`, dual remote: GitHub + Bitbucket
+  `terra-inc-dev/terra-api-fe`). ⚠️ Stack drift flagged 2026-08-01: the 2026-07-16 decision says
+  "stays React (Vite)" but the actual repo runs CRA/react-scripts, not Vite — unresolved, not
+  re-litigated here.
+  **2026-08-01 — UI design direction accepted:** Concept AB "The Command Matrix" — top row: 60/40
+  split, scoped 3D topology visualizer (left) + Nkap tier/balance card (right); middle: contextual
+  product launchpad (active products full-detail, locked products dashed with status pills);
+  bottom: cross-product activity ledger. Nkap 5-tier color mapping: Silver #E2E8F0, Gold
+  var(--gold), Platinum var(--teal), Diamond var(--purple), Sapphire var(--blue). Built via Gemini
+  iteration as static HTML reference: `terra_dashboard_state_a.html` (today's single-product
+  state), `terra_dashboard_state_b.html` (3-product future state), `terra_nkap_tiers.html` (tier
+  comparison). Light-mode pass requested, not yet returned — dark is default. Moved into
+  `terra-api-fe/design-reference/` (2026-08-01), kept out of `src/`/`public/` so CRA's build
+  doesn't touch them. Repurposing into real JSX components (dashboard shell, product launchpad
+  card, Nkap tier card, activity ledger + extracted styles/hooks) is a real coding task,
+  deliberately deferred until the lockfile blocker is fixed — better done in Claude Code with a
+  running dev server than generated blind in chat.
 
 ## ROMS                                             <!-- prefix: ROMS -->
 - **Status:** ⚠️ "Deployed but static" is now DOUBTFUL — **the ROMS EC2 instance may no longer
