@@ -6,13 +6,19 @@
 - **Status:** Active — prod healthy (recovered 2026-07-29 under TAPI-013; the "prod DOWN ~26h"
   text above was already stale before today). 2026-08-01: found + fully remediated a credential
   leak in terra-api's git history (see Context).
-- **Active Task:** TAPI-013 (In Progress) — prod OOM outage RCA + hardening. (Prior "no formal
-  TAPI-0XX ID" claim here was itself stale — repo had already opened TAPI-013 on 2026-07-29.)
-- **Next Step:** On the OTHER laptop: `git fetch --all && git reset --hard origin/<branch>` for
-  master/phase-2-auth/phase-3-resilience/phase-4-governance/phase-5-redis/phase-6-cicd — terra-api
-  history was rewritten twice today to scrub a leaked credential, a plain pull will fail there.
-  Then resume TAPI-013's open items: confirm the CloudWatch `StatusCheckFailed` alarm exists,
-  apply the already-committed JVM heap caps on the next deploy, bring staging back up.
+- **Active Task:** **TAPI-013 — DONE** (closed 2026-08-02, `dcf7d6a` on `master`). All three
+  open items verified rather than merely committed: heap caps confirmed *active* via
+  `JAVA_TOOL_OPTIONS`, CloudWatch alarm + SNS topic created and catching instance status-check
+  failures, staging back up with real headroom (756Mi available vs. the incident's 28Mi). The
+  DEV_LOG entry that was never backfilled is now written. **TFE-201 also closed** — terra-api-fe
+  wired into Jenkins (CI-only Jenkinsfile: checkout → npm ci → build → test) and the FE service
+  re-enabled in `docker-compose.dev.yml`, undoing the 2026-07-28 comment-out.
+- **Next Step:** Nothing forced. Natural picks: (a) the FE lockfile blocker is genuinely resolved —
+  `react-router-dom@^6.26.0` is a real dependency now and `typescript` is pinned to `4.9.5` via npm
+  overrides — so a full local `docker compose up --build` from `terra-api-home/` would confirm the
+  FE image builds clean end-to-end, which has never been verified; (b) the `t3.micro` right-sizing
+  path in Cross-Project Notes, now that staging is back and the box carries both tiers again;
+  (c) resume FE feature work past the auth shell.
 - **Blockers:** None.
 - **Context:** **Credential incident (2026-08-01):** a Notion API key was committed live in
   terra-api's `.env` since 2026-07-05 and copied into `DEV_LOG.md` 2026-07-26. Rotated by Will;
@@ -27,24 +33,23 @@
   prod/staging no-auth-Redis gap.
 
 ## terra-api-fe                                     <!-- prefix: TFE -->
-- **Status:** Active — regressed. Was Dockerfile-fixed and stack-integrated 2026-07-26 (3rd
-  session, pushed to both origin and bitbucket @ `4ee36c4`), but a lockfile conflict reintroduced
-  itself and the service was commented out of `terra-api/docker-compose.dev.yml` again 2026-07-28
-  (`1c4adda`) — confirmed still broken as of 2026-07-31 (Notion task, Status: Todo).
-- **Active Task:** Fix the lockfile conflict and restore to dev compose; separately, UI design
-  direction for the dashboard was accepted 2026-08-01 (Concept AB, see Context) — implementation
-  not started, blocked behind the build fix below.
-- **Next Step:** `rm -rf node_modules package-lock.json && npm install` (verified fix — the
-  lockfile carries a leftover `tailwindcss@3.4.19` not in `package.json`, which needs
-  `yaml@^2.4.2` while `react-scripts@5.0.1` pins `yaml@1.10.3`, so `npm ci` refuses it). Then
-  uncomment the service in `docker-compose.dev.yml`, commit the regenerated lockfile, confirm the
-  full stack builds clean end-to-end. Unblocks TFE-101/102/103 (login flow + JWT storage). Once
-  unblocked, implement the accepted Concept AB dashboard layout.
-- **Blockers:** Lockfile conflict above (fix verified, not yet applied). **Never run
-  `npm audit fix --force`** — downgrades `react-scripts` to `0.0.0` (empty stub), strips ~1280
-  packages and the whole build toolchain (hit and reverted 2026-07-28). Also noticed, not yet
-  investigated: stray `package-lock.json;C` / `package.json;C` directories in terra-api-fe —
-  possibly related to the lockfile conflict, worth a look when fixing it.
+- **Status:** Active — **unblocked and moving.** The lockfile conflict is fixed, the auth shell
+  landed, and CI is wired. `react-router-dom@^6.26.0` is a real dependency now (was the phantom
+  lockfile-only entry) and `typescript` is pinned to `4.9.5` via npm `overrides`, which is what
+  actually resolved the peer conflict.
+- **Active Task:** **TFE-101/102/103 merged** (`381445b`, auth shell — `src/pages/Login.js`,
+  `src/services/authService.js`). **TFE-201 closed** (`21f7ab1`) — CI-only Jenkinsfile
+  (checkout → npm ci → build → test) + same-origin deploy wiring, live-verified; the FE service is
+  re-enabled in `terra-api/docker-compose.dev.yml` as of `dcf7d6a`. Next real work is the accepted
+  Concept AB dashboard layout (see Context) — now genuinely unblocked.
+- **Next Step:** Confirm the FE image builds clean end-to-end via `docker compose --env-file
+  docker.env up --build` from `terra-api-home/` — this has never actually been verified green, only
+  the CI-side `npm ci`/build. Then start repurposing the `design-reference/` static HTML into real
+  JSX components (dashboard shell, product launchpad card, Nkap tier card, activity ledger).
+- **Blockers:** None. Standing caution: **never run `npm audit fix --force`** here — it downgrades
+  `react-scripts` to `0.0.0` (empty stub), stripping ~1280 packages and the whole build toolchain
+  (hit and reverted 2026-07-28). Still unexamined: stray `package-lock.json;C` / `package.json;C`
+  directories in the repo root — harmless so far, worth deleting when someone is in there.
 - **Context:** CRA (React 19, plain JS — no TypeScript). Sibling to terra-api + terra-jenkins under
   `terra-api-home` (its own git repo, `will55555/terra-api-home`, dual remote: GitHub + Bitbucket
   `terra-inc-dev/terra-api-fe`). ⚠️ Stack drift flagged 2026-08-01: the 2026-07-16 decision says
@@ -150,7 +155,9 @@
   confirmed from the inbox or the alarm fires into nothing.** Worth pairing with a free
   `CPUUtilization > 90% for 15 min` alarm on the same topic, which would catch a thrash spiral
   before a hard freeze (host memory isn't available as a CloudWatch metric without installing the
-  agent). Status: walked through 2026-07-29, not yet confirmed created.
+  agent). **Status: DONE 2026-08-02** — alarm + SNS topic created and confirmed under TAPI-013
+  (`dcf7d6a`). This is the first piece of gap (1) actually built; the rest (DB backups, OS
+  patching, domains + TLS) remains deferred.
 
 ## claude-skills                                    <!-- prefix: SKILLS -->
 - **Status:** Active — hub v1.1 complete, pointers placed, both open decisions resolved
