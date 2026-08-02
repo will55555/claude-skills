@@ -359,3 +359,27 @@ None of this is enforcement. It is still instruction-following, and the rules
 being broken were already written down. What changed is position: they now sit
 inside the window the read protocol guarantees, on every load, instead of in a
 section a compliant read skips.
+
+---
+
+## 2026-08-02 — HUB.md v1.7.1: Monthly Hub Audit (load-triggered, report-only)
+
+Will asked for a hub self-audit on a schedule. First answer was CronCreate —
+wrong, and reading its contract said so plainly: jobs are session-only, live
+in memory, die with the session, and recurring ones auto-expire after 7 days.
+A monthly job is not expressible with it at all. (Recommending it before
+reading the spec was the same mistake Prime Directive 3 had just been written
+to prevent, made while implementing Prime Directive 3.)
+
+Durable mechanism instead: a date comparison in Startup Sequence step 7
+against a `Last Audit:` stamp in HUB_STATE's header. It fires on the first
+load after 30 days rather than on day 30 — that lag is the price of a
+mechanism that survives sessions, machines, and Claude restarts, and it is
+cheap at monthly cadence since structural rot moves slowly.
+
+The checklist is fixed at five items, each one drawn from something that
+actually rotted rather than from what sounded thorough: HUB_STATE claims vs.
+git, Reference Links resolving to current files, Machine Paths accuracy,
+rules sitting inside the 80-line read window, and multi-remote sync.
+
+Report-only by design, per Prime Directive 2.

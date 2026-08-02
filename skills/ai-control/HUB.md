@@ -81,6 +81,40 @@ model.
    session — see claude-skills root DEV_LOG.md.)
 5) Emit the orientation confirmation line (folding in any staleness flag from step 4).
 6) If required artifacts are missing, apply Bootstrap Rules (offer, never auto-create).
+7) **Audit due?** Read `Last Audit:` from HUB_STATE's header stamp. If it is absent or >30 days
+   old, run the Monthly Hub Audit below and fold a one-line verdict into the orientation line
+   (e.g. `| audit: 3 drift items, see below`). If it is current, say nothing — same quiet-by-
+   default rule as the Promotion Engine. This is a date comparison, not a scheduler: it fires on
+   the first load after the interval lapses, not on the day itself. That lag is acceptable at
+   monthly cadence and is the tradeoff for a mechanism that survives sessions, machines, and
+   Claude restarts, which a session-scoped cron job does not (CronCreate is session-only and
+   auto-expires after 7 days — it cannot express a monthly job at all; checked 2026-08-02).
+
+## Monthly Hub Audit (fires from Startup Sequence step 7 — REPORT ONLY)
+Fixed five-item checklist, not an open-ended review — open-ended "review the hub" produces nothing.
+Every item is here because it actually rotted, not because it sounded thorough.
+1. **HUB_STATE claims vs. git.** For each ACTIVE project: `git log -1 --oneline` + `git status
+   --short` at its Machine Paths root, checked against that section's Status/Active Task/Next Step.
+   Step 4 does this for the active project every load; the audit widens it to all of them. (On
+   2026-08-02 five claims were wrong at once — "prod presumed still running/serving" while it had
+   been down 40h, "no formal TAPI-0XX ID" when TAPI-013 already existed, terra-api-fe "blocked" on
+   a lockfile that was already fixed.)
+2. **Reference Links resolve.** Local paths still exist AND point at the current file, not a
+   superseded one. (`terra_api_visualizer_phase5.js` is at terra-hq-site's ROOT; phases 1–4 sit in
+   `archive/` and reading those first produced a wrong design.)
+3. **Machine Paths accurate.** Compare each row against the real directory. (`New folder\` →
+   `terra-api-home\` has been flagged 3+ times across sessions and is still wrong — exactly the
+   slow rot a per-load check never catches, because nobody hits it during normal work.)
+4. **Rules inside the read window.** Is anything load-bearing past line 80 of HUB.md? Linear Fetch
+   Mode caps reads there, so a rule below it is a rule that does not reliably get read. This is the
+   v1.7 failure: the Execution Role Boundary sat at line 102 and was broken repeatedly.
+5. **Multi-remote sync.** For every repo with more than one remote, compare each against local.
+   `git rev-list --left-right --count <branch>...<remote>/<branch>`. (terra-api showed `84 84`
+   divergence against Bitbucket on 2026-08-02 and nobody knew; terra-api-fe's mirror was 2 commits
+   behind, silently missing the design-reference folder.)
+
+Output: a short report — item, what's wrong, suggested fix. **Propose, never auto-apply**
+(Prime Directive 2). After reporting, update `Last Audit:` in HUB_STATE's header to today.
 
 ## Linear Fetch Mode (straight-line speed path)
 Fixed read order — never deviate, never parallelize:
