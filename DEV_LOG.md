@@ -312,3 +312,50 @@ Freshness stamp bumped to `2026-07-26`, version to `v1.5`.
 ### Why
 Small, mechanical, easy to codify once — same pattern as other Response Contract items (state it
 once as a standing step instead of Will re-requesting it per session).
+
+---
+
+## 2026-08-02 — HUB.md v1.7: Prime Directives hoisted; ADR Reference Links added
+
+### The problem: a compliant read never reached the rules
+Will flagged, after a long session of repeated violations, that the agent was
+neither following hub rules nor checking project ADRs. Both turned out to be
+structural rather than attentional.
+
+**Rules.** Linear Fetch Mode caps reads at 80 lines per file. The Execution Role
+Boundary — "Claude NEVER executes build/test/run commands. Period." — sat at line
+102 of a 287-line HUB.md. So reading HUB.md *exactly as the protocol specifies*
+never reached the single most-broken rule in it. This is also a violation of the
+hub's own Growth Rule: "the top 80 lines must always be the highest-value 80
+lines." Note the 2026-07-11 entry above already strengthened this same boundary
+once; strengthening wording at line 102 could not fix a problem caused by
+position.
+
+**ADRs.** HUB_STATE.md contained zero URLs. terra-api's ADRs live in Notion, not
+the repo, so "check the ADR" had no path — the agent inferred design intent from
+code instead and got it confidently wrong: it treated terra-api-fe's planned
+visualizer as a fork of terra-hq-site's, when terra-hq-site/CLAUDE.md lines 39-43
+document them as deliberately different scopes (public 9-cube ecosystem vs.
+per-customer entitlement-filtered), sharing one endpoint and one Three.js
+reference implementation per terra-api-adr-009.
+
+### Changes
+- **Prime Directives** block at the very top of HUB.md — five non-negotiables
+  (execution boundary, flag-freely/edit-on-approval, read-the-spec-first,
+  pulls-on-load/writes-on-sync, ask-when-it-changes-the-work). Everything below
+  elaborates; nothing overrides. Placement is the entire point.
+- **Two Trigger Map rows**: "designing against an existing spec" → read the ADR
+  before proposing; "about to run a build/test command" → stop, hand it to Will.
+  The second deliberately duplicates Prime Directive 1 because the Trigger Map is
+  what gets consulted per-action.
+- **HUB_STATE gains a `Reference Links` field**, starting with Terra API: the
+  Notion System Design doc and project page, plus the local specs that are
+  authoritative and were being missed (terra-api-fe/TASKS.md's TFE phases,
+  terra-hq-site/CLAUDE.md's two-visualizer architecture). Other projects get the
+  field as links are confirmed — deliberately not backfilled with guesses.
+
+### Honest limitation
+None of this is enforcement. It is still instruction-following, and the rules
+being broken were already written down. What changed is position: they now sit
+inside the window the read protocol guarantees, on every load, instead of in a
+section a compliant read skips.

@@ -3,6 +3,16 @@
 <!-- New project? Copy the template from HUB_GUIDE.md → HUB_STATE Section Template. -->
 
 ## Terra API                                        <!-- prefix: TAPI -->
+- **Reference Links:** (added 2026-08-02 — read these BEFORE designing against the project;
+  Prime Directive 3) System Design doc: `https://app.notion.com/p/37089370d497814ab6cdf10732687fee`
+  · Terra API Notion project: `https://app.notion.com/p/37789370d49781908780e2b4e7a6c480`
+  · ADRs `terra-api-adr-001`–`010`, all accepted, live in Notion (NOT in the repo — grepping the
+  codebase for them finds only passing mentions). Local specs that ARE authoritative and often
+  missed: `terra-api-fe/TASKS.md` (TFE phase breakdown incl. TFE-401/402/403 visualizer work) and
+  `terra-hq-site/CLAUDE.md` lines 39-43 (the two-visualizer architecture — hq-site is the full
+  9-cube public ecosystem view, terra-api-fe is scoped to the authenticated customer's own
+  entitled products; same `ecosystem-health` endpoint, different filtering. Phase 5 is the shared
+  Three.js reference implementation, captured in terra-api-adr-009).
 - **Status:** Active — prod healthy (recovered 2026-07-29 under TAPI-013; the "prod DOWN ~26h"
   text above was already stale before today). 2026-08-01: found + fully remediated a credential
   leak in terra-api's git history (see Context).
@@ -33,6 +43,13 @@
   prod/staging no-auth-Redis gap.
 
 ## terra-api-fe                                     <!-- prefix: TFE -->
+- **Reference Links:** Local spec (authoritative, verified 2026-08-02):
+  `terra-api-fe/TASKS.md` — carries the full TFE phase breakdown, incl. Phase 4 visualizer work
+  (TFE-401 repurpose phase5 Three.js · TFE-402 cube filtering per customer against Phase 3's
+  entitlement-filtered endpoint · TFE-403 health-tier colors per terra-api-adr-009). Also read
+  `terra-hq-site/CLAUDE.md` lines 39-43 for the two-visualizer scope distinction. Notion ADRs:
+  see Terra API's Reference Links (shared `terra-api-adr-*` series). Own Notion page: (none
+  recorded — add when confirmed).
 - **Status:** Active — **unblocked and moving.** The lockfile conflict is fixed, the auth shell
   landed, and CI is wired. `react-router-dom@^6.26.0` is a real dependency now (was the phantom
   lockfile-only entry) and `typescript` is pinned to `4.9.5` via npm `overrides`, which is what
@@ -70,6 +87,10 @@
   running dev server than generated blind in chat.
 
 ## ROMS                                             <!-- prefix: ROMS -->
+- **Reference Links:** Notion ADRs `roms-adr-001`–`005` (domain-prefixed, per the 2026-07-18
+  terra-hq-site refactor) — URLs not recorded, add when confirmed. Repo lives OUTSIDE
+  `terra-api-home`: `SDE/restaurant-order-management-system/`. Strategy page:
+  `terra-hq-site/roms_gtm_strategy.html`.
 - **Status:** ⚠️ "Deployed but static" is now DOUBTFUL — **the ROMS EC2 instance may no longer
   exist.** Noticed 2026-07-29: the us-east-1 console listed "Instances (1)", `terra-api-server`
   only, no ROMS box. Deliberately not chased — Will's call to resolve it when ROMS integration
@@ -91,6 +112,9 @@
   ROMS-001 assumes a redeploy regardless.
 
 ## PIOS                                             <!-- prefix: PIOS -->
+- **Reference Links:** Notion ADRs `pios-adr-011`–`015` (ADR-013 = the gating event-schema-
+  versioning decision) — URLs not recorded, add when confirmed. Strategy page:
+  `terra-hq-site/pios_strategy.html` (architecture, event model, capital governance).
 - **Status:** Design phase — no coding until ADR-013 resolves
 - **Active Task:** PIOS-001 — resolve ADR-013 (event schema versioning)
 - **Next Step:** Draft ADR-013 options + tradeoffs
@@ -98,6 +122,11 @@
 - **Context:** Event-sourced. FastAPI/Python reserved. Rules-engine-gated AI signals.
 
 ## terra-hq-site                                    <!-- prefix: THQ -->
+- **Reference Links:** Local specs (authoritative, verified 2026-08-02):
+  `terra-hq-site/CLAUDE.md` — page inventory + the two-visualizer architecture (lines 39-43) ·
+  `terra-hq-site/TASKS.md` (THQ-001/002) · `terra-hq-site/devlog.md`. Live visualizer:
+  `terra_api_visualizer_phase5.js` at the repo ROOT (1,556 lines — phases 1–4 are superseded and
+  sit in `archive/`; don't port from those). Notion: (none recorded — add when confirmed).
 - **Status:** Active — parallel track
 - **Active Task:** THQ-002 (Visualizer health-tier coloring) opened 2026-07-17, Planned/notes-only.
 - **Next Step:** Implement color model (HEALTHY/YELLOW/ORANGE/RED tiers from Terra API
@@ -113,6 +142,9 @@
   commit. CLAUDE.md, TASKS.md, terra_api_strategy.html modified locally; ready to commit.
 
 ## DSA Practice                                     <!-- prefix: DSA -->
+- **Reference Links:** Method lives in the hub, not a project doc: HUB_GUIDE → DSA Methodology
+  (3-phase flow). Obsidian vault notes under `Learn/Software Development/`. Notion: (none
+  recorded — add when confirmed).
 - **Status:** Active — recurring
 - **Active Task:** DSA-001 — Arrays (start of progression)
 - **Next Step:** First Arrays problem via 3-phase methodology
@@ -160,6 +192,11 @@
   patching, domains + TLS) remains deferred.
 
 ## claude-skills                                    <!-- prefix: SKILLS -->
+- **Reference Links:** Self-documenting — the hub IS this project's spec: `HUB.md` (rules,
+  Prime Directives first), `HUB_GUIDE.md` (templates/protocols/New Machine Setup), this file.
+  Change history: claude-skills ROOT `DEV_LOG.md` (one shared log — ai-control does NOT get a
+  nested one, per the Hub Update Gate). Git is sole source of truth here; Notion is an
+  informational dupe only, never authoritative on conflict.
 - **Status:** Active — hub v1.1 complete, pointers placed, both open decisions resolved
 - **Active Task:** SKILLS-006 — dogfood: run `load hub tapi` in a fresh Claude Code session
 - **Next Step:** Open a real Claude Code session in terra-api, confirm the CLAUDE.md pointer
@@ -171,6 +208,11 @@
   truth for ai-control; Notion = informational dupe only.
 
 ## Yahoo Mail MCP Server                            <!-- prefix: YMCP -->
+- **Reference Links:** Repo `willtchouente/yahoo-mail-mcp-server` (fork of
+  `jtokib/yahoo-mail-mcp-server`), local at `SDE/yahoo-mail-mcp-server/` — OUTSIDE
+  `terra-api-home`. Full history in that repo's own `DEV_LOG.md` (Phase 1 + Phase 2). Notion:
+  PAI subproject page `📨 Yahoo Mail MCP Server` — URL not recorded, add when confirmed.
+  Note: this container holds host port 3000 locally, which is why terra-api-fe moved to 3001.
 - **Status:** Active — OAuth persistence fix deployed 2026-07-26, live-verified via Render deploy logs
 - **Active Task:** YMCP-002 — reconnect Yahoo Mail MCP connector once in Claude to pick up token under new signing scheme
 - **Next Step:** After reconnect, confirm token holds across a natural idle/spin-down period without forcing re-auth
