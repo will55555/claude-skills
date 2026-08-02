@@ -17,20 +17,31 @@
 - **Status:** Active — prod healthy (recovered 2026-07-29 under TAPI-013; the "prod DOWN ~26h"
   text above was already stale before today). 2026-08-01: found + fully remediated a credential
   leak in terra-api's git history (see Context).
-- **Active Task:** **TAPI-013 — DONE** (closed 2026-08-02, `dcf7d6a` on `master`). All three
-  open items verified rather than merely committed: heap caps confirmed *active* via
-  `JAVA_TOOL_OPTIONS`, CloudWatch alarm + SNS topic created and catching instance status-check
-  failures, staging back up with real headroom (756Mi available vs. the incident's 28Mi). The
-  DEV_LOG entry that was never backfilled is now written. **TFE-201 also closed** — terra-api-fe
-  wired into Jenkins (CI-only Jenkinsfile: checkout → npm ci → build → test) and the FE service
-  re-enabled in `docker-compose.dev.yml`, undoing the 2026-07-28 comment-out.
-- **Next Step:** Nothing forced. Natural picks: (a) the FE lockfile blocker is genuinely resolved —
-  `react-router-dom@^6.26.0` is a real dependency now and `typescript` is pinned to `4.9.5` via npm
-  overrides — so a full local `docker compose up --build` from `terra-api-home/` would confirm the
-  FE image builds clean end-to-end, which has never been verified; (b) the `t3.micro` right-sizing
-  path in Cross-Project Notes, now that staging is back and the box carries both tiers again;
-  (c) resume FE feature work past the auth shell.
-- **Blockers:** None.
+- **Active Task:** **ADR-009 Phase 3 + ADR-003 Tier 1 both shipped 2026-08-02.**
+  Phase 3 (`5e79627`+`e590c92` on `master`): `GET /api/v1/ecosystem/health` — the customer-facing
+  twin of `/actuator/ecosystem-health`, on the API port because the management port is
+  deliberately unpublished. New DTO, not a filtered copy: the operator shape splits services
+  across `services`/`quarantined` without carrying tier, and cannot express a service that is
+  entitled but has never sent a heartbeat.
+  Tier 1 (`51040a1` on **`phase-8-customer-identity`**, pushed both remotes, NOT yet merged):
+  `customers` + `customer_identities` tables, BCrypt local login, ADR-010's `role` claim threaded
+  end-to-end but enforced nowhere, dev-only seed. **Verified end-to-end against live Postgres**,
+  not just unit-tested: login returns `sub=cust_dev_001` / `role=customer`, and the health
+  endpoint returns both entitled services as `running:false` with `tier` omitted — exactly the
+  grey/navy off-state ADR-009's visualizer expects. 74 tests green.
+  Earlier: TAPI-013 DONE (`dcf7d6a`), TFE-201 DONE (FE wired into Jenkins CI).
+- **Next Step:** (a) **Merge `phase-8-customer-identity` → `master`** — note that merging master
+  is itself the prod-deploy trigger per the Jenkinsfile's "merge IS the approval" gate, and this
+  one carries a schema change (two new tables) that will run against the prod database;
+  (b) **ADR-009 Phase 4** — the visualizer, on `phase-4-visualizer` in terra-api-fe (branch cut,
+  empty). Now has a real contract to mock against rather than a guess; (c) ADR-003 Tier 2
+  (Google sign-in via `POST /api/auth/social`) whenever a customer actually wants it.
+- **Blockers:** None. Two carried items, neither blocking: `docker-prod.env` /
+  `docker-staging.env` on the EC2 box still need `SPRING_PROFILES_ACTIVE=prod`/`staging` (until
+  then the dev seed is kept out of prod by `application-dev.yaml` being gitignored — safe, but by
+  file-absence rather than by declaration); and Phase 3's work went **straight to `master`**
+  without a branch/PR, contrary to the project's own convention — Tier 1 corrected that by using
+  `phase-8-customer-identity`.
 - **Context:** **Credential incident (2026-08-01):** a Notion API key was committed live in
   terra-api's `.env` since 2026-07-05 and copied into `DEV_LOG.md` 2026-07-26. Rotated by Will;
   scrubbed from git history via two `git-filter-repo` passes (2nd pass needed for a 1-char-shorter
