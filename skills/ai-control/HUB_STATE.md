@@ -1,68 +1,41 @@
 # Engineering Hub State
-<!-- Freshness: 2026-08-01 (rev 38) | v1.3 | Snapshots only — overwritten in place. History lives in DEV_LOGs. -->
+<!-- Freshness: 2026-08-02 (rev 39) | v1.3 | Snapshots only — overwritten in place. History lives in DEV_LOGs. -->
 <!-- New project? Copy the template from HUB_GUIDE.md → HUB_STATE Section Template. -->
 
 ## Terra API                                        <!-- prefix: TAPI -->
-- **Status:** Active — prod healthy (recovered 2026-07-29 under TAPI-013; the "prod DOWN ~26h"
-  text above was already stale before today). 2026-08-01: found + fully remediated a credential
-  leak in terra-api's git history (see Context).
-- **Active Task:** TAPI-013 (In Progress) — prod OOM outage RCA + hardening. (Prior "no formal
-  TAPI-0XX ID" claim here was itself stale — repo had already opened TAPI-013 on 2026-07-29.)
-- **Next Step:** On the OTHER laptop: `git fetch --all && git reset --hard origin/<branch>` for
-  master/phase-2-auth/phase-3-resilience/phase-4-governance/phase-5-redis/phase-6-cicd — terra-api
-  history was rewritten twice today to scrub a leaked credential, a plain pull will fail there.
-  Then resume TAPI-013's open items: confirm the CloudWatch `StatusCheckFailed` alarm exists,
-  apply the already-committed JVM heap caps on the next deploy, bring staging back up.
+- **Status:** Active — prod healthy. TAPI-013 fully closed 2026-08-02: heap caps verified
+  actually active (not just committed), CloudWatch alarm + SNS monitoring added, staging
+  re-enabled with confirmed real headroom. TFE-201 (same-origin frontend deploy wiring)
+  live-verified same day — full Jenkins pipeline green through Deploy to Staging.
+- **Active Task:** None blocking. `phase-7-frontend-ci-integration` (TFE-201's Jenkinsfile
+  changes) built and deployed successfully but not yet merged to `master`.
+- **Next Step:** Merge `phase-7-frontend-ci-integration` → `master` when ready. Confirm the new
+  CloudWatch alarm's SNS email subscription was actually clicked (asked, not yet confirmed —
+  alarm fires into nothing without it).
 - **Blockers:** None.
-- **Context:** **Credential incident (2026-08-01):** a Notion API key was committed live in
-  terra-api's `.env` since 2026-07-05 and copied into `DEV_LOG.md` 2026-07-26. Rotated by Will;
-  scrubbed from git history via two `git-filter-repo` passes (2nd pass needed for a 1-char-shorter
-  historic variant the 1st missed), force-pushed to `origin`+`bitbucket`, verified clean via full
-  local (incl. unreachable loose objects) + remote history scans. Pre-scrub backup bundle:
-  `terra-api-home/terra-api-backup-before-history-scrub-2026-08-01.bundle`.
-  Jenkins runs on the `solan` machine (port 8090) until the ADR-010 EC2 migration — not scheduled.
-  `terra-api-fe` npm peer-conflict fix verified: `rm -rf node_modules package-lock.json && npm
-  install`. Never `npm audit fix --force` there (guts `react-scripts`).
-  Still unfixed: missing `feature-flags.yaml`; Spring Security default in-memory password at boot;
-  prod/staging no-auth-Redis gap.
+- **Context:** Jenkins split into 4 jobs (`terra-api-be-main`/`-branches`,
+  `terra-api-fe-main`/`-branches`) instead of one flat pipeline; GitHub App scope extended to
+  also cover `terra-api-fe`. Still unfixed (reconfirmed live 2026-08-02): missing
+  `feature-flags.yaml`, Spring Security default in-memory password at boot, prod/staging
+  no-auth-Redis gap. Full detail: `DEV_LOG.md` → TAPI-013.
 
 ## terra-api-fe                                     <!-- prefix: TFE -->
-- **Status:** Active — regressed. Was Dockerfile-fixed and stack-integrated 2026-07-26 (3rd
-  session, pushed to both origin and bitbucket @ `4ee36c4`), but a lockfile conflict reintroduced
-  itself and the service was commented out of `terra-api/docker-compose.dev.yml` again 2026-07-28
-  (`1c4adda`) — confirmed still broken as of 2026-07-31 (Notion task, Status: Todo).
-- **Active Task:** Fix the lockfile conflict and restore to dev compose; separately, UI design
-  direction for the dashboard was accepted 2026-08-01 (Concept AB, see Context) — implementation
-  not started, blocked behind the build fix below.
-- **Next Step:** `rm -rf node_modules package-lock.json && npm install` (verified fix — the
-  lockfile carries a leftover `tailwindcss@3.4.19` not in `package.json`, which needs
-  `yaml@^2.4.2` while `react-scripts@5.0.1` pins `yaml@1.10.3`, so `npm ci` refuses it). Then
-  uncomment the service in `docker-compose.dev.yml`, commit the regenerated lockfile, confirm the
-  full stack builds clean end-to-end. Unblocks TFE-101/102/103 (login flow + JWT storage). Once
-  unblocked, implement the accepted Concept AB dashboard layout.
-- **Blockers:** Lockfile conflict above (fix verified, not yet applied). **Never run
-  `npm audit fix --force`** — downgrades `react-scripts` to `0.0.0` (empty stub), strips ~1280
-  packages and the whole build toolchain (hit and reverted 2026-07-28). Also noticed, not yet
-  investigated: stray `package-lock.json;C` / `package.json;C` directories in terra-api-fe —
-  possibly related to the lockfile conflict, worth a look when fixing it.
-- **Context:** CRA (React 19, plain JS — no TypeScript). Sibling to terra-api + terra-jenkins under
-  `terra-api-home` (its own git repo, `will55555/terra-api-home`, dual remote: GitHub + Bitbucket
-  `terra-inc-dev/terra-api-fe`). ⚠️ Stack drift flagged 2026-08-01: the 2026-07-16 decision says
-  "stays React (Vite)" but the actual repo runs CRA/react-scripts, not Vite — unresolved, not
-  re-litigated here.
-  **2026-08-01 — UI design direction accepted:** Concept AB "The Command Matrix" — top row: 60/40
-  split, scoped 3D topology visualizer (left) + Nkap tier/balance card (right); middle: contextual
-  product launchpad (active products full-detail, locked products dashed with status pills);
-  bottom: cross-product activity ledger. Nkap 5-tier color mapping: Silver #E2E8F0, Gold
-  var(--gold), Platinum var(--teal), Diamond var(--purple), Sapphire var(--blue). Built via Gemini
-  iteration as static HTML reference: `terra_dashboard_state_a.html` (today's single-product
-  state), `terra_dashboard_state_b.html` (3-product future state), `terra_nkap_tiers.html` (tier
-  comparison). Light-mode pass requested, not yet returned — dark is default. Moved into
-  `terra-api-fe/design-reference/` (2026-08-01), kept out of `src/`/`public/` so CRA's build
-  doesn't touch them. Repurposing into real JSX components (dashboard shell, product launchpad
-  card, Nkap tier card, activity ledger + extracted styles/hooks) is a real coding task,
-  deliberately deferred until the lockfile blocker is fixed — better done in Claude Code with a
-  running dev server than generated blind in chat.
+- **Status:** Active — Phase 1 (auth shell, TFE-101/102/103) done, merged to `main` 2026-08-02.
+  Phase 2 (TFE-201, Jenkins CI + same-origin deploy wiring) done, live-verified same day. The
+  lockfile regression (tailwindcss/yaml conflict, then typescript floated to an incompatible
+  major) is fully fixed — no longer a blocker, and the stray `package-lock.json;C`/`package.json;C`
+  directories are also gone (confirmed absent post-fix).
+- **Active Task:** None blocking. Concept AB dashboard UI (accepted 2026-08-01) still not
+  started — no longer blocked behind the lockfile fix, since that's resolved now.
+- **Next Step:** Repurpose the accepted Concept AB static HTML (`design-reference/`) into real
+  JSX components (dashboard shell, product launchpad card, Nkap tier card, activity ledger) — or
+  Phase 3 backend work (TFE-301/302/303) if prioritized first.
+- **Blockers:** None. **Never run `npm audit fix --force`** here — still downgrades
+  `react-scripts` to an empty stub (unrelated to the now-fixed lockfile issue).
+- **Context:** New standalone CI-only `Jenkinsfile` added (checkout/build/test, no deploy —
+  same-origin means no independent artifact); `docker-compose.dev.yml` service re-enabled.
+  ⚠️ Stack drift still unresolved, not re-litigated here: repo runs CRA/react-scripts, not the
+  2026-07-16 "stays React (Vite)" decision. Full detail: `DEV_LOG.md` → Phase 2/TFE-201.
 
 ## ROMS                                             <!-- prefix: ROMS -->
 - **Status:** ⚠️ "Deployed but static" is now DOUBTFUL — **the ROMS EC2 instance may no longer
