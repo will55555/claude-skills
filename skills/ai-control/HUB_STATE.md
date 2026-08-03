@@ -1,5 +1,5 @@
 # Engineering Hub State
-<!-- Freshness: 2026-08-03 (rev 41) | v1.3 | Snapshots only — overwritten in place. History lives in DEV_LOGs. -->
+<!-- Freshness: 2026-08-03 (rev 42) | v1.3 | Snapshots only — overwritten in place. History lives in DEV_LOGs. -->
 <!-- Last Audit: 2026-08-02 | Monthly Hub Audit (HUB.md) fires from Startup Sequence step 7 when this is >30 days old. Update this line after each audit. -->
 <!-- New project? Copy the template from HUB_GUIDE.md → HUB_STATE Section Template. -->
 
@@ -15,44 +15,28 @@
   entitled products; same `ecosystem-health` endpoint, different filtering. Phase 5 is the shared
   Three.js reference implementation, captured in terra-api-adr-009).
 - **Status:** Active — prod healthy. **TAPI-013 fully closed** 2026-08-02 (`dcf7d6a`): heap caps
-  verified genuinely active (`JAVA_TOOL_OPTIONS`, confirmed via `-XX:+PrintFlagsFinal`, not just
-  committed), CloudWatch `StatusCheckFailed` alarm + SNS topic added, staging re-enabled with
-  confirmed real headroom (756Mi available vs. the incident's 28Mi). Same day, **ADR-009 Phase 3 +
-  ADR-003 Tier 1 both shipped** (see Active Task) — built from a `solan`-machine session running
-  in parallel with the TAPI-013/TFE-201 work below, reconciled into this hub 2026-08-03.
-- **Active Task:** Two independent, unmerged branches pending, both from 2026-08-02:
-  Phase 3 (`5e79627`+`e590c92`, already on `master`): `GET /api/v1/ecosystem/health` — the
-  customer-facing twin of `/actuator/ecosystem-health`, on the API port since the management port
-  is deliberately unpublished. New DTO, not a filtered copy — splits services across
-  `services`/`quarantined` without carrying tier, can't express entitled-but-never-heartbeated.
-  Tier 1 (`51040a1` on **`phase-8-customer-identity`**, pushed both remotes, NOT yet merged):
-  `customers` + `customer_identities` tables, BCrypt local login, ADR-010's `role` claim threaded
-  end-to-end but enforced nowhere, dev-only seed. **Verified end-to-end against live Postgres**:
-  login returns `sub=cust_dev_001`/`role=customer`, health endpoint returns both entitled services
-  as `running:false` with `tier` omitted — the grey/navy off-state ADR-009's visualizer expects.
-  74 tests green. Separately, `phase-7-frontend-ci-integration` (TFE-201's Jenkinsfile changes —
-  Checkout/Build/Test/Copy Frontend stages) built and deployed successfully on its own branch,
-  also NOT yet merged to `master`. **TAPI-014 (2026-08-03, on `feature/public-ecosystem-health`,
-  `0c206ec`, pushed both remotes, NOT yet merged):** `GET /api/v1/ecosystem/public-health` —
-  genuinely public/unauthenticated (no customer identity involved at all), for terra-hq-site's
-  public visualizer specifically, documented in-code as ADR-005's 2026-08-03 amendment. Third
-  unmerged branch alongside the two above. CI green (`terra-api-be-pipeline` build #1:
-  Checkout/Build/Test/Build Docker Image all passed); `Push to Docker Hub`/`Deploy to
-  Staging`/`Deploy to Prod` correctly skipped (branch-tiering `when` gates don't match a plain
-  `feature/` branch) — confirms the branch-tiering audited this session works as designed. No
-  terra-hq-site-side consumer confirmed yet (that repo isn't in this workspace).
-- **Next Step:** (a) **Merge `phase-8-customer-identity` → `master`** — merging master is itself
-  the prod-deploy trigger (Jenkinsfile's "merge IS the approval" gate), and this one carries a
-  schema change (two new tables) that will run against the prod database; (b) separately, merge
-  `phase-7-frontend-ci-integration` → `master` so the real Jenkins pipeline (not just a feature-
-  branch build) actually exercises the frontend integration — see terra-api-fe's Next Step, gap
-  #1: the same-origin deploy has technically never run via `master`; (c) merge
-  `feature/public-ecosystem-health` (TAPI-014) → `master` too, once terra-hq-site's consumer side
-  is confirmed ready to call it; (d) confirm the CloudWatch alarm's SNS email subscription was
-  actually clicked (asked, not yet confirmed — alarm fires into nothing without it); (e) ADR-003
-  Tier 2 (Google sign-in via `POST /api/auth/social`) whenever a customer actually wants it.
-  ADR-009 Phase 4 (visualizer) is NOT a next step here — it already shipped, see terra-api-fe's
-  section; this Terra API section had gone stale on that point mid-session and is corrected here.
+  verified genuinely active, CloudWatch alarm + SNS added, staging re-enabled with real headroom.
+  **`phase-8-customer-identity` (ADR-003 Tier 1) and `phase-7-frontend-ci-integration` (TFE-201)
+  both merged to `master` 2026-08-02** — confirmed via `git log`/`git merge-base` 2026-08-03, this
+  hub's prior "pending" language was stale. **TAPI-015 shipped direct to `master`** (`ef6aa96`,
+  2026-08-02): `OperatorAccess`, ADR-012's operator authorization gate, built proactively — closes
+  a real gap before any endpoint uses it (role=internal alone would've let the ROMS service
+  account read cross-customer operator data; now requires role=internal AND an explicit
+  `ops:read` scope no service account has). Nothing calls it yet.
+- **Active Task:** Only one unmerged branch remains: **TAPI-014**
+  (`feature/public-ecosystem-health`, `d0df255`, pushed both remotes) — `GET
+  /api/v1/ecosystem/public-health`, genuinely public/unauthenticated, for terra-hq-site's public
+  visualizer (documented in-code as ADR-005's 2026-08-03 amendment). CI green (`terra-api-be-pipeline`
+  build #1: Checkout/Build/Test/Build Docker Image all passed; deploy stages correctly skipped per
+  branch-tiering since this is a plain `feature/` branch — confirms that design works as audited).
+  No terra-hq-site-side consumer confirmed yet (that repo isn't in this workspace).
+- **Next Step:** (a) Merge `feature/public-ecosystem-health` (TAPI-014) → `master` once
+  terra-hq-site's consumer side is confirmed ready to call it — this is now the only pending
+  branch; (b) confirm the CloudWatch alarm's SNS email subscription was actually clicked (asked,
+  not yet confirmed — alarm fires into nothing without it); (c) build ADR-012's actual operator
+  endpoints against `OperatorAccess.isOperator()`, now that the gate exists; (d) ADR-003 Tier 2
+  (Google sign-in via `POST /api/auth/social`) whenever a customer actually wants it. ADR-009
+  Phase 4 (visualizer) is NOT a next step here — it already shipped, see terra-api-fe's section.
 - **Blockers:** None. Carried, non-blocking: `docker-prod.env`/`docker-staging.env` on the EC2 box
   still need `SPRING_PROFILES_ACTIVE=prod`/`staging` set (currently safe by `application-dev.yaml`
   being gitignored — file-absence, not declaration); Phase 3 went straight to `master` without a
