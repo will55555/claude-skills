@@ -1,5 +1,5 @@
 # Engineering Hub State
-<!-- Freshness: 2026-08-03 (rev 43) | v1.3 | Snapshots only — overwritten in place. History lives in DEV_LOGs. -->
+<!-- Freshness: 2026-08-03 (rev 44) | v1.3 | Snapshots only — overwritten in place. History lives in DEV_LOGs. -->
 <!-- Last Audit: 2026-08-02 | Monthly Hub Audit (HUB.md) fires from Startup Sequence step 7 when this is >30 days old. Update this line after each audit. -->
 <!-- New project? Copy the template from HUB_GUIDE.md → HUB_STATE Section Template. -->
 
@@ -22,7 +22,12 @@
   2026-08-02): `OperatorAccess`, ADR-012's operator authorization gate, built proactively — closes
   a real gap before any endpoint uses it (role=internal alone would've let the ROMS service
   account read cross-customer operator data; now requires role=internal AND an explicit
-  `ops:read` scope no service account has). Nothing calls it yet.
+  `ops:read` scope no service account has). Nothing calls it yet. **`master` (incl. TAPI-014)
+  deployed to prod 2026-08-03** — confirmed live, not just assumed: `GET
+  /api/v1/ecosystem/public-health` (an endpoint that did not exist before TAPI-014) returns `200`
+  with the correct `PublicEcosystemHealthResponse` shape (`services: []`, `ecosystem_status:
+  "healthy"`) from the public EC2 box. Empty `services` is expected — neither ROMS nor PIOS is
+  deployed/reporting heartbeats yet.
 - **Active Task:** None open. **TAPI-014 merged to `master`** (`81d4d7e`, 2026-08-03, pushed both
   remotes) — `GET /api/v1/ecosystem/public-health`, genuinely public/unauthenticated, for
   terra-hq-site's public visualizer (ADR-005's 2026-08-03 amendment). Consumer side confirmed
@@ -32,12 +37,12 @@
   `SERVICE_ID_BY_CUBE_NAME`/`TIER_COLORS`, and `QuarantineTier`'s `HEALTHY`/`YELLOW`/`ORANGE`/`RED`
   against the visualizer's tier-color keys, verified by reading both sides rather than trusting
   the naming. No unmerged branches remain on either repo.
-- **Next Step:** (a) confirm the CloudWatch alarm's SNS email subscription was actually clicked
-  (asked, not yet confirmed — alarm fires into nothing without it); (b) build ADR-012's actual
-  operator endpoints against `OperatorAccess.isOperator()`, now that the gate exists; (c) ADR-003
-  Tier 2 (Google sign-in via `POST /api/auth/social`) whenever a customer actually wants it.
-  ADR-009 Phase 4 (visualizer) is NOT a next step here — it already shipped, see terra-api-fe's
-  section.
+- **Next Step:** (a) build ADR-012's actual operator endpoints against
+  `OperatorAccess.isOperator()`, now that the gate exists; (b) ADR-003 Tier 2 (Google sign-in via
+  `POST /api/auth/social`) whenever a customer actually wants it. ADR-009 Phase 4 (visualizer) is
+  NOT a next step here — it already shipped, see terra-api-fe's section. **SNS email subscription
+  confirmed clicked by Will 2026-08-02** — closes the last open piece of the CloudWatch alarm
+  work; see Cross-Project Notes.
 - **Blockers:** None. Carried, non-blocking: `docker-prod.env`/`docker-staging.env` on the EC2 box
   still need `SPRING_PROFILES_ACTIVE=prod`/`staging` set (currently safe by `application-dev.yaml`
   being gitignored — file-absence, not declaration); Phase 3 went straight to `master` without a
@@ -214,13 +219,14 @@
   GMT-4 — there was simply no alarm wired to say so. Concrete fix, ~10 min of console work, first
   actually-warranted piece of this gap: CloudWatch alarm on **`StatusCheckFailed`** for
   `i-044e35066f956d506` (Maximum, 1-min period, threshold ≥1, 2-of-2 datapoints to avoid
-  single-blip noise) → SNS topic `terra-api-alerts` → email. **The SNS email subscription must be
-  confirmed from the inbox or the alarm fires into nothing.** Worth pairing with a free
+  single-blip noise) → SNS topic `terra-api-alerts` → email. Worth pairing with a free
   `CPUUtilization > 90% for 15 min` alarm on the same topic, which would catch a thrash spiral
   before a hard freeze (host memory isn't available as a CloudWatch metric without installing the
-  agent). **Status: DONE 2026-08-02** — alarm + SNS topic created and confirmed under TAPI-013
-  (`dcf7d6a`). This is the first piece of gap (1) actually built; the rest (DB backups, OS
-  patching, domains + TLS) remains deferred.
+  agent). **Status: FULLY DONE** — alarm + SNS topic created under TAPI-013 (`dcf7d6a`,
+  2026-08-02); **email subscription link clicked by Will 2026-08-02**, confirmed with him
+  2026-08-03 — the alarm can actually fire into an inbox now, not just exist. This is the first
+  piece of gap (1) actually built; the rest (DB backups, OS patching, domains + TLS) remains
+  deferred.
 
 ## claude-skills                                    <!-- prefix: SKILLS -->
 - **Reference Links:** Self-documenting — the hub IS this project's spec: `HUB.md` (rules,

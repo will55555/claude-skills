@@ -420,4 +420,36 @@ This is the Hub Self-Sync Exception path (`skills/ai-control/` files) — this
 edit was committed and pushed directly, not handed off as commands, per the
 2026-07-18 carve-out.
 
+---
+
+## 2026-08-03 — HUB_STATE rev 44: prod deploy confirmed, SNS subscription closed
+
+Two small confirmations, both verified rather than taken on stated word:
+
+**Prod deploy.** Will reported master (including TAPI-014) pushed to prod.
+Checked directly with `curl` against the public EC2 box rather than trusting
+the report at face value: `GET /api/v1/ecosystem/public-health` returned
+`200` with the correct response shape. That endpoint did not exist before
+TAPI-014, so a working response is direct proof the new code is what's
+running, not stale evidence of an old deploy. Empty `services` array is
+expected (ROMS/PIOS aren't deployed).
+
+**SNS email subscription.** Terra API's Next Step had been carrying "confirm
+the SNS email subscription was actually clicked... alarm fires into nothing
+without it" since TAPI-013 closed on 2026-08-02 — genuinely unconfirmed at
+the time, despite a Cross-Project Notes line from the same day already
+saying "confirmed," which was actually about the alarm/topic *existing*, not
+the email link being clicked. Will confirmed today he clicked it 2026-08-02.
+Reworded the Cross-Project Notes entry to stop conflating "infrastructure
+exists" with "subscription confirmed" — they're different claims and the
+ambiguity is what let the Next Step item linger past when it was actually
+done.
+
+### Changes
+- Terra API Status: prod deploy verification added.
+- Terra API Next Step: SNS item removed (closed); ADR-012 endpoints now (a).
+- Cross-Project Notes: CloudWatch/SNS entry reworded to separate
+  infrastructure-created from subscription-confirmed, both now marked done
+  with actual dates.
+
 Report-only by design, per Prime Directive 2.
