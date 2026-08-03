@@ -1,5 +1,5 @@
 # Engineering Hub State
-<!-- Freshness: 2026-08-03 (rev 40) | v1.3 | Snapshots only — overwritten in place. History lives in DEV_LOGs. -->
+<!-- Freshness: 2026-08-03 (rev 41) | v1.3 | Snapshots only — overwritten in place. History lives in DEV_LOGs. -->
 <!-- Last Audit: 2026-08-02 | Monthly Hub Audit (HUB.md) fires from Startup Sequence step 7 when this is >30 days old. Update this line after each audit. -->
 <!-- New project? Copy the template from HUB_GUIDE.md → HUB_STATE Section Template. -->
 
@@ -32,18 +32,27 @@
   as `running:false` with `tier` omitted — the grey/navy off-state ADR-009's visualizer expects.
   74 tests green. Separately, `phase-7-frontend-ci-integration` (TFE-201's Jenkinsfile changes —
   Checkout/Build/Test/Copy Frontend stages) built and deployed successfully on its own branch,
-  also NOT yet merged to `master`.
+  also NOT yet merged to `master`. **TAPI-014 (2026-08-03, on `feature/public-ecosystem-health`,
+  `0c206ec`, pushed both remotes, NOT yet merged):** `GET /api/v1/ecosystem/public-health` —
+  genuinely public/unauthenticated (no customer identity involved at all), for terra-hq-site's
+  public visualizer specifically, documented in-code as ADR-005's 2026-08-03 amendment. Third
+  unmerged branch alongside the two above. CI green (`terra-api-be-pipeline` build #1:
+  Checkout/Build/Test/Build Docker Image all passed); `Push to Docker Hub`/`Deploy to
+  Staging`/`Deploy to Prod` correctly skipped (branch-tiering `when` gates don't match a plain
+  `feature/` branch) — confirms the branch-tiering audited this session works as designed. No
+  terra-hq-site-side consumer confirmed yet (that repo isn't in this workspace).
 - **Next Step:** (a) **Merge `phase-8-customer-identity` → `master`** — merging master is itself
   the prod-deploy trigger (Jenkinsfile's "merge IS the approval" gate), and this one carries a
   schema change (two new tables) that will run against the prod database; (b) separately, merge
   `phase-7-frontend-ci-integration` → `master` so the real Jenkins pipeline (not just a feature-
   branch build) actually exercises the frontend integration — see terra-api-fe's Next Step, gap
-  #1: the same-origin deploy has technically never run via `master`; (c) confirm the CloudWatch
-  alarm's SNS email subscription was actually clicked (asked, not yet confirmed — alarm fires
-  into nothing without it); (d) ADR-003 Tier 2 (Google sign-in via `POST /api/auth/social`)
-  whenever a customer actually wants it. ADR-009 Phase 4 (visualizer) is NOT a next step here —
-  it already shipped, see terra-api-fe's section; this Terra API section had gone stale on that
-  point mid-session and is corrected here.
+  #1: the same-origin deploy has technically never run via `master`; (c) merge
+  `feature/public-ecosystem-health` (TAPI-014) → `master` too, once terra-hq-site's consumer side
+  is confirmed ready to call it; (d) confirm the CloudWatch alarm's SNS email subscription was
+  actually clicked (asked, not yet confirmed — alarm fires into nothing without it); (e) ADR-003
+  Tier 2 (Google sign-in via `POST /api/auth/social`) whenever a customer actually wants it.
+  ADR-009 Phase 4 (visualizer) is NOT a next step here — it already shipped, see terra-api-fe's
+  section; this Terra API section had gone stale on that point mid-session and is corrected here.
 - **Blockers:** None. Carried, non-blocking: `docker-prod.env`/`docker-staging.env` on the EC2 box
   still need `SPRING_PROFILES_ACTIVE=prod`/`staging` set (currently safe by `application-dev.yaml`
   being gitignored — file-absence, not declaration); Phase 3 went straight to `master` without a
