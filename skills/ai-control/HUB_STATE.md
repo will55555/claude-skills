@@ -1,5 +1,5 @@
 # Engineering Hub State
-<!-- Freshness: 2026-08-03 (rev 42) | v1.3 | Snapshots only — overwritten in place. History lives in DEV_LOGs. -->
+<!-- Freshness: 2026-08-03 (rev 43) | v1.3 | Snapshots only — overwritten in place. History lives in DEV_LOGs. -->
 <!-- Last Audit: 2026-08-02 | Monthly Hub Audit (HUB.md) fires from Startup Sequence step 7 when this is >30 days old. Update this line after each audit. -->
 <!-- New project? Copy the template from HUB_GUIDE.md → HUB_STATE Section Template. -->
 
@@ -23,20 +23,21 @@
   a real gap before any endpoint uses it (role=internal alone would've let the ROMS service
   account read cross-customer operator data; now requires role=internal AND an explicit
   `ops:read` scope no service account has). Nothing calls it yet.
-- **Active Task:** Only one unmerged branch remains: **TAPI-014**
-  (`feature/public-ecosystem-health`, `d0df255`, pushed both remotes) — `GET
-  /api/v1/ecosystem/public-health`, genuinely public/unauthenticated, for terra-hq-site's public
-  visualizer (documented in-code as ADR-005's 2026-08-03 amendment). CI green (`terra-api-be-pipeline`
-  build #1: Checkout/Build/Test/Build Docker Image all passed; deploy stages correctly skipped per
-  branch-tiering since this is a plain `feature/` branch — confirms that design works as audited).
-  No terra-hq-site-side consumer confirmed yet (that repo isn't in this workspace).
-- **Next Step:** (a) Merge `feature/public-ecosystem-health` (TAPI-014) → `master` once
-  terra-hq-site's consumer side is confirmed ready to call it — this is now the only pending
-  branch; (b) confirm the CloudWatch alarm's SNS email subscription was actually clicked (asked,
-  not yet confirmed — alarm fires into nothing without it); (c) build ADR-012's actual operator
-  endpoints against `OperatorAccess.isOperator()`, now that the gate exists; (d) ADR-003 Tier 2
-  (Google sign-in via `POST /api/auth/social`) whenever a customer actually wants it. ADR-009
-  Phase 4 (visualizer) is NOT a next step here — it already shipped, see terra-api-fe's section.
+- **Active Task:** None open. **TAPI-014 merged to `master`** (`81d4d7e`, 2026-08-03, pushed both
+  remotes) — `GET /api/v1/ecosystem/public-health`, genuinely public/unauthenticated, for
+  terra-hq-site's public visualizer (ADR-005's 2026-08-03 amendment). Consumer side confirmed
+  working, not just assumed: terra-hq-site's `terra_api_visualizer_phase5.js` (THQ-002, `bf8d54c`)
+  polls this exact endpoint, and the shape lines up field-for-field —
+  `PublicEcosystemHealthResponse.services[].service_id`/`running`/`tier` against the visualizer's
+  `SERVICE_ID_BY_CUBE_NAME`/`TIER_COLORS`, and `QuarantineTier`'s `HEALTHY`/`YELLOW`/`ORANGE`/`RED`
+  against the visualizer's tier-color keys, verified by reading both sides rather than trusting
+  the naming. No unmerged branches remain on either repo.
+- **Next Step:** (a) confirm the CloudWatch alarm's SNS email subscription was actually clicked
+  (asked, not yet confirmed — alarm fires into nothing without it); (b) build ADR-012's actual
+  operator endpoints against `OperatorAccess.isOperator()`, now that the gate exists; (c) ADR-003
+  Tier 2 (Google sign-in via `POST /api/auth/social`) whenever a customer actually wants it.
+  ADR-009 Phase 4 (visualizer) is NOT a next step here — it already shipped, see terra-api-fe's
+  section.
 - **Blockers:** None. Carried, non-blocking: `docker-prod.env`/`docker-staging.env` on the EC2 box
   still need `SPRING_PROFILES_ACTIVE=prod`/`staging` set (currently safe by `application-dev.yaml`
   being gitignored — file-absence, not declaration); Phase 3 went straight to `master` without a
@@ -153,10 +154,15 @@
   `terra_api_visualizer_phase5.js` at the repo ROOT (1,556 lines — phases 1–4 are superseded and
   sit in `archive/`; don't port from those). Notion: (none recorded — add when confirmed).
 - **Status:** Active — parallel track
-- **Active Task:** THQ-002 (Visualizer health-tier coloring) opened 2026-07-17, Planned/notes-only.
-- **Next Step:** Implement color model (HEALTHY/YELLOW/ORANGE/RED tiers from Terra API
-  `ecosystem-health` endpoint) to replace binary connected/disconnected. Open design question:
-  per-cube polling vs. single Terra API ecosystem-health endpoint poll.
+- **Active Task:** None open. **THQ-002 shipped** (`bf8d54c`, 2026-08-03): public visualizer now
+  polls Terra API's `GET /api/v1/ecosystem/public-health` (TAPI-014) once per tick and colors
+  ROMS/PIOS by real HEALTHY/YELLOW/ORANGE/RED tier, replacing the old binary connected/
+  disconnected model against hardcoded per-domain ports. Design question resolved: single
+  ecosystem-health poll, not per-cube. Domain cubes with no reporting service render as a
+  distinct "unbuilt" navy, separate from "off."
+- **Next Step:** None open. `local-test-proxy.js` (added alongside THQ-002) is a same-origin dev
+  proxy for testing the visualizer against the real prod endpoint without a CORS exception on
+  Terra API's side — reach for it before adding any CORS config there.
 - **Blockers:** None
 - **Context:** 2026-07-18 session completed: (1) Clarified dual-visualizer architecture (terra-hq-site
   public + terra-api-fe scoped both read from Terra API ecosystem-health endpoint — single source

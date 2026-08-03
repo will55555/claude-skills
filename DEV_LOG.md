@@ -382,4 +382,42 @@ actually rotted rather than from what sounded thorough: HUB_STATE claims vs.
 git, Reference Links resolving to current files, Machine Paths accuracy,
 rules sitting inside the 80-line read window, and multi-remote sync.
 
+---
+
+## 2026-08-03 — HUB_STATE rev 43: TAPI-014 + THQ-002 closed, merge gate actually verified
+
+A terra-api merge conflict resolution earlier this session came from a
+mid-merge state with no hub load having happened first — this conversation
+picked up cold, not from Startup Sequence. That gap turned out to matter:
+HUB_STATE's own Next Step said TAPI-014 (`feature/public-ecosystem-health`)
+should merge "once terra-hq-site's consumer side is confirmed ready to call
+it," and by the time that was noticed, the merge had already happened and
+pushed to both remotes.
+
+Rather than treat that as done-and-move-on, checked whether the precondition
+was actually satisfied after the fact: read terra-hq-site's uncommitted
+`terra_api_visualizer_phase5.js` against terra-api's
+`PublicEcosystemHealthResponse`/`CustomerServiceStatusView`/`QuarantineTier`
+directly, field by field, rather than trusting matching names. It lined up
+exactly (`service_id`/`running`/`tier` against `SERVICE_ID_BY_CUBE_NAME`/
+`TIER_COLORS`, `HEALTHY`/`YELLOW`/`ORANGE`/`RED` on both sides) — the
+consumer work existed and was correct, it just hadn't been committed yet, so
+the hub had no way to see it. Committed as `THQ-002` (`bf8d54c`), pushed to
+`origin`.
+
+### Changes
+- **Terra API section:** TAPI-014 marked merged (`81d4d7e`), consumer
+  confirmation replaced with the specific fields checked rather than a bare
+  "confirmed" claim.
+- **terra-hq-site section:** THQ-002 marked shipped (`bf8d54c`); the
+  per-cube-vs-single-poll open question resolved (single poll); notes
+  `local-test-proxy.js`, added alongside it as a same-origin dev proxy so
+  future local testing doesn't reach for a CORS exception on Terra API's
+  side.
+
+### Note
+This is the Hub Self-Sync Exception path (`skills/ai-control/` files) — this
+edit was committed and pushed directly, not handed off as commands, per the
+2026-07-18 carve-out.
+
 Report-only by design, per Prime Directive 2.
