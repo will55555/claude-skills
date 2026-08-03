@@ -95,8 +95,9 @@
   `yaml@2.9.0`) on a run from ~3.5h prior. No local checkout of that branch remains (remote-only),
   and its work already shipped via the `d1a13a4` merge to `main` — confirmed isolated (Will:
   "everything else passing in pipeline"), so this is a stale multibranch CI check against a
-  now-superseded branch, not a live problem. Safe to delete the branch to stop the recurring
-  false-alarm build; not yet done.
+  now-superseded branch, not a live problem. **Deleted from both `origin` and `bitbucket`
+  2026-08-03** (confirmed fully merged into `main` first via `git merge-base --is-ancestor`) —
+  recurring false-alarm build stopped.
   (superseded) Confirm the FE image builds clean end-to-end via `docker compose --env-file
   docker.env up --build` from `terra-api-home/` — this has never actually been verified green, only
   the CI-side `npm ci`/build. Then start repurposing the `design-reference/` static HTML into real
