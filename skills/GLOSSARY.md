@@ -1,8 +1,10 @@
 # Claude Skills Glossary — "If Claude Is Down" Reference
 
-Last verified against disk: **2026-07-28**, by directly reading every `SKILL.md`
+Last verified against disk: **2026-07-31**, by directly reading every `SKILL.md`
 in this repo — not from memory, not from the old Skills Snapshot page (which
-was 7 weeks stale and missing 8 of these 13).
+was 7 weeks stale and missing 8 of these 13). Added `credit-repair-toolkit`
+on 2026-07-31 (new skill, not yet reflected in a full re-verification pass
+of the other 13 — only this addition is confirmed fresh).
 
 **How to keep this honest going forward:** don't hand-edit the table below
 from memory. Re-derive it by reading `skills/*/SKILL.md` frontmatter each
@@ -26,6 +28,7 @@ Notion page did.
 | **setup-cowork** | Guided first-time Cowork onboarding (role, plugins, connectors, try-a-skill) | New Cowork setup | One-time onboarding flow — no ongoing dependency once complete |
 | **skill-creator** | Create, test, and iteratively improve skills (eval loops, benchmark viewer, description optimization) | Building/editing/testing a skill | No manual equivalent — but skills built with it are plain markdown, readable/editable by hand regardless |
 | **docx / pdf / pptx / xlsx** | Anthropic's public document-creation skills — not custom-authored, part of the base skill set | Any Word/PDF/PowerPoint/Excel task | Use the native application directly (Word, Adobe, PowerPoint, Excel) |
+| **credit-repair-toolkit** | Full DIY credit-repair pipeline: extract negative tradelines from bureau report PDFs, cross-reference across bureaus, draft FDCPA/FCRA/goodwill/MOV letters, set up a 30-day dispute-escalation tracker | "check my credit report", "dispute this collection", "help me fix my credit", or uploading bureau report PDFs | No manual equivalent for the extraction/cross-check — but the letter templates and escalation ladder in the SKILL.md are plain text, usable by hand with any credit-repair reference (e.g. consumerfinance.gov) |
 
 **Not an active skill:** `skills/archive/` holds retired versions (`dev-log`
 old copy, `session-rules-duplicate-OLD`) — historical reference only, never

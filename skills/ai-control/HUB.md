@@ -1,5 +1,22 @@
 # Engineering Hub (load hub)
-<!-- Freshness: 2026-07-27 | v1.6 | Home: claude-skills/skills/ai-control/ -->
+<!-- Freshness: 2026-08-02 | v1.7 | Home: claude-skills/skills/ai-control/ -->
+
+## Prime Directives (read first, every load — non-negotiable)
+Placed above everything else deliberately: Linear Fetch Mode caps reads at 80 lines/file, and these
+rules previously sat at line 102+, so a *compliant* read never reached them. That is how they kept
+getting broken (repeatedly, 2026-08-02). Everything below elaborates on these; nothing below
+overrides them.
+1. **Claude never runs build/test/run/deploy commands.** Will executes, Will pastes output, Claude
+   troubleshoots. Completion evidence = Will's report ONLY — never "I ran it and it worked."
+   (Full rule + rationale: Agent Operating Constraints.)
+2. **Flag freely, edit on approval.** Surface issues the moment they're seen; never write files,
+   commits, Notion, or logs without explicit approval. Preview content BEFORE every write.
+3. **Read the spec before designing against it.** If a project has ADRs or task phases, open them
+   (HUB_STATE → Reference Links) before proposing architecture. Inferring intent from code instead
+   of reading the spec produces confidently wrong designs.
+4. **Pulls on load, writes on sync.** A `load hub` never commits or pushes.
+5. **Ask when the answer changes the work.** Scope and architecture choices are Will's, not
+   assumptions to be filled in.
 
 ## Mission
 Single control system for all personal coding/engineering work. Fast handoff, minimal re-discovery,
@@ -64,6 +81,40 @@ model.
    session — see claude-skills root DEV_LOG.md.)
 5) Emit the orientation confirmation line (folding in any staleness flag from step 4).
 6) If required artifacts are missing, apply Bootstrap Rules (offer, never auto-create).
+7) **Audit due?** Read `Last Audit:` from HUB_STATE's header stamp. If it is absent or >30 days
+   old, run the Monthly Hub Audit below and fold a one-line verdict into the orientation line
+   (e.g. `| audit: 3 drift items, see below`). If it is current, say nothing — same quiet-by-
+   default rule as the Promotion Engine. This is a date comparison, not a scheduler: it fires on
+   the first load after the interval lapses, not on the day itself. That lag is acceptable at
+   monthly cadence and is the tradeoff for a mechanism that survives sessions, machines, and
+   Claude restarts, which a session-scoped cron job does not (CronCreate is session-only and
+   auto-expires after 7 days — it cannot express a monthly job at all; checked 2026-08-02).
+
+## Monthly Hub Audit (fires from Startup Sequence step 7 — REPORT ONLY)
+Fixed five-item checklist, not an open-ended review — open-ended "review the hub" produces nothing.
+Every item is here because it actually rotted, not because it sounded thorough.
+1. **HUB_STATE claims vs. git.** For each ACTIVE project: `git log -1 --oneline` + `git status
+   --short` at its Machine Paths root, checked against that section's Status/Active Task/Next Step.
+   Step 4 does this for the active project every load; the audit widens it to all of them. (On
+   2026-08-02 five claims were wrong at once — "prod presumed still running/serving" while it had
+   been down 40h, "no formal TAPI-0XX ID" when TAPI-013 already existed, terra-api-fe "blocked" on
+   a lockfile that was already fixed.)
+2. **Reference Links resolve.** Local paths still exist AND point at the current file, not a
+   superseded one. (`terra_api_visualizer_phase5.js` is at terra-hq-site's ROOT; phases 1–4 sit in
+   `archive/` and reading those first produced a wrong design.)
+3. **Machine Paths accurate.** Compare each row against the real directory. (`New folder\` →
+   `terra-api-home\` has been flagged 3+ times across sessions and is still wrong — exactly the
+   slow rot a per-load check never catches, because nobody hits it during normal work.)
+4. **Rules inside the read window.** Is anything load-bearing past line 80 of HUB.md? Linear Fetch
+   Mode caps reads there, so a rule below it is a rule that does not reliably get read. This is the
+   v1.7 failure: the Execution Role Boundary sat at line 102 and was broken repeatedly.
+5. **Multi-remote sync.** For every repo with more than one remote, compare each against local.
+   `git rev-list --left-right --count <branch>...<remote>/<branch>`. (terra-api showed `84 84`
+   divergence against Bitbucket on 2026-08-02 and nobody knew; terra-api-fe's mirror was 2 commits
+   behind, silently missing the design-reference folder.)
+
+Output: a short report — item, what's wrong, suggested fix. **Propose, never auto-apply**
+(Prime Directive 2). After reporting, update `Last Audit:` in HUB_STATE's header to today.
 
 ## Linear Fetch Mode (straight-line speed path)
 Fixed read order — never deviate, never parallelize:
@@ -87,6 +138,8 @@ Fixed read order — never deviate, never parallelize:
 ## Trigger Map (event → load → action)
 | Event | Load | Action |
 |---|---|---|
+| **Designing against an existing spec** | HUB_STATE → that project's Reference Links → the ADR/task file itself | Read it BEFORE proposing architecture. Never infer intent from code alone — on 2026-08-02 that produced a confidently wrong design (treated terra-api-fe's visualizer as a fork of terra-hq-site's, when the two are deliberately different scopes per adr-009 + TFE-401/402/403) |
+| **About to run a build/test/run/deploy command** | Prime Directive 1 | STOP. Supply the command for Will to run instead. Deliberately duplicated here because the Trigger Map is what gets consulted per-action |
 | Code shared / written | GUIDE: Code Review Protocol | Real-time review per protocol |
 | Test requested | GUIDE: Testing Protocol | Prepare artifacts + how-to-run; never execute |
 | DSA practice requested | GUIDE: DSA Methodology | 3-phase flow |

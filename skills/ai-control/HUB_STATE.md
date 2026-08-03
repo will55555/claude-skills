@@ -1,43 +1,121 @@
 # Engineering Hub State
-<!-- Freshness: 2026-08-02 (rev 39) | v1.3 | Snapshots only — overwritten in place. History lives in DEV_LOGs. -->
+<!-- Freshness: 2026-08-03 (rev 40) | v1.3 | Snapshots only — overwritten in place. History lives in DEV_LOGs. -->
+<!-- Last Audit: 2026-08-02 | Monthly Hub Audit (HUB.md) fires from Startup Sequence step 7 when this is >30 days old. Update this line after each audit. -->
 <!-- New project? Copy the template from HUB_GUIDE.md → HUB_STATE Section Template. -->
 
 ## Terra API                                        <!-- prefix: TAPI -->
-- **Status:** Active — prod healthy. TAPI-013 fully closed 2026-08-02: heap caps verified
-  actually active (not just committed), CloudWatch alarm + SNS monitoring added, staging
-  re-enabled with confirmed real headroom. TFE-201 (same-origin frontend deploy wiring)
-  live-verified same day — full Jenkins pipeline green through Deploy to Staging.
-- **Active Task:** None blocking. `phase-7-frontend-ci-integration` (TFE-201's Jenkinsfile
-  changes) built and deployed successfully but not yet merged to `master`.
-- **Next Step:** Merge `phase-7-frontend-ci-integration` → `master` when ready. Confirm the new
-  CloudWatch alarm's SNS email subscription was actually clicked (asked, not yet confirmed —
-  alarm fires into nothing without it).
-- **Blockers:** None.
-- **Context:** Jenkins split into 4 jobs (`terra-api-be-main`/`-branches`,
-  `terra-api-fe-main`/`-branches`) instead of one flat pipeline; GitHub App scope extended to
-  also cover `terra-api-fe`. Still unfixed (reconfirmed live 2026-08-02): missing
-  `feature-flags.yaml`, Spring Security default in-memory password at boot, prod/staging
-  no-auth-Redis gap. Full detail: `DEV_LOG.md` → TAPI-013.
+- **Reference Links:** (added 2026-08-02 — read these BEFORE designing against the project;
+  Prime Directive 3) System Design doc: `https://app.notion.com/p/37089370d497814ab6cdf10732687fee`
+  · Terra API Notion project: `https://app.notion.com/p/37789370d49781908780e2b4e7a6c480`
+  · ADRs `terra-api-adr-001`–`010`, all accepted, live in Notion (NOT in the repo — grepping the
+  codebase for them finds only passing mentions). Local specs that ARE authoritative and often
+  missed: `terra-api-fe/TASKS.md` (TFE phase breakdown incl. TFE-401/402/403 visualizer work) and
+  `terra-hq-site/CLAUDE.md` lines 39-43 (the two-visualizer architecture — hq-site is the full
+  9-cube public ecosystem view, terra-api-fe is scoped to the authenticated customer's own
+  entitled products; same `ecosystem-health` endpoint, different filtering. Phase 5 is the shared
+  Three.js reference implementation, captured in terra-api-adr-009).
+- **Status:** Active — prod healthy. **TAPI-013 fully closed** 2026-08-02 (`dcf7d6a`): heap caps
+  verified genuinely active (`JAVA_TOOL_OPTIONS`, confirmed via `-XX:+PrintFlagsFinal`, not just
+  committed), CloudWatch `StatusCheckFailed` alarm + SNS topic added, staging re-enabled with
+  confirmed real headroom (756Mi available vs. the incident's 28Mi). Same day, **ADR-009 Phase 3 +
+  ADR-003 Tier 1 both shipped** (see Active Task) — built from a `solan`-machine session running
+  in parallel with the TAPI-013/TFE-201 work below, reconciled into this hub 2026-08-03.
+- **Active Task:** Two independent, unmerged branches pending, both from 2026-08-02:
+  Phase 3 (`5e79627`+`e590c92`, already on `master`): `GET /api/v1/ecosystem/health` — the
+  customer-facing twin of `/actuator/ecosystem-health`, on the API port since the management port
+  is deliberately unpublished. New DTO, not a filtered copy — splits services across
+  `services`/`quarantined` without carrying tier, can't express entitled-but-never-heartbeated.
+  Tier 1 (`51040a1` on **`phase-8-customer-identity`**, pushed both remotes, NOT yet merged):
+  `customers` + `customer_identities` tables, BCrypt local login, ADR-010's `role` claim threaded
+  end-to-end but enforced nowhere, dev-only seed. **Verified end-to-end against live Postgres**:
+  login returns `sub=cust_dev_001`/`role=customer`, health endpoint returns both entitled services
+  as `running:false` with `tier` omitted — the grey/navy off-state ADR-009's visualizer expects.
+  74 tests green. Separately, `phase-7-frontend-ci-integration` (TFE-201's Jenkinsfile changes —
+  Checkout/Build/Test/Copy Frontend stages) built and deployed successfully on its own branch,
+  also NOT yet merged to `master`.
+- **Next Step:** (a) **Merge `phase-8-customer-identity` → `master`** — merging master is itself
+  the prod-deploy trigger (Jenkinsfile's "merge IS the approval" gate), and this one carries a
+  schema change (two new tables) that will run against the prod database; (b) separately, merge
+  `phase-7-frontend-ci-integration` → `master` so the real Jenkins pipeline (not just a feature-
+  branch build) actually exercises the frontend integration — see terra-api-fe's Next Step, gap
+  #1: the same-origin deploy has technically never run via `master`; (c) confirm the CloudWatch
+  alarm's SNS email subscription was actually clicked (asked, not yet confirmed — alarm fires
+  into nothing without it); (d) ADR-003 Tier 2 (Google sign-in via `POST /api/auth/social`)
+  whenever a customer actually wants it. ADR-009 Phase 4 (visualizer) is NOT a next step here —
+  it already shipped, see terra-api-fe's section; this Terra API section had gone stale on that
+  point mid-session and is corrected here.
+- **Blockers:** None. Carried, non-blocking: `docker-prod.env`/`docker-staging.env` on the EC2 box
+  still need `SPRING_PROFILES_ACTIVE=prod`/`staging` set (currently safe by `application-dev.yaml`
+  being gitignored — file-absence, not declaration); Phase 3 went straight to `master` without a
+  branch, contrary to convention — Tier 1 corrected that via `phase-8-customer-identity`; Jenkins
+  split into 4 jobs (`terra-api-be`/`terra-api-fe` × `main`/`branches`) instead of one flat
+  pipeline, GitHub App scope extended to cover `terra-api-fe` too; missing `feature-flags.yaml`,
+  Spring Security default in-memory password at boot, prod/staging no-auth-Redis gap all
+  reconfirmed still live 2026-08-02.
+- **Context:** **Credential incident (2026-08-01):** a Notion API key was committed live in
+  terra-api's `.env` since 2026-07-05 and copied into `DEV_LOG.md` 2026-07-26. Rotated by Will;
+  scrubbed from git history via two `git-filter-repo` passes (2nd pass needed for a 1-char-shorter
+  historic variant the 1st missed), force-pushed to `origin`+`bitbucket`, verified clean via full
+  local (incl. unreachable loose objects) + remote history scans. Pre-scrub backup bundle:
+  `terra-api-home/terra-api-backup-before-history-scrub-2026-08-01.bundle`.
+  Jenkins runs on the `solan` machine (port 8090) until the ADR-010 EC2 migration — not scheduled.
+  `terra-api-fe` npm peer-conflict fix verified: `rm -rf node_modules package-lock.json && npm
+  install`. Never `npm audit fix --force` there (guts `react-scripts`).
 
 ## terra-api-fe                                     <!-- prefix: TFE -->
-- **Status:** Active — Phase 1 (auth shell, TFE-101/102/103) done, merged to `main` 2026-08-02.
-  Phase 2 (TFE-201, Jenkins CI + same-origin deploy wiring) done, live-verified same day. The
-  lockfile regression (tailwindcss/yaml conflict, then typescript floated to an incompatible
-  major) is fully fixed — no longer a blocker, and the stray `package-lock.json;C`/`package.json;C`
-  directories are also gone (confirmed absent post-fix).
-- **Active Task:** None blocking. Concept AB dashboard UI (accepted 2026-08-01) still not
-  started — no longer blocked behind the lockfile fix, since that's resolved now.
-- **Next Step:** Repurpose the accepted Concept AB static HTML (`design-reference/`) into real
-  JSX components (dashboard shell, product launchpad card, Nkap tier card, activity ledger) — or
-  Phase 3 backend work (TFE-301/302/303) if prioritized first.
-- **Blockers:** None. **Never run `npm audit fix --force`** here — still downgrades
-  `react-scripts` to an empty stub (unrelated to the now-fixed lockfile issue).
-- **Context:** New standalone CI-only `Jenkinsfile` added (checkout/build/test, no deploy —
-  same-origin means no independent artifact); `docker-compose.dev.yml` service re-enabled.
-  ⚠️ Stack drift still unresolved, not re-litigated here: repo runs CRA/react-scripts, not the
-  2026-07-16 "stays React (Vite)" decision. Full detail: `DEV_LOG.md` → Phase 2/TFE-201.
+- **Reference Links:** Local spec (authoritative, verified 2026-08-02):
+  `terra-api-fe/TASKS.md` — carries the full TFE phase breakdown, incl. Phase 4 visualizer work
+  (TFE-401 repurpose phase5 Three.js · TFE-402 cube filtering per customer against Phase 3's
+  entitlement-filtered endpoint · TFE-403 health-tier colors per terra-api-adr-009). Also read
+  `terra-hq-site/CLAUDE.md` lines 39-43 for the two-visualizer scope distinction. Notion ADRs:
+  see Terra API's Reference Links (shared `terra-api-adr-*` series). Own Notion page: (none
+  recorded — add when confirmed).
+- **Status:** **ALL 13 TFE TASKS CLOSED 2026-08-02** — feature-complete against ADR-009's Build
+  Sequence, but NOT production-ready, and the distinction matters: it has only ever run on CRA's
+  dev server. See Next Step.
+- **Active Task:** None open. Phase 4 shipped and merged to `main` (`d1a13a4`): the visualizer
+  ported from phase5 into React (`terraScene.js` — real disposal, drag-to-rotate, raycast hover),
+  the Command Matrix dashboard, tier accent theming, faceted gold corners, light mode. TFE-301/302/
+  303 (backend entitlement + `role` claim) also closed — they shipped as terra-api work but were
+  tracked here.
+  **`domainConfig.js` is now a MIRROR of terra-hq-site's phase5 `CUBE_CONFIG`**, not a
+  re-derived taxonomy — an earlier hand-written version had already drifted (hq-site named
+  Nkap/ROMS/PIOS as children while this had six domains `service: null`). If phase5 changes, this
+  follows. Only addition is `serviceId`, which phase5 has no concept of.
+- **Next Step:** Three gaps, none of them TFE tasks, ranked: (1) **the deploy has never run** —
+  ADR-009 Phase 2 wired Jenkins to copy the CRA build into Spring's `static/`, marked done but
+  never executed, so nobody can reach this dashboard except locally; (2) **a 401 leaves the user
+  on a broken page** rather than redirecting to login (hit twice on 2026-08-02); (3) **10 of 12
+  modules have no tests** — only `healthColors` and `domainConfig` (the pure logic) are covered,
+  18 tests. Also note the dashboard is feature-complete for a customer base that does not exist
+  yet: ADR-011's amendment established there is no real customer identity, so `cust_dev_001` is a
+  dev fixture. Deliberate sequencing, but it means shipping has no urgency behind it.
+  Deferred by Will 2026-08-02: the ADR-012 admin dashboard.
+  (superseded) Confirm the FE image builds clean end-to-end via `docker compose --env-file
+  docker.env up --build` from `terra-api-home/` — this has never actually been verified green, only
+  the CI-side `npm ci`/build. Then start repurposing the `design-reference/` static HTML into real
+  JSX components (dashboard shell, product launchpad card, Nkap tier card, activity ledger).
+- **Blockers:** None. Standing caution: **never run `npm audit fix --force`** here — it downgrades
+  `react-scripts` to `0.0.0` (empty stub), stripping ~1280 packages and the whole build toolchain
+  (hit and reverted 2026-07-28). Stray `package-lock.json;C` / `package.json;C` directories
+  (previously flagged as unexamined) — **confirmed gone 2026-08-02**, no longer an item.
+- **Context:** CRA (React 19, plain JS — no TypeScript). Sibling to terra-api + terra-jenkins under
+  `terra-api-home` (its own git repo, `will55555/terra-api-home`, dual remote: GitHub + Bitbucket
+  `terra-inc-dev/terra-api-fe`). ⚠️ Stack drift flagged 2026-08-01: the 2026-07-16 decision says
+  "stays React (Vite)" but the actual repo runs CRA/react-scripts, not Vite — unresolved, not
+  re-litigated here. A standalone CI-only `Jenkinsfile` (checkout/`npm ci`/build/test, no deploy)
+  was added to this repo 2026-08-02 for independent CI feedback — verify it's still present after
+  this session's merge, since the Phase 4 work landed around the same time. Concept AB's static
+  HTML reference (`design-reference/terra_dashboard_state_a/b.html`, `terra_nkap_tiers.html`,
+  accepted 2026-08-01) has now been superseded by Phase 4's real shipped JSX components
+  (`Dashboard.js`, `NkapCard.js`, `ProductLaunchpad.js`, `TierCorners.js`) — the reference files
+  can likely be deleted once someone confirms the real components fully replace them.
 
 ## ROMS                                             <!-- prefix: ROMS -->
+- **Reference Links:** Notion ADRs `roms-adr-001`–`005` (domain-prefixed, per the 2026-07-18
+  terra-hq-site refactor) — URLs not recorded, add when confirmed. Repo lives OUTSIDE
+  `terra-api-home`: `SDE/restaurant-order-management-system/`. Strategy page:
+  `terra-hq-site/roms_gtm_strategy.html`.
 - **Status:** ⚠️ "Deployed but static" is now DOUBTFUL — **the ROMS EC2 instance may no longer
   exist.** Noticed 2026-07-29: the us-east-1 console listed "Instances (1)", `terra-api-server`
   only, no ROMS box. Deliberately not chased — Will's call to resolve it when ROMS integration
@@ -59,6 +137,9 @@
   ROMS-001 assumes a redeploy regardless.
 
 ## PIOS                                             <!-- prefix: PIOS -->
+- **Reference Links:** Notion ADRs `pios-adr-011`–`015` (ADR-013 = the gating event-schema-
+  versioning decision) — URLs not recorded, add when confirmed. Strategy page:
+  `terra-hq-site/pios_strategy.html` (architecture, event model, capital governance).
 - **Status:** Design phase — no coding until ADR-013 resolves
 - **Active Task:** PIOS-001 — resolve ADR-013 (event schema versioning)
 - **Next Step:** Draft ADR-013 options + tradeoffs
@@ -66,6 +147,11 @@
 - **Context:** Event-sourced. FastAPI/Python reserved. Rules-engine-gated AI signals.
 
 ## terra-hq-site                                    <!-- prefix: THQ -->
+- **Reference Links:** Local specs (authoritative, verified 2026-08-02):
+  `terra-hq-site/CLAUDE.md` — page inventory + the two-visualizer architecture (lines 39-43) ·
+  `terra-hq-site/TASKS.md` (THQ-001/002) · `terra-hq-site/devlog.md`. Live visualizer:
+  `terra_api_visualizer_phase5.js` at the repo ROOT (1,556 lines — phases 1–4 are superseded and
+  sit in `archive/`; don't port from those). Notion: (none recorded — add when confirmed).
 - **Status:** Active — parallel track
 - **Active Task:** THQ-002 (Visualizer health-tier coloring) opened 2026-07-17, Planned/notes-only.
 - **Next Step:** Implement color model (HEALTHY/YELLOW/ORANGE/RED tiers from Terra API
@@ -81,6 +167,9 @@
   commit. CLAUDE.md, TASKS.md, terra_api_strategy.html modified locally; ready to commit.
 
 ## DSA Practice                                     <!-- prefix: DSA -->
+- **Reference Links:** Method lives in the hub, not a project doc: HUB_GUIDE → DSA Methodology
+  (3-phase flow). Obsidian vault notes under `Learn/Software Development/`. Notion: (none
+  recorded — add when confirmed).
 - **Status:** Active — recurring
 - **Active Task:** DSA-001 — Arrays (start of progression)
 - **Next Step:** First Arrays problem via 3-phase methodology
@@ -123,9 +212,16 @@
   confirmed from the inbox or the alarm fires into nothing.** Worth pairing with a free
   `CPUUtilization > 90% for 15 min` alarm on the same topic, which would catch a thrash spiral
   before a hard freeze (host memory isn't available as a CloudWatch metric without installing the
-  agent). Status: walked through 2026-07-29, not yet confirmed created.
+  agent). **Status: DONE 2026-08-02** — alarm + SNS topic created and confirmed under TAPI-013
+  (`dcf7d6a`). This is the first piece of gap (1) actually built; the rest (DB backups, OS
+  patching, domains + TLS) remains deferred.
 
 ## claude-skills                                    <!-- prefix: SKILLS -->
+- **Reference Links:** Self-documenting — the hub IS this project's spec: `HUB.md` (rules,
+  Prime Directives first), `HUB_GUIDE.md` (templates/protocols/New Machine Setup), this file.
+  Change history: claude-skills ROOT `DEV_LOG.md` (one shared log — ai-control does NOT get a
+  nested one, per the Hub Update Gate). Git is sole source of truth here; Notion is an
+  informational dupe only, never authoritative on conflict.
 - **Status:** Active — hub v1.1 complete, pointers placed, both open decisions resolved
 - **Active Task:** SKILLS-006 — dogfood: run `load hub tapi` in a fresh Claude Code session
 - **Next Step:** Open a real Claude Code session in terra-api, confirm the CLAUDE.md pointer
@@ -137,6 +233,11 @@
   truth for ai-control; Notion = informational dupe only.
 
 ## Yahoo Mail MCP Server                            <!-- prefix: YMCP -->
+- **Reference Links:** Repo `willtchouente/yahoo-mail-mcp-server` (fork of
+  `jtokib/yahoo-mail-mcp-server`), local at `SDE/yahoo-mail-mcp-server/` — OUTSIDE
+  `terra-api-home`. Full history in that repo's own `DEV_LOG.md` (Phase 1 + Phase 2). Notion:
+  PAI subproject page `📨 Yahoo Mail MCP Server` — URL not recorded, add when confirmed.
+  Note: this container holds host port 3000 locally, which is why terra-api-fe moved to 3001.
 - **Status:** Active — OAuth persistence fix deployed 2026-07-26, live-verified via Render deploy logs
 - **Active Task:** YMCP-002 — reconnect Yahoo Mail MCP connector once in Claude to pick up token under new signing scheme
 - **Next Step:** After reconnect, confirm token holds across a natural idle/spin-down period without forcing re-auth
