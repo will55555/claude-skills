@@ -91,6 +91,12 @@
   yet: ADR-011's amendment established there is no real customer identity, so `cust_dev_001` is a
   dev fixture. Deliberate sequencing, but it means shipping has no urgency behind it.
   Deferred by Will 2026-08-02: the ADR-012 admin dashboard.
+  **Found 2026-08-03:** Jenkins' `phase-4-visualizer` branch job failing `npm ci` (lockfile missing
+  `yaml@2.9.0`) on a run from ~3.5h prior. No local checkout of that branch remains (remote-only),
+  and its work already shipped via the `d1a13a4` merge to `main` — confirmed isolated (Will:
+  "everything else passing in pipeline"), so this is a stale multibranch CI check against a
+  now-superseded branch, not a live problem. Safe to delete the branch to stop the recurring
+  false-alarm build; not yet done.
   (superseded) Confirm the FE image builds clean end-to-end via `docker compose --env-file
   docker.env up --build` from `terra-api-home/` — this has never actually been verified green, only
   the CI-side `npm ci`/build. Then start repurposing the `design-reference/` static HTML into real
