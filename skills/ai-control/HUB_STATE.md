@@ -1,5 +1,5 @@
 # Engineering Hub State
-<!-- Freshness: 2026-08-03 (rev 44) | v1.3 | Snapshots only — overwritten in place. History lives in DEV_LOGs. -->
+<!-- Freshness: 2026-08-03 (rev 45) | v1.3 | Snapshots only — overwritten in place. History lives in DEV_LOGs. -->
 <!-- Last Audit: 2026-08-02 | Monthly Hub Audit (HUB.md) fires from Startup Sequence step 7 when this is >30 days old. Update this line after each audit. -->
 <!-- New project? Copy the template from HUB_GUIDE.md → HUB_STATE Section Template. -->
 
@@ -37,27 +37,30 @@
   `SERVICE_ID_BY_CUBE_NAME`/`TIER_COLORS`, and `QuarantineTier`'s `HEALTHY`/`YELLOW`/`ORANGE`/`RED`
   against the visualizer's tier-color keys, verified by reading both sides rather than trusting
   the naming. No unmerged branches remain on either repo.
-- **Next Step:** (a) build ADR-012's actual operator endpoints against
-  `OperatorAccess.isOperator()`, now that the gate exists; (b) ADR-003 Tier 2 (Google sign-in via
-  `POST /api/auth/social`) whenever a customer actually wants it. ADR-009 Phase 4 (visualizer) is
-  NOT a next step here — it already shipped, see terra-api-fe's section. **SNS email subscription
-  confirmed clicked by Will 2026-08-02** — closes the last open piece of the CloudWatch alarm
-  work; see Cross-Project Notes.
-- **Blockers:** None. Carried, non-blocking: `docker-prod.env`/`docker-staging.env` on the EC2 box
-  still need `SPRING_PROFILES_ACTIVE=prod`/`staging` set (currently safe by `application-dev.yaml`
-  being gitignored — file-absence, not declaration); Phase 3 went straight to `master` without a
-  branch, contrary to convention — Tier 1 corrected that via `phase-8-customer-identity`; Jenkins
-  split into 4 jobs (`terra-api-be`/`terra-api-fe` × `main`/`branches`) instead of one flat
-  pipeline, GitHub App scope extended to cover `terra-api-fe` too; missing `feature-flags.yaml`,
-  Spring Security default in-memory password at boot, prod/staging no-auth-Redis gap all
-  reconfirmed still live 2026-08-02.
+- **Next Step:** **Full backlog sequenced and task-ID'd 2026-08-03** (was loose Blockers/Context
+  prose before — now tracked in `terra-api/TASKS.md`, ordered to avoid rework): TAPI-016 (security
+  bundle: default Spring Security password, Redis no-auth, env-file verification) → TFE-501 (fix
+  SPA 401 — see terra-api-fe section, the actual `terra-api`-side fix) → TAPI-018 (DB backup
+  automation) → TAPI-017 (ADR-012 operator endpoints) → TAPI-019 (Jenkins → own EC2 box, ADR-010)
+  → TAPI-020 (SonarQube gate, after Jenkins's box is final) → TAPI-021 (EC2 right-size toward
+  `t3.micro` — corrected scope, heap caps + swapfile already done via TAPI-013) → TAPI-022
+  (domains + TLS, last, once every box's endpoint is known) → TAPI-023 (OS patching automation,
+  last, covers Jenkins's new box too). ADR-003 Tier 2 (Google sign-in) deliberately NOT
+  sequenced — stays deferred until a customer wants it. ADR-009 Phase 4 (visualizer) is NOT a
+  next step here — it already shipped, see terra-api-fe's section.
+- **Blockers:** None. Phase 3 went straight to `master` without a branch, contrary to convention
+  — corrected via `phase-8-customer-identity`. Jenkins split into 4 jobs
+  (`terra-api-be`/`terra-api-fe` × `main`/`branches`) instead of one flat pipeline, GitHub App
+  scope extended to cover `terra-api-fe` too — factual state, not a problem. Formerly-loose items
+  (env-file verification, missing `feature-flags.yaml`, default Spring Security password,
+  Redis no-auth) now tracked as TAPI-016, see Next Step.
 - **Context:** **Credential incident (2026-08-01):** a Notion API key was committed live in
   terra-api's `.env` since 2026-07-05 and copied into `DEV_LOG.md` 2026-07-26. Rotated by Will;
   scrubbed from git history via two `git-filter-repo` passes (2nd pass needed for a 1-char-shorter
   historic variant the 1st missed), force-pushed to `origin`+`bitbucket`, verified clean via full
   local (incl. unreachable loose objects) + remote history scans. Pre-scrub backup bundle:
   `terra-api-home/terra-api-backup-before-history-scrub-2026-08-01.bundle`.
-  Jenkins runs on the `solan` machine (port 8090) until the ADR-010 EC2 migration — not scheduled.
+  Jenkins on the `solan` machine (port 8090) until TAPI-019 migrates it to its own EC2 box.
   `terra-api-fe` npm peer-conflict fix verified: `rm -rf node_modules package-lock.json && npm
   install`. Never `npm audit fix --force` there (guts `react-scripts`).
 
@@ -81,15 +84,18 @@
   re-derived taxonomy — an earlier hand-written version had already drifted (hq-site named
   Nkap/ROMS/PIOS as children while this had six domains `service: null`). If phase5 changes, this
   follows. Only addition is `serviceId`, which phase5 has no concept of.
-- **Next Step:** Three gaps, none of them TFE tasks, ranked: (1) **the deploy has never run** —
-  ADR-009 Phase 2 wired Jenkins to copy the CRA build into Spring's `static/`, marked done but
-  never executed, so nobody can reach this dashboard except locally; (2) **a 401 leaves the user
-  on a broken page** rather than redirecting to login (hit twice on 2026-08-02); (3) **10 of 12
-  modules have no tests** — only `healthColors` and `domainConfig` (the pure logic) are covered,
-  18 tests. Also note the dashboard is feature-complete for a customer base that does not exist
-  yet: ADR-011's amendment established there is no real customer identity, so `cust_dev_001` is a
-  dev fixture. Deliberate sequencing, but it means shipping has no urgency behind it.
-  Deferred by Will 2026-08-02: the ADR-012 admin dashboard.
+- **Next Step:** Now tracked as TFE-501/502/503 (Phase 5, `terra-api-fe/TASKS.md`). **Corrected
+  2026-08-03** — the prior "the deploy has never run" framing here was wrong and has been
+  superseded: Jenkins `master` build #6 (`81d4d7e`) ran "Copy Frontend Build" → "Deploy to Prod"
+  successfully, on both staging AND prod. The real, narrower bug (TFE-501): `terra-api`'s
+  `SecurityPaths.PERMIT_ALL_PATTERNS` never included the SPA's own routes (`/`, `/static/**`,
+  `/index.html`), so Spring Security 401s the shell itself before a visitor's browser can even
+  load the login page — deploy works, reachability doesn't. TFE-502: a 401 leaves the user on a
+  broken page instead of redirecting to login (hit twice 2026-08-02). TFE-503: 10 of 12 modules
+  have no tests (only `healthColors`/`domainConfig` covered, 18 tests). Also note the dashboard is
+  feature-complete for a customer base that does not exist yet: ADR-011's amendment established
+  there is no real customer identity, so `cust_dev_001` is a dev fixture — deliberate sequencing,
+  not urgency. Deferred by Will 2026-08-02: the ADR-012 admin dashboard.
   **Found 2026-08-03:** Jenkins' `phase-4-visualizer` branch job failing `npm ci` (lockfile missing
   `yaml@2.9.0`) on a run from ~3.5h prior. No local checkout of that branch remains (remote-only),
   and its work already shipped via the `d1a13a4` merge to `main` — confirmed isolated (Will:
@@ -188,32 +194,32 @@
 - **Context:** Java default. Arrays → Strings → Linked Lists → Trees → Graphs → DP.
 
 ## Cross-Project Notes                              <!-- no prefix — ecosystem-wide, not project-scoped -->
-- **EC2 right-sizing back to `t3.micro` (noted 2026-07-29, TAPI):** Resized `t3.micro`→`t3.small`
-  (~$7.50→$15/mo) to stop the repeated OOM freezes, explicitly as a stabilizer — Will's call is to
-  engineer the footprint back down to `micro` later. Root cause measured, not guessed: the box runs
-  BOTH prod and staging stacks (6 containers, per TAPI-012's one-box design), two Spring Boot JVMs
-  at ~231MB RSS each, leaving **28Mi available of 911Mi with no swap** — i.e. at capacity while
-  idle, before any load. Ranked options to get back to `micro`: (1) **staging on-demand** — biggest
-  win, `down` by default and `up` only when a `phase-*` build deploys, reclaims ~250–300MB that two
-  idle JVMs hold 24/7 for a tier only used during deploys; (2) **cap JVM heaps** (`-Xmx256m`) —
-  nothing bounds them today, each reserves 2.7GB virtual and would grow until the kernel intervenes
-  (still true on `small`, just slower); (3) 2GB swapfile — free, removes the OOM cliff, worth doing
-  regardless; (4) Alpine JRE base instead of `jammy`, ~20–40MB/container; (5) trim snapd/SSM,
-  ~30–50MB. No task ID yet.
-- **SonarQube gate (noted 2026-07-18):** Ecosystem-wide code-quality pass planned across all
-  projects, once, before full deployment — not a per-project or per-PR blocker. Intent: keep
-  developing/adding functionality now, run it later, likely wired into the CI/CD pipeline being
-  built under Terra API's TAPI-012. No task ID yet — too early to scope.
+- **EC2 right-sizing back to `t3.micro` (noted 2026-07-29, TAPI) — now `TAPI-021`, scope
+  corrected 2026-08-03:** Resized `t3.micro`→`t3.small` (~$7.50→$15/mo) to stop repeated OOM
+  freezes, explicitly as a stabilizer — Will's call is to engineer the footprint back down later.
+  Root cause measured, not guessed: the box runs BOTH prod and staging stacks (6 containers, per
+  TAPI-012's one-box design), two Spring Boot JVMs at ~231MB RSS each, leaving **28Mi available of
+  911Mi with no swap** at the time — at capacity while idle, before any load. Of the original 5
+  ranked options, **two are already DONE via TAPI-013** (2026-08-02): JVM heap caps
+  (`MaxRAMPercentage=50`, verified actually active, not just committed) and a 2GB swapfile
+  (`/etc/fstab`-persisted). Remaining, tracked as TAPI-021: (1) staging on-demand — biggest
+  remaining win, `down` by default and `up` only when a `phase-*` build deploys, reclaims
+  ~250–300MB two idle JVMs hold 24/7 for a tier only used during deploys; (2) Alpine JRE base
+  instead of `jammy`, ~20–40MB/container; (3) trim snapd/SSM, ~30–50MB.
+- **SonarQube gate (noted 2026-07-18) — now `TAPI-020`:** Ecosystem-wide code-quality pass planned
+  across all projects, once, before full deployment — not a per-project or per-PR blocker. Intent:
+  keep developing/adding functionality now, run it later, wired into Jenkins once TAPI-019 gives
+  it a real home (sequenced after, to avoid reconfiguring the integration post-move).
 - **"Launch and forget" production-hardening goal (noted 2026-07-20):** End-state goal across
   every deployed service — running reliably without needing to babysit it (Will's own framing:
   "like a site like apple"). Already in place per-service via TAPI-012's pattern: container
-  `restart: unless-stopped`, CI/CD auto-deploy on merge, `/actuator/health`-style endpoints.
-  Genuinely missing, ecosystem-wide, none built yet: (1) monitoring/alerting — nothing currently
-  notifies if a service goes down, has to be noticed manually; (2) automated database backups;
-  (3) OS-level security patching automation; (4) domain names + TLS (everything is raw
-  IP:port right now — ROMS included, which has had zero domain since its own 2026-05-04 deploy).
-  Deliberately not being built now — same "don't build ahead of the actual need" pattern as
-  everything else here. No task ID yet.
+  `restart: unless-stopped`, CI/CD auto-deploy on merge, `/actuator/health`-style endpoints; (1)
+  monitoring/alerting done 2026-08-02 (CloudWatch alarm + confirmed SNS subscription, see Terra
+  API section). Remaining, now task-ID'd 2026-08-03: (2) automated database backups — `TAPI-018`;
+  (3) OS-level security patching automation — `TAPI-023`; (4) domain names + TLS (everything is
+  raw IP:port right now — ROMS included, zero domain since its 2026-05-04 deploy) — `TAPI-022`.
+  Jenkins getting its own EC2 box (ADR-010) is also now tracked — `TAPI-019`. Full sequencing
+  rationale in `terra-api/TASKS.md`.
   **Gap (1) stopped being hypothetical on 2026-07-27:** terra-api prod was down ~40h and surfaced
   only because Will went looking. AWS *knew* — the EC2 instance-status check failed at 03:35
   GMT-4 — there was simply no alarm wired to say so. Concrete fix, ~10 min of console work, first

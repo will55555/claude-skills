@@ -452,4 +452,62 @@ done.
   infrastructure-created from subscription-confirmed, both now marked done
   with actual dates.
 
+---
+
+## 2026-08-03 — HUB_STATE rev 45: full backlog sequenced + task-ID'd, two more drift catches
+
+Will asked for the remaining backlog (Terra API Next Steps + the loose
+infra items sitting in Blockers/Context/Cross-Project Notes) assigned task
+IDs in an order that avoids rework — e.g. don't wire SonarQube into Jenkins
+before Jenkins has a permanent home, don't set up DNS/TLS before EC2
+right-sizing might touch networking.
+
+Two more stale-HUB_STATE catches turned up while doing this, both worth
+recording since they're the same failure shape as the TAPI-014/THQ-002 one
+earlier today — content written once and never reconciled against later
+work:
+
+**Heap caps + swapfile already shipped.** The Cross-Project Notes' EC2
+right-sizing entry still listed "cap JVM heaps" and "2GB swapfile" as two of
+five open ranked options — TAPI-013 (2026-08-02) already did both
+(`MaxRAMPercentage=50`, verified actually active; swapfile with `/etc/fstab`
+entry). Assigning TAPI-021 with the stale 5-option scope would have opened
+a task for work already done. Corrected the ranked list to the 3 options
+still real before assigning the ID.
+
+**"The FE deploy has never run" was wrong.** terra-api-fe's Next Step (a)
+said the Jenkins→Spring-static copy step "was marked done but never
+executed." `terra-api-fe/TASKS.md`'s own TFE-201 entry directly contradicts
+this — live-verified staging deploy, 2026-08-02, independently corroborated
+by TAPI-013's own entry describing the same event. Almost turned this into
+a duplicate "wire the deploy" task before checking. Will then shared the
+actual Jenkins run for `master` build #6 (`81d4d7e`): "Copy Frontend Build"
+→ "Deploy to Prod" both succeeded — so it's not even staging-only, prod has
+it too. A `curl` to prod's `/` returned 401, which is genuinely ambiguous
+on its own (Spring Security can 401 a path before ever checking for static
+content) — reading `SecurityPaths.java` directly resolved it: `/`,
+`/static/**`, `/index.html` were never added to `PERMIT_ALL_PATTERNS`
+(only `/actuator/**`, `/api/auth/login`, `/api/v1/ecosystem/public-health`,
+`/error` are). Deploy works; a security-config gap blocks reachability.
+Filed as the real, narrower TFE-501.
+
+### Changes
+- `terra-api/TASKS.md`: TAPI-016 through TAPI-023 added (Planned), each
+  with its sequencing rationale inline.
+- `terra-api-fe/TASKS.md`: new Phase 5 (TFE-501/502/503) — TFE-501's
+  description carries the corrected root-cause finding above.
+- HUB_STATE Terra API Next Step: replaced with the ordered TAPI-016→023
+  sequence, pointing to TASKS.md for detail; Blockers trimmed now that
+  those items have real IDs.
+- HUB_STATE terra-api-fe Next Step: "deploy has never run" corrected to
+  point at TFE-501's actual finding.
+- Cross-Project Notes: EC2 right-sizing option list corrected (2 of 5 done);
+  SonarQube/DB-backups/OS-patching/domains+TLS/Jenkins-EC2-migration entries
+  all given their TAPI-01x pointers instead of "no task ID yet."
+
+### Note
+Hub Self-Sync Exception scope covers terra-api and terra-api-fe here too
+(Terra API's sibling repos, per HUB.md) — TASKS.md edits in both were
+committed/pushed directly alongside the hub files, not handed off.
+
 Report-only by design, per Prime Directive 2.
