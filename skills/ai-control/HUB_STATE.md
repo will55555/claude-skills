@@ -62,16 +62,28 @@
   `terra-hq-site/CLAUDE.md` lines 39-43 for the two-visualizer scope distinction. Notion ADRs:
   see Terra API's Reference Links (shared `terra-api-adr-*` series). Own Notion page: (none
   recorded — add when confirmed).
-- **Status:** Active — **unblocked and moving.** The lockfile conflict is fixed, the auth shell
-  landed, and CI is wired. `react-router-dom@^6.26.0` is a real dependency now (was the phantom
-  lockfile-only entry) and `typescript` is pinned to `4.9.5` via npm `overrides`, which is what
-  actually resolved the peer conflict.
-- **Active Task:** **TFE-101/102/103 merged** (`381445b`, auth shell — `src/pages/Login.js`,
-  `src/services/authService.js`). **TFE-201 closed** (`21f7ab1`) — CI-only Jenkinsfile
-  (checkout → npm ci → build → test) + same-origin deploy wiring, live-verified; the FE service is
-  re-enabled in `terra-api/docker-compose.dev.yml` as of `dcf7d6a`. Next real work is the accepted
-  Concept AB dashboard layout (see Context) — now genuinely unblocked.
-- **Next Step:** Confirm the FE image builds clean end-to-end via `docker compose --env-file
+- **Status:** **ALL 13 TFE TASKS CLOSED 2026-08-02** — feature-complete against ADR-009's Build
+  Sequence, but NOT production-ready, and the distinction matters: it has only ever run on CRA's
+  dev server. See Next Step.
+- **Active Task:** None open. Phase 4 shipped and merged to `main` (`d1a13a4`): the visualizer
+  ported from phase5 into React (`terraScene.js` — real disposal, drag-to-rotate, raycast hover),
+  the Command Matrix dashboard, tier accent theming, faceted gold corners, light mode. TFE-301/302/
+  303 (backend entitlement + `role` claim) also closed — they shipped as terra-api work but were
+  tracked here.
+  **`domainConfig.js` is now a MIRROR of terra-hq-site's phase5 `CUBE_CONFIG`**, not a
+  re-derived taxonomy — an earlier hand-written version had already drifted (hq-site named
+  Nkap/ROMS/PIOS as children while this had six domains `service: null`). If phase5 changes, this
+  follows. Only addition is `serviceId`, which phase5 has no concept of.
+- **Next Step:** Three gaps, none of them TFE tasks, ranked: (1) **the deploy has never run** —
+  ADR-009 Phase 2 wired Jenkins to copy the CRA build into Spring's `static/`, marked done but
+  never executed, so nobody can reach this dashboard except locally; (2) **a 401 leaves the user
+  on a broken page** rather than redirecting to login (hit twice on 2026-08-02); (3) **10 of 12
+  modules have no tests** — only `healthColors` and `domainConfig` (the pure logic) are covered,
+  18 tests. Also note the dashboard is feature-complete for a customer base that does not exist
+  yet: ADR-011's amendment established there is no real customer identity, so `cust_dev_001` is a
+  dev fixture. Deliberate sequencing, but it means shipping has no urgency behind it.
+  Deferred by Will 2026-08-02: the ADR-012 admin dashboard.
+  (superseded) Confirm the FE image builds clean end-to-end via `docker compose --env-file
   docker.env up --build` from `terra-api-home/` — this has never actually been verified green, only
   the CI-side `npm ci`/build. Then start repurposing the `design-reference/` static HTML into real
   JSX components (dashboard shell, product launchpad card, Nkap tier card, activity ledger).
