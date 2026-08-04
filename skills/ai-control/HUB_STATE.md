@@ -1,5 +1,5 @@
 # Engineering Hub State
-<!-- Freshness: 2026-08-04 (rev 48) | v1.3 | Snapshots only — overwritten in place. History lives in DEV_LOGs. -->
+<!-- Freshness: 2026-08-04 (rev 49) | v1.3 | Snapshots only — overwritten in place. History lives in DEV_LOGs. -->
 <!-- Last Audit: 2026-08-02 | Monthly Hub Audit (HUB.md) fires from Startup Sequence step 7 when this is >30 days old. Update this line after each audit. -->
 <!-- New project? Copy the template from HUB_GUIDE.md → HUB_STATE Section Template. -->
 
@@ -45,11 +45,28 @@
   confirmed landed in S3; cron installed for daily 3am UTC runs, confirmed via `crontab -l`.
   Real bug found+fixed along the way: an apostrophe inside a `${VAR:?message}` breaks bash's
   parser even inside double quotes — confirmed via isolated repro.
-  **TAPI-017 and TAPI-019 both stalled 2026-08-04, both resuming on `solan`:** TAPI-017 (ADR-012
-  operator endpoints) needs the actual ADR-012 spec, which lives in Notion — the MCP connection
-  was down all session despite looking fine at the account/connector level (didn't propagate into
-  an already-running session; needs a fresh session, which `solan` will be). TAPI-019 (Jenkins →
-  own EC2 box): researched (`terra-jenkins/docker-compose.jenkins.yml`'s own header already
+  **TAPI-017 DONE 2026-08-04 on `solan`** (`e7427cc` terra-api · `928a33e` terra-api-fe, both
+  remotes). The Notion MCP was reachable in a fresh session, which was the whole blocker — ADR-012
+  read directly rather than inferred. Backend: `GET /api/v1/internal/ecosystem`, gated on
+  role=internal AND ops:read via the `OperatorAccess` written for it in TAPI-015; third projection
+  of the quarantine registry, carrying the two fields no customer may see (`reason`, and
+  `affected_customers` — the reverse of `customer_service_access`). Keeps operator vocabulary the
+  customer view softens (ORANGE reports "quarantined", not "degraded"), sorts worst-first, derives
+  `seconds_since_heartbeat` server-side so a skewed browser clock can't render a misleading
+  silence. Reverse lookup returns the whole map in ONE query — the per-service shape is an N+1.
+  Frontend: `/internal` route, lattice + detail table. `OperatorRoute` is explicitly NOT a
+  security boundary (its own header says so) — the bundle ships to everyone and the server is the
+  real gate; the route just stops a non-operator landing on a page that reads as broken.
+  Seeded `ops@terra-hq.com` / `terra-dev-password` (dev profile only), `read,write,ops:read`.
+  **Found and fixed a false claim while doing it:** a comment asserted the 401 layer was "verified
+  by SecurityPaths' own tests" — those tests did not exist. `SecurityPathsTest` now does (7 tests),
+  including one that fails the build if `/api/v1/internal/*` ever lands in `PUBLIC_API_PATHS`, and
+  one pinning that public paths match EXACTLY rather than by prefix (a refactor to `startsWith()`
+  would otherwise silently open every suffix). 26 new backend tests, 12 of them denials.
+  ⚠️ The operator PAGE has never been run — backend is tested, React compiles and builds clean
+  under `CI=true`, but nothing has rendered it against live data.
+  **TAPI-019 still stalled, resuming on `solan`:** researched
+  (`terra-jenkins/docker-compose.jenkins.yml`'s own header already
   documents the migration steps) and prepared full CloudShell provisioning commands
   (`t3.medium`/30GB, sized up front to avoid TAPI-013's OOM history) — NOT yet run. Found the real
   blocker: `jenkins_home` is a named Docker volume (`infra_jenkins_home`) holding every actual job
@@ -57,7 +74,7 @@
   on `solan`, unreachable from a `test`-machine session. A session can provision a new box and get
   Jenkins *running* there, but the real data migration needs hands actually on `solan`. Full
   detail + prepared commands in `terra-api/TASKS.md` → TAPI-019.
-  Remaining sequence, unchanged: TAPI-017 → TAPI-019 → TAPI-020 (SonarQube gate, after Jenkins's
+  Remaining sequence, TAPI-017 now done: TAPI-019 → TAPI-020 (SonarQube gate, after Jenkins's
   box is final) → TAPI-021 (EC2 right-size toward `t3.micro` — corrected scope, heap caps +
   swapfile already done via TAPI-013) → TAPI-022 (domains + TLS, last) → TAPI-023 (OS patching
   automation, last, covers Jenkins's new box too). ADR-003 Tier 2 (Google sign-in) deliberately
