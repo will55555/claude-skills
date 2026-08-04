@@ -1,5 +1,5 @@
 # Engineering Hub State
-<!-- Freshness: 2026-08-04 (rev 49) | v1.3 | Snapshots only — overwritten in place. History lives in DEV_LOGs. -->
+<!-- Freshness: 2026-08-04 (rev 50) | v1.3 | Snapshots only — overwritten in place. History lives in DEV_LOGs. -->
 <!-- Last Audit: 2026-08-02 | Monthly Hub Audit (HUB.md) fires from Startup Sequence step 7 when this is >30 days old. Update this line after each audit. -->
 <!-- New project? Copy the template from HUB_GUIDE.md → HUB_STATE Section Template. -->
 
@@ -14,86 +14,31 @@
   9-cube public ecosystem view, terra-api-fe is scoped to the authenticated customer's own
   entitled products; same `ecosystem-health` endpoint, different filtering. Phase 5 is the shared
   Three.js reference implementation, captured in terra-api-adr-009).
-- **Status:** Active — prod healthy. **TAPI-013 fully closed** 2026-08-02 (`dcf7d6a`): heap caps
-  verified genuinely active, CloudWatch alarm + SNS added, staging re-enabled with real headroom.
-  **`phase-8-customer-identity` (ADR-003 Tier 1) and `phase-7-frontend-ci-integration` (TFE-201)
-  both merged to `master` 2026-08-02** — confirmed via `git log`/`git merge-base` 2026-08-03, this
-  hub's prior "pending" language was stale. **TAPI-015 shipped direct to `master`** (`ef6aa96`,
-  2026-08-02): `OperatorAccess`, ADR-012's operator authorization gate, built proactively — closes
-  a real gap before any endpoint uses it (role=internal alone would've let the ROMS service
-  account read cross-customer operator data; now requires role=internal AND an explicit
-  `ops:read` scope no service account has). Nothing calls it yet. **`master` (incl. TAPI-014)
-  deployed to prod 2026-08-03** — confirmed live, not just assumed: `GET
-  /api/v1/ecosystem/public-health` (an endpoint that did not exist before TAPI-014) returns `200`
-  with the correct `PublicEcosystemHealthResponse` shape (`services: []`, `ecosystem_status:
-  "healthy"`) from the public EC2 box. Empty `services` is expected — neither ROMS nor PIOS is
-  deployed/reporting heartbeats yet.
-- **Active Task:** None open. **TAPI-014 merged to `master`** (`81d4d7e`, 2026-08-03, pushed both
-  remotes) — `GET /api/v1/ecosystem/public-health`, genuinely public/unauthenticated, for
-  terra-hq-site's public visualizer (ADR-005's 2026-08-03 amendment). Consumer side confirmed
-  working, not just assumed: terra-hq-site's `terra_api_visualizer_phase5.js` (THQ-002, `bf8d54c`)
-  polls this exact endpoint, and the shape lines up field-for-field —
-  `PublicEcosystemHealthResponse.services[].service_id`/`running`/`tier` against the visualizer's
-  `SERVICE_ID_BY_CUBE_NAME`/`TIER_COLORS`, and `QuarantineTier`'s `HEALTHY`/`YELLOW`/`ORANGE`/`RED`
-  against the visualizer's tier-color keys, verified by reading both sides rather than trusting
-  the naming. No unmerged branches remain on either repo.
-- **Next Step:** **TAPI-016, TFE-501, and TAPI-018 all done and live-verified 2026-08-03.**
-  TAPI-018 (Postgres backup automation, whole `terra` DB): S3 bucket + 30-day lifecycle rule,
-  IAM instance-profile role scoped to `s3:PutObject`+`sns:Publish` only (no `ListBucket`,
-  deliberately minimized), failure alerts reuse TAPI-013's existing SNS topic
-  (`terra-api-prod-alerts` — resolved the prior naming discrepancy). 5 manual test backups
-  confirmed landed in S3; cron installed for daily 3am UTC runs, confirmed via `crontab -l`.
-  Real bug found+fixed along the way: an apostrophe inside a `${VAR:?message}` breaks bash's
-  parser even inside double quotes — confirmed via isolated repro.
-  **TAPI-017 DONE 2026-08-04 on `solan`** (`e7427cc` terra-api · `928a33e` terra-api-fe, both
-  remotes). The Notion MCP was reachable in a fresh session, which was the whole blocker — ADR-012
-  read directly rather than inferred. Backend: `GET /api/v1/internal/ecosystem`, gated on
-  role=internal AND ops:read via the `OperatorAccess` written for it in TAPI-015; third projection
-  of the quarantine registry, carrying the two fields no customer may see (`reason`, and
-  `affected_customers` — the reverse of `customer_service_access`). Keeps operator vocabulary the
-  customer view softens (ORANGE reports "quarantined", not "degraded"), sorts worst-first, derives
-  `seconds_since_heartbeat` server-side so a skewed browser clock can't render a misleading
-  silence. Reverse lookup returns the whole map in ONE query — the per-service shape is an N+1.
-  Frontend: `/internal` route, lattice + detail table. `OperatorRoute` is explicitly NOT a
-  security boundary (its own header says so) — the bundle ships to everyone and the server is the
-  real gate; the route just stops a non-operator landing on a page that reads as broken.
-  Seeded `ops@terra-hq.com` / `terra-dev-password` (dev profile only), `read,write,ops:read`.
-  **Found and fixed a false claim while doing it:** a comment asserted the 401 layer was "verified
-  by SecurityPaths' own tests" — those tests did not exist. `SecurityPathsTest` now does (7 tests),
-  including one that fails the build if `/api/v1/internal/*` ever lands in `PUBLIC_API_PATHS`, and
-  one pinning that public paths match EXACTLY rather than by prefix (a refactor to `startsWith()`
-  would otherwise silently open every suffix). 26 new backend tests, 12 of them denials.
-  ⚠️ The operator PAGE has never been run — backend is tested, React compiles and builds clean
-  under `CI=true`, but nothing has rendered it against live data.
-  **TAPI-019 still stalled, resuming on `solan`:** researched
-  (`terra-jenkins/docker-compose.jenkins.yml`'s own header already
-  documents the migration steps) and prepared full CloudShell provisioning commands
-  (`t3.medium`/30GB, sized up front to avoid TAPI-013's OOM history) — NOT yet run. Found the real
-  blocker: `jenkins_home` is a named Docker volume (`infra_jenkins_home`) holding every actual job
-  config, credential (`server-ssh`, `dockerhub-credentials`, GitHub App key), and plugin — it lives
-  on `solan`, unreachable from a `test`-machine session. A session can provision a new box and get
-  Jenkins *running* there, but the real data migration needs hands actually on `solan`. Full
-  detail + prepared commands in `terra-api/TASKS.md` → TAPI-019.
-  Remaining sequence, TAPI-017 now done: TAPI-019 → TAPI-020 (SonarQube gate, after Jenkins's
-  box is final) → TAPI-021 (EC2 right-size toward `t3.micro` — corrected scope, heap caps +
-  swapfile already done via TAPI-013) → TAPI-022 (domains + TLS, last) → TAPI-023 (OS patching
-  automation, last, covers Jenkins's new box too). ADR-003 Tier 2 (Google sign-in) deliberately
-  NOT sequenced — stays deferred until a customer wants it.
-- **Blockers:** None. Phase 3 went straight to `master` without a branch, contrary to convention
-  — corrected via `phase-8-customer-identity`. Jenkins split into 4 jobs
-  (`terra-api-be`/`terra-api-fe` × `main`/`branches`) instead of one flat pipeline, GitHub App
-  scope extended to cover `terra-api-fe` too — factual state, not a problem. Formerly-loose items
-  (env-file verification, missing `feature-flags.yaml`, default Spring Security password,
-  Redis no-auth) now tracked as TAPI-016, see Next Step.
+- **Status:** Active — prod healthy. **TAPI-017 fully closed 2026-08-04** — the operator page's
+  open ⚠️ (never actually rendered against live data) is resolved: `/internal` confirmed rendering
+  live on `solan`, 26 backend tests confirmed green. **Port 8082 (management/actuator) fixed**:
+  `application.yaml`'s `management.server.address: localhost` broke when containerized (Docker's
+  host port-forward had nothing to connect to — Tomcat bound the container's own loopback only,
+  confirmed via `curl` returning "Empty reply from server" despite Tomcat logging it as started).
+  Fixed via `${MANAGEMENT_ADDRESS:localhost}` + an env override in `docker-compose.dev.yml` —
+  host/`bootRun` default unchanged.
+- **Active Task:** None open.
+- **Next Step:** **TAPI-019 (Jenkins → dedicated EC2 box) still the primary queued task**,
+  unstarted this session — CloudShell provisioning commands remain prepared from 2026-08-04's
+  earlier research, not yet run. This session instead went deep on TFE-401 (visualizer) and
+  dashboard styling at Will's direction — see terra-api-fe section below for full detail.
+  Sequence after TAPI-019 unchanged: → TAPI-020 (SonarQube) → TAPI-021 (EC2 right-size) →
+  TAPI-022 (domains+TLS) → TAPI-023 (OS patching).
+- **Blockers:** None. Formerly-loose items now tracked as TAPI-016 (done, see prior session).
 - **Context:** **Credential incident (2026-08-01):** a Notion API key was committed live in
   terra-api's `.env` since 2026-07-05 and copied into `DEV_LOG.md` 2026-07-26. Rotated by Will;
-  scrubbed from git history via two `git-filter-repo` passes (2nd pass needed for a 1-char-shorter
-  historic variant the 1st missed), force-pushed to `origin`+`bitbucket`, verified clean via full
-  local (incl. unreachable loose objects) + remote history scans. Pre-scrub backup bundle:
-  `terra-api-home/terra-api-backup-before-history-scrub-2026-08-01.bundle`.
+  scrubbed from git history via two `git-filter-repo` passes, force-pushed, verified clean.
+  Pre-scrub backup bundle: `terra-api-home/terra-api-backup-before-history-scrub-2026-08-01.bundle`.
   Jenkins on the `solan` machine (port 8090) until TAPI-019 migrates it to its own EC2 box.
   `terra-api-fe` npm peer-conflict fix verified: `rm -rf node_modules package-lock.json && npm
   install`. Never `npm audit fix --force` there (guts `react-scripts`).
+  **2026-08-04: 2 files uncommitted on `solan`** — `application.yaml`, `docker-compose.dev.yml`
+  (the port 8082 fix). Will's call whether/when to commit.
 
 ## terra-api-fe                                     <!-- prefix: TFE -->
 - **Reference Links:** Local spec (authoritative, verified 2026-08-02):
@@ -103,54 +48,80 @@
   `terra-hq-site/CLAUDE.md` lines 39-43 for the two-visualizer scope distinction. Notion ADRs:
   see Terra API's Reference Links (shared `terra-api-adr-*` series). Own Notion page: (none
   recorded — add when confirmed).
-- **Status:** **ALL 13 TFE TASKS CLOSED 2026-08-02** — feature-complete against ADR-009's Build
-  Sequence, but NOT production-ready, and the distinction matters: it has only ever run on CRA's
-  dev server. See Next Step.
-- **Active Task:** None open. Phase 4 shipped and merged to `main` (`d1a13a4`): the visualizer
-  ported from phase5 into React (`terraScene.js` — real disposal, drag-to-rotate, raycast hover),
-  the Command Matrix dashboard, tier accent theming, faceted gold corners, light mode. TFE-301/302/
-  303 (backend entitlement + `role` claim) also closed — they shipped as terra-api work but were
-  tracked here.
-  **`domainConfig.js` is now a MIRROR of terra-hq-site's phase5 `CUBE_CONFIG`**, not a
-  re-derived taxonomy — an earlier hand-written version had already drifted (hq-site named
-  Nkap/ROMS/PIOS as children while this had six domains `service: null`). If phase5 changes, this
-  follows. Only addition is `serviceId`, which phase5 has no concept of.
-- **Next Step:** **TFE-501 done and live-verified 2026-08-03** — `terra-api`'s `SecurityPaths`
-  flipped from an allow-list (couldn't cover arbitrary React Router paths) to protecting
-  `/api/**` by default; `GET /` now returns `200` (was `401`), public/protected endpoints
-  unaffected. TFE-502/503 remain (Phase 5, `terra-api-fe/TASKS.md`): TFE-502 — a 401 leaves the
-  user on a broken page instead of redirecting to login (hit twice 2026-08-02); TFE-503 — 10 of
-  12 modules have no tests (only `healthColors`/`domainConfig` covered, 18 tests). Also note the
-  dashboard is feature-complete for a customer base that does not exist yet: ADR-011's amendment
-  established
-  there is no real customer identity, so `cust_dev_001` is a dev fixture — deliberate sequencing,
-  not urgency. Deferred by Will 2026-08-02: the ADR-012 admin dashboard.
-  **Found 2026-08-03:** Jenkins' `phase-4-visualizer` branch job failing `npm ci` (lockfile missing
-  `yaml@2.9.0`) on a run from ~3.5h prior. No local checkout of that branch remains (remote-only),
-  and its work already shipped via the `d1a13a4` merge to `main` — confirmed isolated (Will:
-  "everything else passing in pipeline"), so this is a stale multibranch CI check against a
-  now-superseded branch, not a live problem. **Deleted from both `origin` and `bitbucket`
-  2026-08-03** (confirmed fully merged into `main` first via `git merge-base --is-ancestor`) —
-  recurring false-alarm build stopped.
-  (superseded) Confirm the FE image builds clean end-to-end via `docker compose --env-file
-  docker.env up --build` from `terra-api-home/` — this has never actually been verified green, only
-  the CI-side `npm ci`/build. Then start repurposing the `design-reference/` static HTML into real
-  JSX components (dashboard shell, product launchpad card, Nkap tier card, activity ledger).
-- **Blockers:** None. Standing caution: **never run `npm audit fix --force`** here — it downgrades
-  `react-scripts` to `0.0.0` (empty stub), stripping ~1280 packages and the whole build toolchain
-  (hit and reverted 2026-07-28). Stray `package-lock.json;C` / `package.json;C` directories
-  (previously flagged as unexamined) — **confirmed gone 2026-08-02**, no longer an item.
+- **Status:** **TFE-401 substantially reworked 2026-08-04** — the prior "ported into React"
+  visualizer (`terraScene.js`, 462 lines, a deliberately reduced dashboard-card variant) was
+  replaced with a FULL copy-paste port of `terra-hq-site/terra_api_visualizer_phase5.js` per
+  Will's explicit call: the reduced version was not what he wanted, full parity was. Preserves
+  starfield, glass/gem materials (confirmed intentional — Will's own reference: "Infinity Stone,
+  the blue one in Avengers" — an earlier matte-material pass was reverted), click-to-expand/
+  release/collapse state machine, pipeline tubes with shader pulse, mouse repulsion field.
+  Feature-complete against ADR-009's Build Sequence but still NOT production-ready (only ever
+  run via Docker dev compose / CRA dev server, no real ROMS/PIOS deployment to test against).
+- **Active Task:** None open. **3 real bugs found and fixed in the port, 2026-08-04:**
+  1. Pipeline tubes visually detached from cubes on screen — phase5's per-frame sine-drift cube
+     animation moved cubes but tubes were drawn once, statically. Fixed by dropping the drift
+     (also stabilizes click-to-expand, which sets cube position directly).
+  2. **Root cause of "some children aren't there" (Will's report, confirmed via screenshot):** 5
+     of 8 placeholder child cubes in `domainConfig.js` had the EXACT SAME `name` as their parent
+     domain (e.g. domain `Real Estate`, child also named `Real Estate`) — collided in the
+     `cubesByName` lookup map, only one of the two meshes was ever reachable. Finance/
+     Hospitality/Ventures (children Nkap/ROMS/PIOS) were unaffected — already had distinct
+     names, exactly matching what Will observed working vs. not. Fixed via `<Domain> (Planned)`
+     suffix on all 5 colliding names — verified all 17 cube names now unique.
+  3. Anchor cube never actually turned pink (`0xaa8899`, phase5's own dead-code spec) when
+     backend unreachable — `applyHealth`'s reachability check (`statusByServiceId != null`) was
+     structurally always true (prop defaults to `{}`, never `null`). Fixed by threading the
+     hook's real `error` value through explicitly (`EcosystemVisualizer.js` → `applyHealth`).
+  Also fixed: unbuilt-child cubes were functionally invisible (opacity 0.7 + no edge outline
+  against dark background) — outlines now stay attached at reduced opacity instead of removed.
+  **Added, not restored** (confirmed absent in phase5's own source): idle auto-rotation, stops
+  on drag, resumes on double-click — per Will's explicit request, matching hint text that had
+  been promising it since an earlier version.
+  **Tier colors tuned**, Will's explicit scoped exception to the colors-frozen rule:
+  `healthColors.js` `ORANGE` 0xfb923c→0xe8590c (too close to YELLOW at cube scale) and `RED`
+  0xf87171→0xdc2626 (read as pink, not red). `HEALTHY`/`YELLOW` untouched.
+  **Dev-only test tooling added and KEPT PERMANENTLY** (not scaffolding to delete):
+  `useEcosystemHealth.js` + matching `terraScene.js` override — `?mockHealth=1` (ROMS/PIOS only,
+  matches production) and `?mockHealthAll=1` (all 8 domains, synthetic statuses spanning all 4
+  tiers, for inspecting every cube/child pair in one pass). Opt-in via URL param only; real
+  fetch/poll runs unmodified on every normal page load.
+- **Next Step:** **Dashboard restyled 2026-08-04** — Montfort Group (mont-fort.com)'s markup
+  used as a structural reference, explicitly scoped to layout/spacing only (Will: borrow
+  structure, keep Terra's existing palette/type — consistent with colors-frozen rule):
+  `.cm-grid` gap 28→40px & max-width 1400→1700px, card padding 26→34px, numbered section index
+  badges (01/02/03) added to each card, corner ornaments reshaped from angular low-poly
+  triangles to a soft oval/quarter-circle glow at lower opacity (Will: dashboard "looks too much
+  like a game" — same complaint a family member gave independently), base font 11→13px,
+  smallest labels 8/9px→9/10px, `--text-dim`/`--text-muted` brightened for contrast, light-mode
+  `--border-sub` alpha 0.08→0.18 (was invisible against `--surface`). Visualizer card sizing
+  tuned separately (`visualizer.css`): aspect-ratio settled at 3/2 with a `max-height: 460px`
+  cap (needed once discovered the `/internal` operator page hosts it full-width, unlike the
+  customer dashboard's 60/40 split — uncapped aspect-ratio alone produced a ~930px-tall card).
+  **terra-hq-site explicitly DEFERRED to a fresh session** (Will's call, given session length):
+  same Montfort structural pass (whitespace, numbered sections) PLUS a second pattern Will
+  identified from Montfort's markup — in-page anchor-tab navigation with the site's existing
+  animated section-reveal system (fade/slide/white-curtain transitions) playing during the jump,
+  not an instant `#anchor` snap. 13 standalone HTML files, no shared CSS (each ~900+ lines,
+  inline `<style>` blocks) — needs its own session with full context budget. TFE-502/503
+  (401 redirect UX, 10/12 modules untested) remain untouched, still open from prior sessions.
+- **Blockers:** None. Standing caution unchanged: never run `npm audit fix --force` here.
+  **2026-08-04: `package-lock.json` regenerated** via `rm -rf node_modules package-lock.json &&
+  npm install` — fixed a `react-router`/`react-router-dom` version mismatch (stale lockfile had
+  pulled a v7 `react-router` under a v6 `react-router-dom`) plus a `caniuse-lite` submodule gap
+  that broke the Docker build's CSS/PostCSS step. Confirmed fixed via clean container rebuild.
 - **Context:** CRA (React 19, plain JS — no TypeScript). Sibling to terra-api + terra-jenkins under
-  `terra-api-home` (its own git repo, `will55555/terra-api-home`, dual remote: GitHub + Bitbucket
-  `terra-inc-dev/terra-api-fe`). ⚠️ Stack drift flagged 2026-08-01: the 2026-07-16 decision says
-  "stays React (Vite)" but the actual repo runs CRA/react-scripts, not Vite — unresolved, not
-  re-litigated here. A standalone CI-only `Jenkinsfile` (checkout/`npm ci`/build/test, no deploy)
-  was added to this repo 2026-08-02 for independent CI feedback — verify it's still present after
-  this session's merge, since the Phase 4 work landed around the same time. Concept AB's static
-  HTML reference (`design-reference/terra_dashboard_state_a/b.html`, `terra_nkap_tiers.html`,
-  accepted 2026-08-01) has now been superseded by Phase 4's real shipped JSX components
-  (`Dashboard.js`, `NkapCard.js`, `ProductLaunchpad.js`, `TierCorners.js`) — the reference files
-  can likely be deleted once someone confirms the real components fully replace them.
+  `terra-api-home`. Docker Compose stack **fixed 2026-08-04**: was scattered across two separate
+  compose projects (`terra-api` vs `terra-api-home`) due to a missing explicit `-p` flag on some
+  earlier invocations, causing container-name collisions (`redis`/`postgres` "already in use").
+  Fixed by always invoking with `-p terra-api-home` explicitly; `terra-jenkins`/
+  `infra_jenkins_home` verified untouched throughout every cleanup step. Correct full command
+  (run from `terra-api-home/`):
+  `docker compose --env-file docker.env -p terra-api-home -f terra-api/docker-compose.yml -f
+  terra-api/docker-compose.dev.yml up -d --build`
+  **2026-08-04: 8 files uncommitted on `solan`** (all of TFE-401's rework + the dashboard
+  restyle — `terraScene.js`, `domainConfig.js`, `healthColors.js`, `EcosystemVisualizer.js`,
+  `useEcosystemHealth.js`, `visualizer.css`, `Dashboard.js`, `dashboard.css`, plus the
+  regenerated `package-lock.json`). Will's call whether/when to commit.
 
 ## ROMS                                             <!-- prefix: ROMS -->
 - **Reference Links:** Notion ADRs `roms-adr-001`–`005` (domain-prefixed, per the 2026-07-18
