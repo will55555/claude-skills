@@ -1,5 +1,5 @@
 # Engineering Hub State
-<!-- Freshness: 2026-08-04 (rev 47) | v1.3 | Snapshots only — overwritten in place. History lives in DEV_LOGs. -->
+<!-- Freshness: 2026-08-04 (rev 48) | v1.3 | Snapshots only — overwritten in place. History lives in DEV_LOGs. -->
 <!-- Last Audit: 2026-08-02 | Monthly Hub Audit (HUB.md) fires from Startup Sequence step 7 when this is >30 days old. Update this line after each audit. -->
 <!-- New project? Copy the template from HUB_GUIDE.md → HUB_STATE Section Template. -->
 
@@ -44,13 +44,24 @@
   (`terra-api-prod-alerts` — resolved the prior naming discrepancy). 5 manual test backups
   confirmed landed in S3; cron installed for daily 3am UTC runs, confirmed via `crontab -l`.
   Real bug found+fixed along the way: an apostrophe inside a `${VAR:?message}` breaks bash's
-  parser even inside double quotes — confirmed via isolated repro. Remaining sequence, unchanged
-  from the ordering rationale in `terra-api/TASKS.md`: **TAPI-017 (ADR-012 operator endpoints) is
-  next** → TAPI-019 (Jenkins → own EC2 box, ADR-010) → TAPI-020 (SonarQube gate, after
-  Jenkins's box is final) → TAPI-021 (EC2 right-size toward `t3.micro` — corrected scope, heap
-  caps + swapfile already done via TAPI-013) → TAPI-022 (domains + TLS, last) → TAPI-023 (OS
-  patching automation, last, covers Jenkins's new box too). ADR-003 Tier 2 (Google sign-in)
-  deliberately NOT sequenced — stays deferred until a customer wants it.
+  parser even inside double quotes — confirmed via isolated repro.
+  **TAPI-017 and TAPI-019 both stalled 2026-08-04, both resuming on `solan`:** TAPI-017 (ADR-012
+  operator endpoints) needs the actual ADR-012 spec, which lives in Notion — the MCP connection
+  was down all session despite looking fine at the account/connector level (didn't propagate into
+  an already-running session; needs a fresh session, which `solan` will be). TAPI-019 (Jenkins →
+  own EC2 box): researched (`terra-jenkins/docker-compose.jenkins.yml`'s own header already
+  documents the migration steps) and prepared full CloudShell provisioning commands
+  (`t3.medium`/30GB, sized up front to avoid TAPI-013's OOM history) — NOT yet run. Found the real
+  blocker: `jenkins_home` is a named Docker volume (`infra_jenkins_home`) holding every actual job
+  config, credential (`server-ssh`, `dockerhub-credentials`, GitHub App key), and plugin — it lives
+  on `solan`, unreachable from a `test`-machine session. A session can provision a new box and get
+  Jenkins *running* there, but the real data migration needs hands actually on `solan`. Full
+  detail + prepared commands in `terra-api/TASKS.md` → TAPI-019.
+  Remaining sequence, unchanged: TAPI-017 → TAPI-019 → TAPI-020 (SonarQube gate, after Jenkins's
+  box is final) → TAPI-021 (EC2 right-size toward `t3.micro` — corrected scope, heap caps +
+  swapfile already done via TAPI-013) → TAPI-022 (domains + TLS, last) → TAPI-023 (OS patching
+  automation, last, covers Jenkins's new box too). ADR-003 Tier 2 (Google sign-in) deliberately
+  NOT sequenced — stays deferred until a customer wants it.
 - **Blockers:** None. Phase 3 went straight to `master` without a branch, contrary to convention
   — corrected via `phase-8-customer-identity`. Jenkins split into 4 jobs
   (`terra-api-be`/`terra-api-fe` × `main`/`branches`) instead of one flat pipeline, GitHub App
@@ -172,9 +183,16 @@
   disconnected model against hardcoded per-domain ports. Design question resolved: single
   ecosystem-health poll, not per-cube. Domain cubes with no reporting service render as a
   distinct "unbuilt" navy, separate from "off."
-- **Next Step:** None open. `local-test-proxy.js` (added alongside THQ-002) is a same-origin dev
-  proxy for testing the visualizer against the real prod endpoint without a CORS exception on
-  Terra API's side — reach for it before adding any CORS config there.
+- **Next Step:** **THQ-003, found 2026-08-04, uncommitted**: live-testing THQ-002 against a real
+  ROMS heartbeat surfaced that pipeline extension tubes (created on cube expand-click) freeze
+  their connected state at creation time and never refresh — `createPipelineExtension()` used
+  `tube.userData.cube` (singular), which `updateCubeConnection()`'s live-refresh loop doesn't
+  recognize (only `cube1`/`cube2`, the main radial tubes' naming). Candidate fix drafted
+  (syntax-checked, NOT visually confirmed) — touches only tube wiring, zero color values, per
+  Will's explicit constraint. **Deliberately left uncommitted, local to the `test` machine only**
+  — resume there specifically (not a fresh-clone situation) to verify + commit. Full repro steps
+  in `terra-hq-site/TASKS.md` → THQ-003. `local-test-proxy.js` (added alongside THQ-002) is the
+  same-origin dev proxy used for this testing — may still be running on port 5500 on `test`.
 - **Blockers:** None
 - **Context:** 2026-07-18 session completed: (1) Clarified dual-visualizer architecture (terra-hq-site
   public + terra-api-fe scoped both read from Terra API ecosystem-health endpoint — single source

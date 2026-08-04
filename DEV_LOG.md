@@ -629,3 +629,77 @@ there now."
   itself.
 - HUB_STATE Terra API Next Step: TAPI-018 marked done; sequence pointer
   advanced to TAPI-017 (ADR-012 operator endpoints) next.
+
+---
+
+## 2026-08-04 — Session handoff to `solan`: TAPI-017/TAPI-019 both stalled on this machine's reach
+
+Two items in a row hit the same shape of wall: real work exists to do, but
+this specific session (running on `test`) structurally cannot reach what
+it needs — not a "try harder" problem, an access-boundary one.
+
+**TAPI-017 (ADR-012 operator endpoints)**: the actual spec lives in
+Notion. The Notion MCP connection was down the entire session. Will
+checked the connector in claude.ai settings — genuinely fine, authorized,
+no error shown. Retried anyway; still nothing. Most likely explanation:
+the MCP connection for a server gets established at session start, and a
+mid-session reauthorization on the account side doesn't propagate into an
+already-running session. Rather than build against `OperatorAccess.
+isOperator()`'s own code-comment description of scope (quarantine state,
+missed-heartbeat counts, affected customers) — real information, but
+inference, not the verified spec — left it blocked. Will's call: resume
+on `solan` in a fresh session, where Notion should reconnect cleanly.
+
+**TAPI-019 (Jenkins → own EC2 box)**: `terra-jenkins/docker-compose.
+jenkins.yml`'s own header comment already documents the intended
+migration (Ubuntu 22.04, install Docker, copy the folder, same `docker
+compose up` — "only the host changes"). Reading it further surfaced the
+part that actually matters: `jenkins_home` is a named Docker volume
+(`infra_jenkins_home`), and every real job config, credential
+(`server-ssh`, `dockerhub-credentials`, the GitHub App key), and plugin
+lives inside it — on `solan`, which this session has zero access to (only
+`test` and the terra-api EC2 box are reachable from here). A session
+running here could provision a brand-new EC2 instance and get a
+completely *empty* Jenkins booted on it, but that would not be a
+migration — it would be starting over, silently, with none of the real
+pipeline configuration Will actually wants moved. Prepared the full
+CloudShell provisioning command block (AMI lookup, dedicated keypair,
+security group, `t3.medium`/30GB — sized deliberately above `t3.micro`
+after TAPI-013's OOM history, since this image builds Gradle+npm+Docker)
+but did not run it, precisely because starting the box without a real
+path to the volume data would create a half-finished, misleading state.
+Will's call: resume on `solan`, which has direct access to the actual
+volume, for the real migration.
+
+**Also in this session**: found and fixed (locally, deliberately
+uncommitted pending visual verification) a real bug in terra-hq-site's
+visualizer — pipeline "extension" tubes (created when a cube is clicked
+to expand) freeze their gold/red connected-state at creation time and
+never refresh on later health ticks, because they stored their cube
+reference under a field name (`tube.userData.cube`, singular) that the
+existing live-refresh loop doesn't recognize (`cube1`/`cube2` only).
+Found while live-testing THQ-002's real tier coloring — a ROMS heartbeat
+sent early in the session escalated tier over time exactly as
+`QuarantineService`'s missed-heartbeat design intends, which is what
+made the visual mismatch (data correct, tube still red) visible in the
+first place. A separate, unwanted addition (coloring the Terra API anchor
+cube by `ecosystem_status`) was built, then explicitly reverted per
+Will's direction — confirmed via an empty `git diff` that the revert left
+zero trace. Full detail: `terra-hq-site/TASKS.md` → THQ-003.
+
+### Changes
+- `terra-api/TASKS.md`: TAPI-017 marked blocked (Notion), TAPI-019 marked
+  In Progress with full research findings and the prepared-but-unrun
+  provisioning commands.
+- `terra-hq-site/TASKS.md`: new THQ-003 entry, explicitly flagged
+  uncommitted/local-to-`test`-machine.
+- HUB_STATE Terra API + terra-hq-site sections: both updated with the
+  same handoff detail, so a fresh `solan` session has everything needed
+  without re-deriving it.
+
+### Note
+`terra_api_visualizer_phase5.js`'s THQ-003 fix was deliberately NOT
+committed — it touches live rendering logic that was never visually
+confirmed working before the session got redirected. Committing it
+sight-unseen would have been exactly the kind of unrequested,
+unconfirmed change this session was explicitly asked to avoid.
