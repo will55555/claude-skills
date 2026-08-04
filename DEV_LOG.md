@@ -511,3 +511,57 @@ Hub Self-Sync Exception scope covers terra-api and terra-api-fe here too
 committed/pushed directly alongside the hub files, not handed off.
 
 Report-only by design, per Prime Directive 2.
+
+---
+
+## 2026-08-03 — HUB_STATE rev 46: TAPI-016 + TFE-501 done, live-verified
+
+First two items in the sequenced backlog (TAPI-016, TFE-501) actually
+shipped and were confirmed live on prod, not just committed — same
+"verify, don't trust the commit" standard applied earlier to TAPI-014.
+
+**TAPI-016** (security hardening bundle): default Spring Security
+in-memory password removed (`UserDetailsServiceAutoConfiguration`
+excluded — dead surface, auth is entirely JWT-based, no `httpBasic()`/
+`formLogin()` anywhere); `feature-flags.yaml`'s real root cause found
+(`Dockerfile` never `COPY`'d it into the runtime stage — `Feature
+FlagsProperties.path` resolves it as a filesystem path against the JVM's
+working directory, not a classpath resource); Redis given
+`--requirepass` in both prod/staging compose files, with matching
+passwords generated and landed in both the local env files and each
+box's server-side `.env` (the file compose reads for its own `${VAR}`
+substitution — a different file from the one `terra-api-be` reads via
+`env_file:`, both needed).
+
+**TFE-501**: the fix that shipped is not the one first drafted. An
+enumerated static-asset allow-list (`/`, `/static/**`, `/favicon.ico`,
+etc.) was written first, then discarded once Will asked to discuss "the
+real fix" — that list could never cover an arbitrary client-side React
+Router path, only pre-known static filenames. Replaced with a posture
+flip in `SecurityPaths`/`SecurityConfig`: verified first (grepped every
+`@RestController`) that `/api/**` genuinely covers 100% of data-bearing
+endpoints, then switched from "permit known-public paths, authenticate
+everything else" to "authenticate `/api/**`, permit everything else" —
+covers any current or future client-side route with zero maintenance.
+
+**Deploy hit a real but unrelated hiccup**: first Jenkins attempt failed
+at "load build context" with a BuildKit `context deadline exceeded` —
+diagnosed as a transient builder-session issue, not a code problem
+(failed before compilation even started). Retried clean.
+
+**Local execution note**: local SSH to the EC2 box needed the original
+`terra-api-key.pem` (found by searching `terra-api-home` per Will's
+steer, not guessed) plus a Windows OpenSSH permissions fix (`icacls
+/inheritance:r` + `/grant:r` — Windows' default ACL includes
+`BUILTIN\Users`, which OpenSSH refuses to load a key under).
+
+### Changes
+- `terra-api/TASKS.md`: TAPI-016 marked Done with full verification
+  detail (Redis `NOAUTH` on unauthenticated ping, `feature-flags.yaml`
+  confirmed present via live `docker exec`).
+- `terra-api-fe/TASKS.md`: TFE-501 marked done `[x]`, rewritten to
+  describe the shipped posture-flip fix instead of the discarded
+  enumerated-list draft.
+- HUB_STATE Terra API + terra-api-fe Next Steps: both updated to reflect
+  done status and live verification; sequence pointer advanced to
+  TAPI-018 (DB backup automation) next.

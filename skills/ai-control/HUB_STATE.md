@@ -1,5 +1,5 @@
 # Engineering Hub State
-<!-- Freshness: 2026-08-03 (rev 45) | v1.3 | Snapshots only — overwritten in place. History lives in DEV_LOGs. -->
+<!-- Freshness: 2026-08-03 (rev 46) | v1.3 | Snapshots only — overwritten in place. History lives in DEV_LOGs. -->
 <!-- Last Audit: 2026-08-02 | Monthly Hub Audit (HUB.md) fires from Startup Sequence step 7 when this is >30 days old. Update this line after each audit. -->
 <!-- New project? Copy the template from HUB_GUIDE.md → HUB_STATE Section Template. -->
 
@@ -37,17 +37,18 @@
   `SERVICE_ID_BY_CUBE_NAME`/`TIER_COLORS`, and `QuarantineTier`'s `HEALTHY`/`YELLOW`/`ORANGE`/`RED`
   against the visualizer's tier-color keys, verified by reading both sides rather than trusting
   the naming. No unmerged branches remain on either repo.
-- **Next Step:** **Full backlog sequenced and task-ID'd 2026-08-03** (was loose Blockers/Context
-  prose before — now tracked in `terra-api/TASKS.md`, ordered to avoid rework): TAPI-016 (security
-  bundle: default Spring Security password, Redis no-auth, env-file verification) → TFE-501 (fix
-  SPA 401 — see terra-api-fe section, the actual `terra-api`-side fix) → TAPI-018 (DB backup
-  automation) → TAPI-017 (ADR-012 operator endpoints) → TAPI-019 (Jenkins → own EC2 box, ADR-010)
-  → TAPI-020 (SonarQube gate, after Jenkins's box is final) → TAPI-021 (EC2 right-size toward
-  `t3.micro` — corrected scope, heap caps + swapfile already done via TAPI-013) → TAPI-022
-  (domains + TLS, last, once every box's endpoint is known) → TAPI-023 (OS patching automation,
-  last, covers Jenkins's new box too). ADR-003 Tier 2 (Google sign-in) deliberately NOT
-  sequenced — stays deferred until a customer wants it. ADR-009 Phase 4 (visualizer) is NOT a
-  next step here — it already shipped, see terra-api-fe's section.
+- **Next Step:** **TAPI-016 + TFE-501 done and live-verified 2026-08-03** — Redis now rejects
+  unauthenticated `PING` (`NOAUTH Authentication required.`), `feature-flags.yaml` confirmed
+  present in the running container, default Spring Security password removed, and the SPA
+  reachability fix confirmed live (`GET /` → `200`, was `401`; public/protected endpoints
+  unaffected) after one Jenkins retry (first attempt hit a transient BuildKit session timeout,
+  unrelated to the change). Remaining sequence, unchanged from the ordering rationale in
+  `terra-api/TASKS.md`: **TAPI-018 (DB backup automation) is next** → TAPI-017 (ADR-012 operator
+  endpoints) → TAPI-019 (Jenkins → own EC2 box, ADR-010) → TAPI-020 (SonarQube gate, after
+  Jenkins's box is final) → TAPI-021 (EC2 right-size toward `t3.micro` — corrected scope, heap
+  caps + swapfile already done via TAPI-013) → TAPI-022 (domains + TLS, last) → TAPI-023 (OS
+  patching automation, last, covers Jenkins's new box too). ADR-003 Tier 2 (Google sign-in)
+  deliberately NOT sequenced — stays deferred until a customer wants it.
 - **Blockers:** None. Phase 3 went straight to `master` without a branch, contrary to convention
   — corrected via `phase-8-customer-identity`. Jenkins split into 4 jobs
   (`terra-api-be`/`terra-api-fe` × `main`/`branches`) instead of one flat pipeline, GitHub App
@@ -84,16 +85,14 @@
   re-derived taxonomy — an earlier hand-written version had already drifted (hq-site named
   Nkap/ROMS/PIOS as children while this had six domains `service: null`). If phase5 changes, this
   follows. Only addition is `serviceId`, which phase5 has no concept of.
-- **Next Step:** Now tracked as TFE-501/502/503 (Phase 5, `terra-api-fe/TASKS.md`). **Corrected
-  2026-08-03** — the prior "the deploy has never run" framing here was wrong and has been
-  superseded: Jenkins `master` build #6 (`81d4d7e`) ran "Copy Frontend Build" → "Deploy to Prod"
-  successfully, on both staging AND prod. The real, narrower bug (TFE-501): `terra-api`'s
-  `SecurityPaths.PERMIT_ALL_PATTERNS` never included the SPA's own routes (`/`, `/static/**`,
-  `/index.html`), so Spring Security 401s the shell itself before a visitor's browser can even
-  load the login page — deploy works, reachability doesn't. TFE-502: a 401 leaves the user on a
-  broken page instead of redirecting to login (hit twice 2026-08-02). TFE-503: 10 of 12 modules
-  have no tests (only `healthColors`/`domainConfig` covered, 18 tests). Also note the dashboard is
-  feature-complete for a customer base that does not exist yet: ADR-011's amendment established
+- **Next Step:** **TFE-501 done and live-verified 2026-08-03** — `terra-api`'s `SecurityPaths`
+  flipped from an allow-list (couldn't cover arbitrary React Router paths) to protecting
+  `/api/**` by default; `GET /` now returns `200` (was `401`), public/protected endpoints
+  unaffected. TFE-502/503 remain (Phase 5, `terra-api-fe/TASKS.md`): TFE-502 — a 401 leaves the
+  user on a broken page instead of redirecting to login (hit twice 2026-08-02); TFE-503 — 10 of
+  12 modules have no tests (only `healthColors`/`domainConfig` covered, 18 tests). Also note the
+  dashboard is feature-complete for a customer base that does not exist yet: ADR-011's amendment
+  established
   there is no real customer identity, so `cust_dev_001` is a dev fixture — deliberate sequencing,
   not urgency. Deferred by Will 2026-08-02: the ADR-012 admin dashboard.
   **Found 2026-08-03:** Jenkins' `phase-4-visualizer` branch job failing `npm ci` (lockfile missing
