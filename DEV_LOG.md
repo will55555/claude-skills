@@ -565,3 +565,67 @@ steer, not guessed) plus a Windows OpenSSH permissions fix (`icacls
 - HUB_STATE Terra API + terra-api-fe Next Steps: both updated to reflect
   done status and live verification; sequence pointer advanced to
   TAPI-018 (DB backup automation) next.
+
+---
+
+## 2026-08-04 — HUB_STATE rev 47: TAPI-018 done, live-verified
+
+Built and shipped Postgres backup automation end-to-end: script, AWS infra
+(S3 + IAM + instance profile), and cron, all confirmed actually working
+rather than just committed — same standard as every other TAPI item this
+session.
+
+**Scope widened before writing anything**: the task was originally framed
+as "audit_log backup automation," but `schema.sql` also has `customers`/
+`customer_identities` (password hashes) and `customer_service_access` —
+backing up one table and calling it done would have missed the more
+sensitive data. Backs up the whole `terra` database instead.
+
+**A real, non-obvious bash bug, found and fixed via isolated repro, not
+guessed**: the backup script failed with "unexpected EOF while looking for
+matching `'" on deploy. The suspect line looked like a comment containing
+an apostrophe ("shouldn't"), which should be harmless — comments are not
+quote-aware in bash. Bisected the file with `bash -n` on truncated copies
+to find the actual line, then wrote a 3-line isolated repro
+(`X="${FOO:?bar's baz}"`) to confirm: an apostrophe inside a
+`${VAR:?message}` parameter expansion breaks bash's parser even inside
+double quotes, because bash scans `${...}` for brace-matching with its own
+independent quote tracking, separate from the outer double-quote context.
+Confirmed the fix (reword to avoid the apostrophe) with the same repro
+before touching the real file.
+
+**IAM design choice**: instance-profile role, not static access keys on
+disk — avoids adding another long-lived secret right after TAPI-016 spent
+effort removing gaps of that exact shape. Scoped to `s3:PutObject` +
+`sns:Publish` only, deliberately omitting `s3:ListBucket` — the instance
+can write backups but can't enumerate what's already there, minimizing
+what a compromised instance could do with these credentials. Verified
+that boundary is real (not just written down) by confirming `aws s3 ls`
+from the instance itself correctly fails with `AccessDenied`, and
+succeeds from CloudShell (Will's own account).
+
+**Failure alerting reuses TAPI-013's existing SNS topic** rather than
+building a second notification path — on failure, publishes to the same
+topic the CloudWatch alarm already uses. Resolved a real ambiguity along
+the way: HUB_STATE named this topic two different ways across sections
+(`terra-api-alerts` vs `terra-api-prod-alerts`); `aws sns list-topics`
+settled it as `terra-api-prod-alerts`.
+
+**Retention lives in an S3 lifecycle rule (30 days)**, not in the script
+— keeps the script's only failure mode "did the backup work," not also
+"did cleanup work."
+
+**Verification, not assumption**: 5 manual test runs, all confirmed
+landed in `s3://terra-api-backups/postgres/prod/` via `aws s3 ls
+--recursive` from CloudShell. Cron entry installed via `crontab -e`,
+confirmed via `crontab -l` showing the actual line, not just "should be
+there now."
+
+### Changes
+- `terra-api/TASKS.md`: TAPI-018 marked Done with the full verification
+  trail (bug found+fixed, AWS resources provisioned, live test results,
+  cron confirmed).
+- `terra-api/scripts/backup-postgres.sh`: new file, the backup script
+  itself.
+- HUB_STATE Terra API Next Step: TAPI-018 marked done; sequence pointer
+  advanced to TAPI-017 (ADR-012 operator endpoints) next.

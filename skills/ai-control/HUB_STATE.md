@@ -1,5 +1,5 @@
 # Engineering Hub State
-<!-- Freshness: 2026-08-03 (rev 46) | v1.3 | Snapshots only — overwritten in place. History lives in DEV_LOGs. -->
+<!-- Freshness: 2026-08-04 (rev 47) | v1.3 | Snapshots only — overwritten in place. History lives in DEV_LOGs. -->
 <!-- Last Audit: 2026-08-02 | Monthly Hub Audit (HUB.md) fires from Startup Sequence step 7 when this is >30 days old. Update this line after each audit. -->
 <!-- New project? Copy the template from HUB_GUIDE.md → HUB_STATE Section Template. -->
 
@@ -37,14 +37,16 @@
   `SERVICE_ID_BY_CUBE_NAME`/`TIER_COLORS`, and `QuarantineTier`'s `HEALTHY`/`YELLOW`/`ORANGE`/`RED`
   against the visualizer's tier-color keys, verified by reading both sides rather than trusting
   the naming. No unmerged branches remain on either repo.
-- **Next Step:** **TAPI-016 + TFE-501 done and live-verified 2026-08-03** — Redis now rejects
-  unauthenticated `PING` (`NOAUTH Authentication required.`), `feature-flags.yaml` confirmed
-  present in the running container, default Spring Security password removed, and the SPA
-  reachability fix confirmed live (`GET /` → `200`, was `401`; public/protected endpoints
-  unaffected) after one Jenkins retry (first attempt hit a transient BuildKit session timeout,
-  unrelated to the change). Remaining sequence, unchanged from the ordering rationale in
-  `terra-api/TASKS.md`: **TAPI-018 (DB backup automation) is next** → TAPI-017 (ADR-012 operator
-  endpoints) → TAPI-019 (Jenkins → own EC2 box, ADR-010) → TAPI-020 (SonarQube gate, after
+- **Next Step:** **TAPI-016, TFE-501, and TAPI-018 all done and live-verified 2026-08-03.**
+  TAPI-018 (Postgres backup automation, whole `terra` DB): S3 bucket + 30-day lifecycle rule,
+  IAM instance-profile role scoped to `s3:PutObject`+`sns:Publish` only (no `ListBucket`,
+  deliberately minimized), failure alerts reuse TAPI-013's existing SNS topic
+  (`terra-api-prod-alerts` — resolved the prior naming discrepancy). 5 manual test backups
+  confirmed landed in S3; cron installed for daily 3am UTC runs, confirmed via `crontab -l`.
+  Real bug found+fixed along the way: an apostrophe inside a `${VAR:?message}` breaks bash's
+  parser even inside double quotes — confirmed via isolated repro. Remaining sequence, unchanged
+  from the ordering rationale in `terra-api/TASKS.md`: **TAPI-017 (ADR-012 operator endpoints) is
+  next** → TAPI-019 (Jenkins → own EC2 box, ADR-010) → TAPI-020 (SonarQube gate, after
   Jenkins's box is final) → TAPI-021 (EC2 right-size toward `t3.micro` — corrected scope, heap
   caps + swapfile already done via TAPI-013) → TAPI-022 (domains + TLS, last) → TAPI-023 (OS
   patching automation, last, covers Jenkins's new box too). ADR-003 Tier 2 (Google sign-in)
