@@ -1,5 +1,5 @@
 # Engineering Hub State
-<!-- Freshness: 2026-08-04 (rev 51) | v1.3 | Snapshots only — overwritten in place. History lives in DEV_LOGs. -->
+<!-- Freshness: 2026-08-05 (rev 52) | v1.3 | Snapshots only — overwritten in place. History lives in DEV_LOGs. -->
 <!-- Last Audit: 2026-08-02 | Monthly Hub Audit (HUB.md) fires from Startup Sequence step 7 when this is >30 days old. Update this line after each audit. -->
 <!-- New project? Copy the template from HUB_GUIDE.md → HUB_STATE Section Template. -->
 
@@ -22,33 +22,32 @@
   confirmed via `curl` returning "Empty reply from server" despite Tomcat logging it as started).
   Fixed via `${MANAGEMENT_ADDRESS:localhost}` + an env override in `docker-compose.dev.yml` —
   host/`bootRun` default unchanged.
-- **Active Task:** **TAPI-019 (Jenkins → dedicated EC2 box) — IN PROGRESS**, real infra
-  provisioned 2026-08-04. See `terra-api-tapi019-scope` in Claude memory for full live state —
-  summary: EC2 instance `i-04ef85c382ac39269` (Ubuntu 22.04, `t3.medium`, us-east-1) launched,
-  SSM-only access (zero inbound security-group rules — no SSH, no public 8090; UI reached via
-  `aws ssm start-session --document-name AWS-StartPortForwardingSession` to localhost, real
-  domain deferred to TAPI-022 on purpose), Docker installed + verified, `terra-jenkins` config
-  repo cloned onto it and confirmed to match the real source config. **Scope corrected mid-
-  session**: TWO separate real Jenkins instances exist, not one as originally assumed — one on
-  `solan` (ROMS-originated), one on a second machine holding terra-api's actual pipeline data
-  (jobs/credentials/plugins, its own `infra_jenkins_home` volume). That second machine's exact
-  identity was never confirmed (Will referenced it only as "the other machine," guessed but
-  didn't verify via `hostname`) — **resume by confirming that first**, don't assume. Will's call:
-  migrate terra-api's pipeline first, ROMS's from `solan` as a separate later task.
-- **Next Step:** Confirm the second machine's hostname, then run the volume export
-  (`docker run --rm -v infra_jenkins_home:/from -v $(pwd):/to alpine tar czf
-  /to/jenkins_home_backup.tar.gz -C /from .`, drafted not yet run) → transfer to the new EC2 box
-  (method undecided — SSM has no simple file-copy primitive, S3-as-hop likely) → extract, `docker
-  compose up`, verify real jobs/credentials survived → run one real pipeline end-to-end before
-  decommissioning anything old. Two real `.pem` key files found but not yet used, sitting in
-  `H:\Other computers\My Laptop\Programing\terra-api-home\` (OneDrive sync of the laptop) —
-  `terra-ci-jenkins-pkcs8.pem` / `terra-ci-jenkins.2026-07-19.private-key.pem`, likely the GitHub
-  App credential TAPI-012 documented needing a PKCS#1→PKCS#8 conversion for. Sequence after
-  TAPI-019 unchanged: → TAPI-020 (SonarQube) → TAPI-021 (EC2 right-size) → TAPI-022 (domains+TLS)
-  → TAPI-023 (OS patching). Also owed once TAPI-019 fully lands: a beginner-level Obsidian
-  tutorial walking through every provisioning command (Will's explicit ask, tracked in Claude
-  memory as `tapi019-obsidian-tutorial-todo`).
-- **Blockers:** None blocking the EC2 box itself. Open unknown: the second machine's identity.
+- **Active Task:** **TAPI-019 (Jenkins → dedicated EC2 box) — DATA MIGRATION DONE 2026-08-05,
+  cutover pending.** Standing unknown resolved: the "second machine" holding terra-api's real
+  Jenkins data (jobs/credentials/plugins, `infra_jenkins_home` volume) was this `test` machine
+  (`DESKTOP-KKJ5QGB`) itself — confirmed via `docker volume ls`/`docker ps`, no `solan`/laptop
+  dependency as previously guessed. `infra_jenkins_home` (2.865GB) exported, verified (`tar tzf`,
+  278,773 entries), moved via S3 (`s3://terra-api-backups/jenkins-migration/`, reusing TAPI-018's
+  bucket rather than new infra) to EC2 `i-04ef85c382ac39269`, restored into a matching-named
+  volume, brought up via the pre-existing `docker-compose.jenkins.yml` (already pinned to
+  `infra_jenkins_home` — zero config changes needed). Verified at 3 independent levels: volume
+  contents, boot logs (`Jenkins is fully up and running`, jobs/config loaded, GitHub API polling
+  via the existing credential), live auth check (anonymous access correctly rejected — security
+  realm migrated too, not silently reset).
+- **Next Step:** Cutover, not yet started: (1) repoint GitHub webhook URLs + any other repo's CI
+  config off the OLD instance, (2) stop the old local Jenkins container on `DESKTOP-KKJ5QGB` only
+  after (1) is confirmed, (3) decide public-access posture (stay SSM-only vs. real inbound port —
+  folds into TAPI-022 either way), (4) run one real pipeline end-to-end on the new box before
+  fully decommissioning the old one. Resuming on `solan` next — cross-machine merge staged in
+  Notion (`📥 Obsidian Queue — 2026-08-05`, tagged pending merge) rather than written to Obsidian
+  directly from this machine, per Will's explicit instruction. Sequence after TAPI-019 unchanged:
+  → TAPI-020 (SonarQube) → TAPI-021 (EC2 right-size) → TAPI-022 (domains+TLS) → TAPI-023 (OS
+  patching).
+- **Blockers:** None on TAPI-019 itself. Two live Jenkins instances currently running
+  simultaneously (old + new) — deliberate, pending the cutover above, not an oversight. Separately
+  flagged: the AWS account's only login is the root user — root access keys were deliberately NOT
+  created this session (used browser S3 console + in-session `curl` checks instead); a dedicated
+  least-privilege IAM user or IAM Identity Center is still owed before more CLI-heavy sessions.
 - **Context:** **Credential incident (2026-08-01):** a Notion API key was committed live in
   terra-api's `.env` since 2026-07-05 and copied into `DEV_LOG.md` 2026-07-26. Rotated by Will;
   scrubbed from git history via two `git-filter-repo` passes, force-pushed, verified clean.
