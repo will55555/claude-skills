@@ -1,5 +1,5 @@
 # Engineering Hub State
-<!-- Freshness: 2026-08-04 (rev 50) | v1.3 | Snapshots only — overwritten in place. History lives in DEV_LOGs. -->
+<!-- Freshness: 2026-08-04 (rev 51) | v1.3 | Snapshots only — overwritten in place. History lives in DEV_LOGs. -->
 <!-- Last Audit: 2026-08-02 | Monthly Hub Audit (HUB.md) fires from Startup Sequence step 7 when this is >30 days old. Update this line after each audit. -->
 <!-- New project? Copy the template from HUB_GUIDE.md → HUB_STATE Section Template. -->
 
@@ -22,23 +22,41 @@
   confirmed via `curl` returning "Empty reply from server" despite Tomcat logging it as started).
   Fixed via `${MANAGEMENT_ADDRESS:localhost}` + an env override in `docker-compose.dev.yml` —
   host/`bootRun` default unchanged.
-- **Active Task:** None open.
-- **Next Step:** **TAPI-019 (Jenkins → dedicated EC2 box) still the primary queued task**,
-  unstarted this session — CloudShell provisioning commands remain prepared from 2026-08-04's
-  earlier research, not yet run. This session instead went deep on TFE-401 (visualizer) and
-  dashboard styling at Will's direction — see terra-api-fe section below for full detail.
-  Sequence after TAPI-019 unchanged: → TAPI-020 (SonarQube) → TAPI-021 (EC2 right-size) →
-  TAPI-022 (domains+TLS) → TAPI-023 (OS patching).
-- **Blockers:** None. Formerly-loose items now tracked as TAPI-016 (done, see prior session).
+- **Active Task:** **TAPI-019 (Jenkins → dedicated EC2 box) — IN PROGRESS**, real infra
+  provisioned 2026-08-04. See `terra-api-tapi019-scope` in Claude memory for full live state —
+  summary: EC2 instance `i-04ef85c382ac39269` (Ubuntu 22.04, `t3.medium`, us-east-1) launched,
+  SSM-only access (zero inbound security-group rules — no SSH, no public 8090; UI reached via
+  `aws ssm start-session --document-name AWS-StartPortForwardingSession` to localhost, real
+  domain deferred to TAPI-022 on purpose), Docker installed + verified, `terra-jenkins` config
+  repo cloned onto it and confirmed to match the real source config. **Scope corrected mid-
+  session**: TWO separate real Jenkins instances exist, not one as originally assumed — one on
+  `solan` (ROMS-originated), one on a second machine holding terra-api's actual pipeline data
+  (jobs/credentials/plugins, its own `infra_jenkins_home` volume). That second machine's exact
+  identity was never confirmed (Will referenced it only as "the other machine," guessed but
+  didn't verify via `hostname`) — **resume by confirming that first**, don't assume. Will's call:
+  migrate terra-api's pipeline first, ROMS's from `solan` as a separate later task.
+- **Next Step:** Confirm the second machine's hostname, then run the volume export
+  (`docker run --rm -v infra_jenkins_home:/from -v $(pwd):/to alpine tar czf
+  /to/jenkins_home_backup.tar.gz -C /from .`, drafted not yet run) → transfer to the new EC2 box
+  (method undecided — SSM has no simple file-copy primitive, S3-as-hop likely) → extract, `docker
+  compose up`, verify real jobs/credentials survived → run one real pipeline end-to-end before
+  decommissioning anything old. Two real `.pem` key files found but not yet used, sitting in
+  `H:\Other computers\My Laptop\Programing\terra-api-home\` (OneDrive sync of the laptop) —
+  `terra-ci-jenkins-pkcs8.pem` / `terra-ci-jenkins.2026-07-19.private-key.pem`, likely the GitHub
+  App credential TAPI-012 documented needing a PKCS#1→PKCS#8 conversion for. Sequence after
+  TAPI-019 unchanged: → TAPI-020 (SonarQube) → TAPI-021 (EC2 right-size) → TAPI-022 (domains+TLS)
+  → TAPI-023 (OS patching). Also owed once TAPI-019 fully lands: a beginner-level Obsidian
+  tutorial walking through every provisioning command (Will's explicit ask, tracked in Claude
+  memory as `tapi019-obsidian-tutorial-todo`).
+- **Blockers:** None blocking the EC2 box itself. Open unknown: the second machine's identity.
 - **Context:** **Credential incident (2026-08-01):** a Notion API key was committed live in
   terra-api's `.env` since 2026-07-05 and copied into `DEV_LOG.md` 2026-07-26. Rotated by Will;
   scrubbed from git history via two `git-filter-repo` passes, force-pushed, verified clean.
   Pre-scrub backup bundle: `terra-api-home/terra-api-backup-before-history-scrub-2026-08-01.bundle`.
-  Jenkins on the `solan` machine (port 8090) until TAPI-019 migrates it to its own EC2 box.
   `terra-api-fe` npm peer-conflict fix verified: `rm -rf node_modules package-lock.json && npm
   install`. Never `npm audit fix --force` there (guts `react-scripts`).
-  **2026-08-04: 2 files uncommitted on `solan`** — `application.yaml`, `docker-compose.dev.yml`
-  (the port 8082 fix). Will's call whether/when to commit.
+  **2026-08-04: port 8082 fix committed and pushed** (`5b281cc`) — `application.yaml`,
+  `docker-compose.dev.yml`, `DEV_LOG.md` all landed on `master`, nothing left uncommitted.
 
 ## terra-api-fe                                     <!-- prefix: TFE -->
 - **Reference Links:** Local spec (authoritative, verified 2026-08-02):
@@ -165,12 +183,24 @@
   `terra_api_visualizer_phase5.js` at the repo ROOT (1,556 lines — phases 1–4 are superseded and
   sit in `archive/`; don't port from those). Notion: (none recorded — add when confirmed).
 - **Status:** Active — parallel track
-- **Active Task:** None open. **THQ-002 shipped** (`bf8d54c`, 2026-08-03): public visualizer now
-  polls Terra API's `GET /api/v1/ecosystem/public-health` (TAPI-014) once per tick and colors
-  ROMS/PIOS by real HEALTHY/YELLOW/ORANGE/RED tier, replacing the old binary connected/
-  disconnected model against hardcoded per-domain ports. Design question resolved: single
-  ecosystem-health poll, not per-cube. Domain cubes with no reporting service render as a
-  distinct "unbuilt" navy, separate from "off."
+- **Active Task:** None open. **Montfort structural pass shipped 2026-08-04** (`e0699aa`,
+  committed and pushed): numbered section-index badges + a choreographed reveal system
+  (IntersectionObserver scroll-reveal on single-scroll pages, tab-panel fade-in via double-rAF
+  on tab-driven pages) ported across 11 of 13 pages — structure/spacing/animation only, zero
+  color values touched anywhere (verified via diff scan across the whole commit). index.html
+  built first as proof-of-concept, Will reviewed it in-browser and approved before the other 10
+  ran. `home-hub.html` (iframe launcher) and `terra_api_visualizer_phase5.html` (WebGL canvas,
+  no text sections) deliberately excluded — neither has content this pattern applies to.
+  `terra_enterprise.html` got a lighter treatment (click-to-drill panel fade-in only, no badges
+  — a tree diagram doesn't want a second numbering system). Design reference is
+  `https://mont-fort.com/` itself, not just its markup — Will's framing: "final product will be
+  similar," treat as the standing visual north star for future terra-hq-site work, not a one-off
+  (tracked in Claude memory as `reference_montfort-design`). **THQ-002 shipped** (`bf8d54c`,
+  2026-08-03): public visualizer now polls Terra API's `GET /api/v1/ecosystem/public-health`
+  (TAPI-014) once per tick and colors ROMS/PIOS by real HEALTHY/YELLOW/ORANGE/RED tier,
+  replacing the old binary connected/disconnected model against hardcoded per-domain ports.
+  Design question resolved: single ecosystem-health poll, not per-cube. Domain cubes with no
+  reporting service render as a distinct "unbuilt" navy, separate from "off."
 - **Next Step:** **THQ-003, found 2026-08-04, uncommitted**: live-testing THQ-002 against a real
   ROMS heartbeat surfaced that pipeline extension tubes (created on cube expand-click) freeze
   their connected state at creation time and never refresh — `createPipelineExtension()` used
