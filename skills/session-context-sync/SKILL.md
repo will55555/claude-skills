@@ -1,14 +1,14 @@
 ---
 name: session-context-sync
 description: |
-  Unified session-end sync skill. Triggers at end of any substantial session — coding, planning, design, or learning. Handles four write targets in one pass: Notion (project state), Obsidian (note candidates), the Engineering Hub's HUB_STATE.md (live project snapshot), and Tasks DB (actionable items). Trigger on: "sync", "wrap up", "end of session", "push to Notion", "update Notion", "update Obsidian", "sync state", or proactively when meaningful work was done on any active project. Always prompt at session end — never skip when the session produced decisions, code, or learning artifacts.
+  Unified session-end sync skill. Triggers at end of any substantial session — coding, planning, design, or learning. Handles five write targets in one pass: each repo's own DEV_LOG.md (thorough, recipe-quality narrative — the ONLY target detailed enough to reproduce a session's work from), Notion (project state), Obsidian (note candidates), the Engineering Hub's HUB_STATE.md (live project snapshot), and Tasks DB (actionable items). Trigger on: "sync", "wrap up", "end of session", "push to Notion", "update Notion", "update Obsidian", "sync state", or proactively when meaningful work was done on any active project. Always prompt at session end — never skip when the session produced decisions, code, or learning artifacts.
 ---
 
 # Session Sync Skill
 
-Unified end-of-session sync across four targets: Notion, Obsidian, the Engineering
-Hub's HUB_STATE.md, and Tasks DB. Runs in a single pass at session end. Each target is independent —
-one can be skipped without affecting the others.
+Unified end-of-session sync across five targets: each repo's own DEV_LOG.md, Notion, Obsidian,
+the Engineering Hub's HUB_STATE.md, and Tasks DB. Runs in a single pass at session end. Each
+target is independent — one can be skipped without affecting the others.
 
 Note: Notion page IDs and the Projects DB reference are NOT stored in this file — they
 live in Claude memory (userMemories) as the single source of truth. Look them up there;
@@ -26,6 +26,7 @@ to safely dual-author between Notion and git. Edit this file directly in the rep
 | Target | What gets written | Trigger condition | Source |
 |---|---|---|---|
 | **Git (ai-control hub)** | HUB.md/HUB_GUIDE.md/HUB_STATE.md/TASKS.md — AUTHORITATIVE | Any hub/skill file edited | Local write + git commands supplied (never auto-pushed) |
+| **DEV_LOG.md (per-repo)** | Full phase-log narrative entry — WHY, not just WHAT; recipe-quality, reproducible on a fresh machine from the log alone (see Step 4E, Documentation Protocol in HUB_GUIDE.md) | Session shipped code, fixed a real bug, or made a decision worth reproducing later, in ANY hub-tracked repo touched this session | Local write via Filesystem tools |
 | **Notion** | Project state snapshot + progress log (page CONTENT) + Status/Last Synced (page PROPERTIES — see Step 4A-props); ALSO an informational mirror/dupe of hub state (never authoritative) | Session produced Notion-worthy content, or hub state changed | Desktop or Code |
 | **Obsidian** | Note candidate(s) distilled from session | Session produced a concept, pattern, or decision worth keeping | Desktop or Code |
 | **HUB_STATE.md** | Active project section snapshot (overwrite in place) | Session touched a hub-tracked project (any Terra project, DSA, claude-skills, etc.) | Desktop or Code |
@@ -33,6 +34,20 @@ to safely dual-author between Notion and git. Edit this file directly in the rep
 
 Both Claude Desktop and Claude Code sessions sync to all targets that apply.
 The session type determines what content is available, not which targets apply.
+
+**Why DEV_LOG is a real target now, not a footnote (2026-08-04):** earlier versions of this
+skill only mentioned DEV_LOG.md inside HUB_STATE's own procedure ("hand off to the
+Documentation Protocol"), with no actual step, preview, or confirmation gate — so a full sync
+could run to completion, report "✅ Session sync complete," and never touch DEV_LOG.md at all.
+That happened for real: a 2026-08-04 session shipped a large TFE-401 rework across 9 files, ran
+this skill, synced Notion + HUB_STATE + this file cleanly, and DEV_LOG.md sat untouched since
+2026-08-02 until Will asked "the sync didn't update the logs?" after the fact. HUB_STATE is a
+snapshot by design (≤15-20 lines, no narrative) — it was never supposed to carry this detail,
+and Notion's log entry is a compressed summary, not a recipe. DEV_LOG is the only target with
+the room and the mandate (per HUB_GUIDE's Documentation Protocol) to be thorough enough that
+Will could rebuild the session's work from the log alone. Treat it with the same weight as the
+other four — always in the classification step, always in the preview, always confirmed before
+writing.
 
 **Source-of-truth rule:** Git is the sole authority for `ai-control/` (the Engineering Hub).
 Notion may hold a dupe/mirror of hub state for visibility — useful on mobile, useless as an
@@ -124,11 +139,20 @@ When in doubt: ask "did the project state change?" If no → skip Notion.
 ```
 Session classification:
 → Session type: [Desktop / Code]
+→ DEV_LOG: [yes — which repo(s), which phase name] / [no — reason, e.g. "no code shipped"]
 → Notion: [yes — reason] / [no — reason]
 → Obsidian: [yes — candidate list] / [no]
 → HUB_STATE: [yes — which project section] / [no]
 → Tasks DB: [yes — N candidates found] / [no]
 ```
+
+DEV_LOG applies whenever ANY hub-tracked repo had code shipped, a real bug found+fixed, or a
+design decision made this session — this is a LOWER bar than Notion-worthiness, not the same
+gate. A session can be too thin for Notion (no project-state change) but still deserve a
+DEV_LOG entry (e.g. a bug fixed mid-investigation, a config value tuned with real reasoning
+behind it) — don't skip DEV_LOG just because Notion was skipped. When in doubt: if reproducing
+this session's changes on a fresh machine would require re-deriving something (a root cause, a
+rejected alternative, a non-obvious config value), it belongs in DEV_LOG.
 
 ---
 
@@ -136,6 +160,13 @@ Session classification:
 
 ```
 📤 Session Sync Preview
+
+─── DEV_LOG.md ──────────────────────────
+Repo: [name — e.g. terra-api-fe]
+Phase heading: [## Phase N — Name, or descriptive title if not a numbered phase]
+Contains: [1-line list of what sections it'll have — Goal / bugs found+fixed / decisions /
+           recipe steps / known limitations]
+[Repeat this block per repo if more than one was touched this session]
 
 ─── NOTION ──────────────────────────────
 Project: [name]
@@ -164,7 +195,7 @@ Updates: Status / Active Task / Next Step / Blockers / Context (≤3 lines)
 ─── SYNC QUEUE (if any target unreachable) ──
 [target] unreachable → queued in Notion Sync Queue, will retry next sync
 
-Sync all? (yes / edit first / skip [notion|obsidian|hubstate|tasks])
+Sync all? (yes / edit first / skip [devlog|notion|obsidian|hubstate|tasks])
 ```
 
 ---
@@ -319,9 +350,10 @@ HUB_GUIDE.md and are not rewritten per session — live state lives in one place
 3. Keep the section within its ~15–20 line budget. Context field stays ≤3 lines —
    snapshot, not narrative.
 4. Update the freshness stamp at the top of HUB_STATE.md.
-5. If this session produced a dev-log-worthy phase or decision, hand off to the
-   Documentation Protocol (HUB_GUIDE.md) for the actual DEV_LOG.md entry — HUB_STATE
-   only gets the resulting Next Step / Status, not the narrative.
+5. If this session produced a dev-log-worthy phase or decision, this is NOT optional —
+   proceed to Step 4E and actually write the DEV_LOG.md entry before considering the
+   sync complete. HUB_STATE only ever gets the resulting Next Step / Status, never the
+   narrative — the narrative's real destination is DEV_LOG.md, not a "maybe later."
 
 ---
 
@@ -381,17 +413,55 @@ that look obvious.
 
 ---
 
+## Step 4E — DEV_LOG.md sync (per repo)
+
+The full narrative — the ONE target with the mandate and the room to be thorough enough that
+Will could reproduce this session's work from the log alone, per HUB_GUIDE.md's Documentation
+Protocol quality bar: "WHY not just WHAT · non-obvious flags commented · alternatives named +
+rejected · root cause not just fix · reproducible on a fresh machine from the log alone."
+Everything else in this sync (Notion's 2-3 bullet log entry, HUB_STATE's ≤3-line Context field)
+is a compressed pointer TO this — never a substitute for it.
+
+### Procedure
+
+1. Identify every hub-tracked repo touched this session (code changed, a bug fixed, a decision
+   made — see Step 2's DEV_LOG classification bar, which is lower than Notion-worthiness).
+2. For each repo, read its existing `DEV_LOG.md` to confirm the current phase-numbering/heading
+   convention that repo actually uses (some use `## Phase N — Name`, some use a plain descriptive
+   title) — match it, don't impose a different one.
+3. Write a full entry using the Phase Log schema from HUB_GUIDE.md's Documentation Protocol:
+   `## Phase N — [Name]`, `**Date:**`/`**Status:**`, then `### Goal` / `### Key Design Decision`
+   (or per-bug `### Files Created / Modified` sections for a bugfix-heavy session) /
+   `### Setup / Recipe` / `### Build / Test Result` / `### Known Limitations / Next`. For each
+   real bug found and fixed this session, include: **Root cause** (not just the fix), **Why not
+   [alternative]** for any rejected approach, and enough concrete detail (file, line-level
+   mechanism, exact values changed) that the fix could be independently re-derived without
+   re-reading the whole session transcript.
+4. PREPEND the new phase block at the point in the file where the existing convention puts new
+   entries (check whether the repo's convention is newest-first or newest-last — do not assume;
+   `terra-api-fe/DEV_LOG.md` as of 2026-08-04 appends newest-last, chronological).
+5. Show the DEV_LOG preview (Step 3) and get confirmation before writing — same bar as every
+   other target. This is a local file write via Filesystem tools, executed directly (not a
+   supplied command) — DEV_LOG.md is ordinary repo content, not a credential-bearing or
+   destructive file, so it doesn't need the git-command-supply treatment HUB.md/HUB_STATE.md get.
+6. DEV_LOG.md is NOT auto-committed — mention its modified-but-uncommitted state in the Step 5
+   post-sync confirmation, same as any other locally-written file this session touched.
+
+---
+
 ## Step 5 — Post-sync confirmation
 
 ```
 ✅ Session sync complete
 
+DEV_LOG.md → [repo]: [Phase heading] written, uncommitted (or: skipped — reason)
 Notion     → [project] content + properties (Status/Last Synced) updated (or: queued in Sync Queue, target unreachable)
 Obsidian   → [note title] written to [vault path] (or: queued)
 HUB_STATE  → [project] section overwritten (claude-skills/skills/ai-control/HUB_STATE.md)
 Tasks DB   → [N] task(s) created ([sources]) / none this session (or: queued)
 
 Remind: git add skills/ai-control/HUB_STATE.md && git commit && git push if not done.
+Remind: DEV_LOG.md change(s) in [repo(s)] also uncommitted — same repo, Will's call when to commit.
 ```
 
 ---
