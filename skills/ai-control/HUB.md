@@ -1,5 +1,5 @@
 # Engineering Hub (load hub)
-<!-- Freshness: 2026-08-02 | v1.7 | Home: claude-skills/skills/ai-control/ -->
+<!-- Freshness: 2026-08-07 | v1.8 | Home: claude-skills/skills/ai-control/ -->
 
 ## Prime Directives (read first, every load — non-negotiable)
 Placed above everything else deliberately: Linear Fetch Mode caps reads at 80 lines/file, and these
@@ -246,16 +246,16 @@ Fixed read order — never deviate, never parallelize:
   | Machine/context | Path | Caveat |
   |---|---|---|
   | claude-skills repo | `C:\Users\solan\OneDrive\Desktop\SDE\claude-skills\` | Confirmed reachable 2026-07-09 — edit in place |
-  | terra-api | `C:\Users\solan\OneDrive\Desktop\SDE\terra-api\terra-api\` (double-nested!) | Confirmed reachable 2026-07-09 |
+  | terra-api | `C:\Users\solan\OneDrive\Desktop\SDE\terra-api-home\terra-api\` (single-nested) | CORRECTED 2026-08-07 — prior path (`SDE\terra-api\terra-api\`, double-nested) was stale; the outer container was renamed `terra-api\` → `terra-api-home\` at some point and never updated here. Re-verified via `git log -1` while folding Jenkins/SonarQube session notes into DEV_LOG. |
   | terra-api (machine: test) | `C:\Users\test\Desktop\Programing\New folder\terra-api\` (single-nested, NOT double) | CORRECTED 2026-07-24 — prior path (`Programing\terra-api\` without `New folder\`) was stale/unreachable; actual location verified while wiring terra-api-fe's Bitbucket remote |
   | terra-api-fe (machine: test) | `C:\Users\test\Desktop\Programing\New folder\terra-api-fe\` | Scaffolded 2026-07-24; own GitHub remote (`will55555/terra-api-fe`) + Bitbucket mirror (`terra-inc-dev/terra-api-fe`) wired same day, matching terra-api's dual-remote pattern. Confirmed 2026-07-24 as the correct placement — sibling repo inside the same outer folder as terra-api and terra-jenkins, mirroring the terra-jenkins extraction precedent (see ADR-009 2026-07-24 amendment), NOT a subdirectory of the terra-api repo despite ADR-009's original 2026-07-22 wording. |
-  | "New folder" container pattern (machine: test) | `C:\Users\test\Desktop\Programing\New folder\` | Test machine's equivalent of the primary machine's outer `SDE\terra-api\` container — holds terra-api, terra-api-fe, and terra-jenkins as sibling repos. Poorly named (literal "New folder") but functions the same way; noted 2026-07-24 so it isn't mistaken for scratch space. |
-  | terra-jenkins | `C:\Users\solan\OneDrive\Desktop\SDE\terra-api\terra-jenkins\` (sibling to terra-api repo) | Extracted from nested `terra-api/terra-jenkins/` 2026-07-21; own GitHub+Bitbucket remotes (`will55555/terra-jenkins`, `terra-inc-dev/terra-jenkins`), `master` branch canonical |
+  | "New folder" container pattern (machine: test) | `C:\Users\test\Desktop\Programing\New folder\` | Test machine's equivalent of the primary machine's outer `SDE\terra-api-home\` container (renamed from `SDE\terra-api\` — see terra-api row above, corrected 2026-08-07) — holds terra-api, terra-api-fe, and terra-jenkins as sibling repos. Poorly named (literal "New folder") but functions the same way; noted 2026-07-24 so it isn't mistaken for scratch space. |
+  | terra-jenkins | `C:\Users\solan\OneDrive\Desktop\SDE\terra-api-home\terra-jenkins\` (sibling to terra-api repo) | CORRECTED 2026-08-07 — container renamed `terra-api\` → `terra-api-home\`, same fix as the terra-api row above. Extracted from nested `terra-api/terra-jenkins/` 2026-07-21; own GitHub+Bitbucket remotes (`will55555/terra-jenkins`, `terra-inc-dev/terra-jenkins`); currently on `sonarqube-quality-gate` branch (not `master`) per 2026-08-07 verification. |
   | terra-jenkins (machine: test) | `C:\Users\test\Desktop\Programing\New folder\terra-jenkins\` (sibling to terra-api repo, single-nested layout) | CORRECTED 2026-07-24 — prior path (`Programing\terra-jenkins\` without `New folder\`) was stale/unreachable, same bug as terra-api's entry; re-verified while resolving terra-api-fe's placement |
   | claude-skills (machine: test) | `C:\Users\test\Desktop\Programing\claude-skills\` | Confirmed reachable 2026-07-10 |
-  | terra-hq-site | `C:\Users\solan\OneDrive\Desktop\SDE\terra-hq-site\` | Confirmed reachable 2026-07-09 |
+  | terra-hq-site | `C:\Users\solan\OneDrive\Desktop\SDE\terra-api-home\terra-hq-site\` | CORRECTED 2026-08-07 — now a sibling inside `terra-api-home\`, same container rename as terra-api/terra-jenkins above; prior bare-`SDE\` path was stale. |
   | terra-hq-site (machine: test) | `C:\Users\test\Desktop\Programing\terra-hq-site\` | Cloned fresh 2026-07-17 (was previously not present on this machine) |
-  | ROMS (restaurant-order-management-system) | `C:\Users\solan\OneDrive\Desktop\SDE\restaurant-order-management-system\` | Confirmed 2026-07-09 — folder is NOT named "roms" |
+  | ROMS (restaurant-order-management-system) | `C:\Users\solan\OneDrive\Desktop\SDE\terra-api-home\restaurant-order-management-system\` | CORRECTED 2026-08-07 — now a sibling inside `terra-api-home\`, same container rename as the rows above; prior bare-`SDE\` path was stale. Folder is NOT named "roms". Gitignored in `terra-api-home/.gitignore` as of 2026-08-07 (was untracked before). |
   | pios | no repo exists yet | n/a — add when PIOS moves to code |
   | Obsidian vault | `C:\Users\solan\iCloudDrive\iCloud~md~obsidian\iCloud\Obsidian Vault\` | Reachable; sync skill owns writes |
   | Obsidian vault (machine: test) | `C:\Users\test\Desktop\iCloudDrive\Obsidian Vault\` | Confirmed reachable 2026-07-22; sync skill owns writes |
