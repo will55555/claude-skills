@@ -75,7 +75,13 @@
   release/collapse state machine, pipeline tubes with shader pulse, mouse repulsion field.
   Feature-complete against ADR-009's Build Sequence but still NOT production-ready (only ever
   run via Docker dev compose / CRA dev server, no real ROMS/PIOS deployment to test against).
-- **Active Task:** None open. **3 real bugs found and fixed in the port, 2026-08-04:**
+- **Active Task:** **SonarQube-related cleanup on `sonarqube-quality-gate`, in progress, uncommitted
+  (noted 2026-08-07).** Real dirty working tree: modified `App.css`, `ProtectedRoute.js`,
+  `Login.js`; new `ProtectedRoute.test.js`, `Login.test.js`; untracked `.vscode/`. Will's own
+  framing: needs cleanup before push/merge — do not push, commit, or touch any of this without
+  explicit direction. Distinct from terra-api's own TAPI-020 (SonarQube quality gate), which IS
+  fully closed and verified green — this is terra-api-fe-specific, unrelated status.
+  **3 real bugs found and fixed in the port, 2026-08-04:**
   1. Pipeline tubes visually detached from cubes on screen — phase5's per-frame sine-drift cube
      animation moved cubes but tubes were drawn once, statically. Fixed by dropping the drift
      (also stabilizes click-to-expand, which sets cube position directly).
