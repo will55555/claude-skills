@@ -1,5 +1,5 @@
 # Engineering Hub State
-<!-- Freshness: 2026-08-07 (rev 54) | v1.3 | Snapshots only — overwritten in place. History lives in DEV_LOGs. -->
+<!-- Freshness: 2026-08-07 (rev 55) | v1.3 | Snapshots only — overwritten in place. History lives in DEV_LOGs. -->
 <!-- Last Audit: 2026-08-02 | Monthly Hub Audit (HUB.md) fires from Startup Sequence step 7 when this is >30 days old. Update this line after each audit. -->
 <!-- New project? Copy the template from HUB_GUIDE.md → HUB_STATE Section Template. -->
 
@@ -168,7 +168,7 @@
 - **Active Task:** ROMS-001 — first real integration target for Terra API shared services, once live
 - **Queued for later sync / Notion:**
   - ROMS-001 — expand into a concrete deploy-and-heartbeat checklist: check old ROMS EC2/EIP/snapshots, provision a new EC2, deploy ROMS and confirm its health endpoint, configure heartbeats to Terra API, verify `/api/v1/ecosystem/public-health`, and confirm the public visualizer shifts ROMS to its live health tier.
-  - ROMS-002 — migrate ROMS Jenkins to the shared Terra Jenkins EC2 before redeploying ROMS: back up the ROMS Jenkins volume, inventory jobs/plugins/credentials, import jobs without overwriting `JENKINS_HOME`, recreate or migrate credentials, run a green ROMS pipeline, then retire the old ROMS Jenkins. Confirmed 2026-08-07: the repo's own `Jenkinsfile` already has Phase 1 built (Checkout/Build Backend/Test Backend/Build Frontend/Test Frontend/Build Docker Images, all real stages) — Phase 2 (push to Docker Hub) and Phase 3 (SSH deploy) are written but described in-file as "currently disabled," pending Docker Hub + `server-ssh` credentials. This is mid-flight work to migrate/enable, not a from-scratch CI setup.
+  - ROMS-002 — migrate ROMS Jenkins to the shared Terra Jenkins EC2 before redeploying ROMS: back up the ROMS Jenkins volume, inventory jobs/plugins/credentials, import jobs without overwriting `JENKINS_HOME`, recreate or migrate credentials, run a green ROMS pipeline, then retire the old ROMS Jenkins. CORRECTED 2026-08-07 (fixed twice — first pass wrongly said Phase 2/3 were disabled): checked `git log -p -- Jenkinsfile` and `git diff` against the current file directly. ALL stages (Checkout through Deploy, including Push to Docker Hub and the SSH Deploy stage) are live, uncommitted, functional — enabled in commits `9bb9016`/`7d86ef3`/`22fcba9`/`20c34fb`, all dated 2026-05-03/04, untouched since. The stage-header comments still said "currently disabled" (stale leftover text from before those commits) — that's what caused the false "not really enabled" read, not once but twice in the same day. Comments fixed in the Jenkinsfile itself 2026-08-07. **The only real remaining unknowns are external**: does the target EC2/IP (`3.135.55.219`, hardcoded in the Deploy stage) still exist, and are the `dockerhub-credentials`/`server-ssh` Jenkins credentials still valid on whatever Jenkins instance ROMS was using.
 - **Next Step:** Blocked on Will's decision to actually redeploy ROMS — TAPI-001 (JWT auth) makes the
   eventual integration technically unblocked, but there's no live target to integrate against yet.
   Don't scope integration details further until that trigger fires.
@@ -184,14 +184,28 @@
   ROMS-001 assumes a redeploy regardless.
 
 ## PIOS                                             <!-- prefix: PIOS -->
-- **Reference Links:** Notion ADRs `pios-adr-011`–`015` (ADR-013 = the gating event-schema-
-  versioning decision) — URLs not recorded, add when confirmed. Strategy page:
-  `terra-hq-site/pios_strategy.html` (architecture, event model, capital governance).
-- **Status:** Design phase — no coding until ADR-013 resolves
-- **Active Task:** PIOS-001 — resolve ADR-013 (event schema versioning)
-- **Next Step:** Draft ADR-013 options + tradeoffs
-- **Blockers:** ADR-013 is the gating decision; ADRs 012–014 pending
-- **Context:** Event-sourced. FastAPI/Python reserved. Rules-engine-gated AI signals.
+- **Reference Links:** Notion ADRs `pios-adr-011`–`015` — URLs not recorded, add when confirmed.
+  Strategy page: `terra-hq-site/pios_strategy.html` (architecture, event model, capital
+  governance).
+- **Status:** CORRECTED 2026-08-07 — this section was stale. **ADR-013 (event schema versioning,
+  upcasting at the repository layer) is Accepted and resolved**, not gating — verified by fetching
+  the ADR's own page text 2026-08-07 (its own words: "flagged as the most critical unresolved
+  design decision before coding could begin; now resolved"). ADRs 011, 012, 014 are also all
+  Accepted per the ADR index. ADR-015 (Consumer Capital Layer, cashback/CRR) is Accepted at the
+  design level only — its own text: "directionally accepted, not implementation-ready," sequenced
+  after PIOS MVP exists and after Terra API's WebSocket relay (not built). Design phase overall
+  (no PIOS code exists yet) is still accurate — but NOT because ADR-013 is unresolved.
+- **Active Task:** None open — no ADR is currently gating PIOS from starting code. Whenever PIOS
+  work actually begins, first task is standing up the event-sourced write path per ADR-011/012/013.
+- **Next Step:** Awaiting Will's call on when to start PIOS implementation — no technical blocker
+  remains from the ADR sequence itself.
+- **Blockers:** None from ADRs. PIOS starting at all remains Will's own prioritization call, same
+  as ROMS redeploy and Terra API's other sequencing decisions.
+- **Context:** Event-sourced. FastAPI/Python reserved. Rules-engine-gated AI signals. Two Notion
+  pages exist for the same ADR-013 decision (an early 2026-05-12 draft under a superseded
+  "Investment System App" page, and the formal 2026-07-13 `pios-adr-013` filed under PIOS itself) —
+  both Accepted, same decision, not a real conflict — worth eventually archiving the older
+  duplicate but not urgent.
 
 ## terra-hq-site                                    <!-- prefix: THQ -->
 - **Reference Links:** Local specs (authoritative, verified 2026-08-02):
