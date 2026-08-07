@@ -153,6 +153,12 @@
   only, no ROMS box. Deliberately not chased — Will's call to resolve it when ROMS integration
   actually starts, not before. Otherwise unchanged: not being redeployed until needed (call first
   made 2026-07-07, reconfirmed 2026-07-22), effectively maintenance mode.
+  **Intent flagged 2026-08-07 (not yet started):** Will's reasoning — enough of the ecosystem
+  (Terra API gateway, health/quarantine orchestration, CI/CD, SonarQube) is now in place that
+  deploying ROMS would let the visualizer show a real multi-service ecosystem in early/alpha form,
+  not just Terra API alone. This is NOT yet the redeploy trigger — Will explicitly wants the
+  Notion/logs consolidation pass done first to get a concrete full plan before starting ROMS-001.
+  Treat as "leaning toward soon," not "go."
 - **Active Task:** ROMS-001 — first real integration target for Terra API shared services, once live
 - **Queued for later sync / Notion:**
   - ROMS-001 — expand into a concrete deploy-and-heartbeat checklist: check old ROMS EC2/EIP/snapshots, provision a new EC2, deploy ROMS and confirm its health endpoint, configure heartbeats to Terra API, verify `/api/v1/ecosystem/public-health`, and confirm the public visualizer shifts ROMS to its live health tier.
