@@ -1,5 +1,5 @@
 # Engineering Hub State
-<!-- Freshness: 2026-08-07 (rev 53) | v1.3 | Snapshots only — overwritten in place. History lives in DEV_LOGs. -->
+<!-- Freshness: 2026-08-07 (rev 54) | v1.3 | Snapshots only — overwritten in place. History lives in DEV_LOGs. -->
 <!-- Last Audit: 2026-08-02 | Monthly Hub Audit (HUB.md) fires from Startup Sequence step 7 when this is >30 days old. Update this line after each audit. -->
 <!-- New project? Copy the template from HUB_GUIDE.md → HUB_STATE Section Template. -->
 
@@ -17,25 +17,32 @@
 - **Status:** Active — prod healthy. **TAPI-020 (SonarQube quality gate) fully closed 2026-08-07:**
   `jacoco` plugin added, `sonar-token` Jenkins credential created, SonarCloud Automatic Analysis
   disabled (was conflicting with CI-based analysis), GitHub webhook wired — full pipeline green on
-  every push to `master`. **TAPI-022 (Jenkins public access) also closed 2026-08-07, ahead of
-  sequence:** Elastic IP `3.211.62.86` + security group `sg-0a811821f4b2739bf` opened on 8090 —
-  Jenkins now reachable at `3.211.62.86:8090`, no longer SSM-only. **TAPI-017 fully closed
-  2026-08-04** — the operator page's open ⚠️ (never actually rendered against live data) is
-  resolved: `/internal` confirmed rendering live on `solan`, 26 backend tests confirmed green.
-  **Port 8082 (management/actuator) fixed**: `application.yaml`'s `management.server.address:
-  localhost` broke when containerized (Docker's host port-forward had nothing to connect to —
-  Tomcat bound the container's own loopback only, confirmed via `curl` returning "Empty reply from
-  server" despite Tomcat logging it as started). Fixed via `${MANAGEMENT_ADDRESS:localhost}` + an
-  env override in `docker-compose.dev.yml` — host/`bootRun` default unchanged.
+  every push to `master`. **Jenkins given public IP access 2026-08-07** (Elastic IP `3.211.62.86` +
+  security group `sg-0a811821f4b2739bf` opened on 8090, no longer SSM-only) — but this is NOT
+  TAPI-022 closing: **TAPI-022's real scope is domains + TLS** (everything, ROMS included, is still
+  raw IP:port), corrected 2026-08-07 after being wrongly marked closed earlier the same session.
+  **TAPI-017 fully closed 2026-08-04** — the operator page's open ⚠️ (never actually rendered
+  against live data) is resolved: `/internal` confirmed rendering live on `solan`, 26 backend tests
+  confirmed green. **Port 8082 (management/actuator) fixed**: `application.yaml`'s
+  `management.server.address: localhost` broke when containerized (Docker's host port-forward had
+  nothing to connect to — Tomcat bound the container's own loopback only, confirmed via `curl`
+  returning "Empty reply from server" despite Tomcat logging it as started). Fixed via
+  `${MANAGEMENT_ADDRESS:localhost}` + an env override in `docker-compose.dev.yml` — host/`bootRun`
+  default unchanged. **New ADR-013 (Customer Identity & Login Strategy) created 2026-08-07** —
+  Proposed, unscheduled; resolves ADR-011's open question (new ADR, not an ADR-003 amendment);
+  sequenced last, after TAPI-021/023, blocked on pending frontend rework + a design pass on
+  `/internal` and the customer visualizer (tied to queued terra-hq-site design work, TBD).
 - **Active Task:** **TAPI-021 — EC2 right-size.** TAPI-019 (Jenkins EC2 data restore) and TAPI-020
-  (SonarQube) both closed; TAPI-022 (public access) also closed, pulled forward out of its original
-  sequence position — no longer blocks anything downstream. TAPI-019 recap: the dedicated Jenkins
-  EC2 `i-04ef85c382ac39269` restored the real `infra_jenkins_home` data and completed a fresh
-  `master` pipeline green through production deploy; deploy target uses prod's private VPC IP
-  `172.31.21.172`; prod SSH permits the Jenkins security group via `sgr-05b94280fb11d357d`. Old
-  local Jenkins confirmed already off.
+  (SonarQube) both closed. TAPI-019 recap: the dedicated Jenkins EC2 `i-04ef85c382ac39269` restored
+  the real `infra_jenkins_home` data and completed a fresh `master` pipeline green through
+  production deploy; deploy target uses prod's private VPC IP `172.31.21.172`; prod SSH permits the
+  Jenkins security group via `sgr-05b94280fb11d357d`. Old local Jenkins confirmed already off.
 - **Next Step:** Scope TAPI-021 (EC2 right-size). Remaining sequence: → TAPI-021 (EC2 right-size) →
-  TAPI-023 (OS patching) — TAPI-022 (domains+TLS/public access) already done, moved out of order.
+  TAPI-023 (OS patching) → TAPI-022 (domains+TLS, still open — Jenkins' public IP access is a
+  narrower side-effect, not the same thing) → ADR-013 (customer identity/login, blocked on frontend
+  + design rework, TBD). Confirmed NOT a new ROMS→Jenkins task: that's already `ROMS-002` (migrate
+  ROMS's own separate Jenkins to the shared Terra Jenkins EC2), blocked on `ROMS-001` (Will's
+  undecided, no-timeline call to redeploy ROMS) — see ROMS section below, not duplicated here.
 - **Blockers:** None. A dedicated `will-cli` IAM identity now exists for local AWS work; narrow its
   AdministratorAccess policy or move to IAM Identity Center as a separate security follow-up.
 - **Context:** **Credential incident (2026-08-01):** a Notion API key was committed live in
@@ -136,9 +143,11 @@
 
 ## ROMS                                             <!-- prefix: ROMS -->
 - **Reference Links:** Notion ADRs `roms-adr-001`–`005` (domain-prefixed, per the 2026-07-18
-  terra-hq-site refactor) — URLs not recorded, add when confirmed. Repo lives OUTSIDE
-  `terra-api-home`: `SDE/restaurant-order-management-system/`. Strategy page:
-  `terra-hq-site/roms_gtm_strategy.html`.
+  terra-hq-site refactor) — URLs not recorded, add when confirmed. Repo location CORRECTED
+  2026-08-07: now lives INSIDE `terra-api-home` as a sibling repo (`terra-api-home/
+  restaurant-order-management-system/`, gitignored there) — the "OUTSIDE terra-api-home" note was
+  stale, same container-rename class of drift as terra-api/terra-jenkins/terra-hq-site (see HUB.md
+  Machine Paths, corrected same day). Strategy page: `terra-hq-site/roms_gtm_strategy.html`.
 - **Status:** ⚠️ "Deployed but static" is now DOUBTFUL — **the ROMS EC2 instance may no longer
   exist.** Noticed 2026-07-29: the us-east-1 console listed "Instances (1)", `terra-api-server`
   only, no ROMS box. Deliberately not chased — Will's call to resolve it when ROMS integration
@@ -147,7 +156,7 @@
 - **Active Task:** ROMS-001 — first real integration target for Terra API shared services, once live
 - **Queued for later sync / Notion:**
   - ROMS-001 — expand into a concrete deploy-and-heartbeat checklist: check old ROMS EC2/EIP/snapshots, provision a new EC2, deploy ROMS and confirm its health endpoint, configure heartbeats to Terra API, verify `/api/v1/ecosystem/public-health`, and confirm the public visualizer shifts ROMS to its live health tier.
-  - ROMS-002 — migrate ROMS Jenkins to the shared Terra Jenkins EC2 before redeploying ROMS: back up the ROMS Jenkins volume, inventory jobs/plugins/credentials, import jobs without overwriting `JENKINS_HOME`, recreate or migrate credentials, run a green ROMS pipeline, then retire the old ROMS Jenkins.
+  - ROMS-002 — migrate ROMS Jenkins to the shared Terra Jenkins EC2 before redeploying ROMS: back up the ROMS Jenkins volume, inventory jobs/plugins/credentials, import jobs without overwriting `JENKINS_HOME`, recreate or migrate credentials, run a green ROMS pipeline, then retire the old ROMS Jenkins. Confirmed 2026-08-07: the repo's own `Jenkinsfile` already has Phase 1 built (Checkout/Build Backend/Test Backend/Build Frontend/Test Frontend/Build Docker Images, all real stages) — Phase 2 (push to Docker Hub) and Phase 3 (SSH deploy) are written but described in-file as "currently disabled," pending Docker Hub + `server-ssh` credentials. This is mid-flight work to migrate/enable, not a from-scratch CI setup.
 - **Next Step:** Blocked on Will's decision to actually redeploy ROMS — TAPI-001 (JWT auth) makes the
   eventual integration technically unblocked, but there's no live target to integrate against yet.
   Don't scope integration details further until that trigger fires.
