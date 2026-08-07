@@ -1,5 +1,5 @@
 # Engineering Hub State
-<!-- Freshness: 2026-08-05 (rev 52) | v1.3 | Snapshots only — overwritten in place. History lives in DEV_LOGs. -->
+<!-- Freshness: 2026-08-07 (rev 53) | v1.3 | Snapshots only — overwritten in place. History lives in DEV_LOGs. -->
 <!-- Last Audit: 2026-08-02 | Monthly Hub Audit (HUB.md) fires from Startup Sequence step 7 when this is >30 days old. Update this line after each audit. -->
 <!-- New project? Copy the template from HUB_GUIDE.md → HUB_STATE Section Template. -->
 
@@ -14,23 +14,28 @@
   9-cube public ecosystem view, terra-api-fe is scoped to the authenticated customer's own
   entitled products; same `ecosystem-health` endpoint, different filtering. Phase 5 is the shared
   Three.js reference implementation, captured in terra-api-adr-009).
-- **Status:** Active — prod healthy. **TAPI-017 fully closed 2026-08-04** — the operator page's
-  open ⚠️ (never actually rendered against live data) is resolved: `/internal` confirmed rendering
-  live on `solan`, 26 backend tests confirmed green. **Port 8082 (management/actuator) fixed**:
-  `application.yaml`'s `management.server.address: localhost` broke when containerized (Docker's
-  host port-forward had nothing to connect to — Tomcat bound the container's own loopback only,
-  confirmed via `curl` returning "Empty reply from server" despite Tomcat logging it as started).
-  Fixed via `${MANAGEMENT_ADDRESS:localhost}` + an env override in `docker-compose.dev.yml` —
-  host/`bootRun` default unchanged.
-- **Active Task:** **TAPI-020 — SonarQube quality gate in Jenkins CI/CD.** **TAPI-019 closed
-  2026-08-05:** the dedicated Jenkins EC2 `i-04ef85c382ac39269` restored the real
-  `infra_jenkins_home` data and completed a fresh `master` pipeline green through production
-  deploy. The Jenkinsfile deploy target now uses prod's private VPC IP `172.31.21.172`; prod SSH
-  permits the Jenkins security group via `sgr-05b94280fb11d357d`. The old local Jenkins was
-  confirmed already off. Jenkins remains SSM-only; public access is deferred to TAPI-022.
-- **Next Step:** Scope the one-time ecosystem SonarQube baseline and Jenkins quality gate. Sequence
-  after TAPI-019: → TAPI-020 (SonarQube) → TAPI-021 (EC2 right-size) → TAPI-022 (domains+TLS) →
-  TAPI-023 (OS patching).
+- **Status:** Active — prod healthy. **TAPI-020 (SonarQube quality gate) fully closed 2026-08-07:**
+  `jacoco` plugin added, `sonar-token` Jenkins credential created, SonarCloud Automatic Analysis
+  disabled (was conflicting with CI-based analysis), GitHub webhook wired — full pipeline green on
+  every push to `master`. **TAPI-022 (Jenkins public access) also closed 2026-08-07, ahead of
+  sequence:** Elastic IP `3.211.62.86` + security group `sg-0a811821f4b2739bf` opened on 8090 —
+  Jenkins now reachable at `3.211.62.86:8090`, no longer SSM-only. **TAPI-017 fully closed
+  2026-08-04** — the operator page's open ⚠️ (never actually rendered against live data) is
+  resolved: `/internal` confirmed rendering live on `solan`, 26 backend tests confirmed green.
+  **Port 8082 (management/actuator) fixed**: `application.yaml`'s `management.server.address:
+  localhost` broke when containerized (Docker's host port-forward had nothing to connect to —
+  Tomcat bound the container's own loopback only, confirmed via `curl` returning "Empty reply from
+  server" despite Tomcat logging it as started). Fixed via `${MANAGEMENT_ADDRESS:localhost}` + an
+  env override in `docker-compose.dev.yml` — host/`bootRun` default unchanged.
+- **Active Task:** **TAPI-021 — EC2 right-size.** TAPI-019 (Jenkins EC2 data restore) and TAPI-020
+  (SonarQube) both closed; TAPI-022 (public access) also closed, pulled forward out of its original
+  sequence position — no longer blocks anything downstream. TAPI-019 recap: the dedicated Jenkins
+  EC2 `i-04ef85c382ac39269` restored the real `infra_jenkins_home` data and completed a fresh
+  `master` pipeline green through production deploy; deploy target uses prod's private VPC IP
+  `172.31.21.172`; prod SSH permits the Jenkins security group via `sgr-05b94280fb11d357d`. Old
+  local Jenkins confirmed already off.
+- **Next Step:** Scope TAPI-021 (EC2 right-size). Remaining sequence: → TAPI-021 (EC2 right-size) →
+  TAPI-023 (OS patching) — TAPI-022 (domains+TLS/public access) already done, moved out of order.
 - **Blockers:** None. A dedicated `will-cli` IAM identity now exists for local AWS work; narrow its
   AdministratorAccess policy or move to IAM Identity Center as a separate security follow-up.
 - **Context:** **Credential incident (2026-08-01):** a Notion API key was committed live in
@@ -41,6 +46,10 @@
   install`. Never `npm audit fix --force` there (guts `react-scripts`).
   **2026-08-04: port 8082 fix committed and pushed** (`5b281cc`) — `application.yaml`,
   `docker-compose.dev.yml`, `DEV_LOG.md` all landed on `master`, nothing left uncommitted.
+  **2026-08-07: CLAUDE.md decision log corrected** — the 2026-07-26 entry claiming terra-api-fe
+  Jenkins CI was "deferred" was stale; TFE-201 (2026-08-02) actually shipped it live (both a
+  standalone terra-api-fe Jenkinsfile and four frontend stages inside terra-api's own Jenkinsfile,
+  per the same-origin deploy model in adr-009). Entry marked superseded, not deleted.
 
 ## terra-api-fe                                     <!-- prefix: TFE -->
 - **Reference Links:** Local spec (authoritative, verified 2026-08-02):
