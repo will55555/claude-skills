@@ -22,32 +22,17 @@
   confirmed via `curl` returning "Empty reply from server" despite Tomcat logging it as started).
   Fixed via `${MANAGEMENT_ADDRESS:localhost}` + an env override in `docker-compose.dev.yml` —
   host/`bootRun` default unchanged.
-- **Active Task:** **TAPI-019 (Jenkins → dedicated EC2 box) — DATA MIGRATION DONE 2026-08-05,
-  cutover pending.** Standing unknown resolved: the "second machine" holding terra-api's real
-  Jenkins data (jobs/credentials/plugins, `infra_jenkins_home` volume) was this `test` machine
-  (`DESKTOP-KKJ5QGB`) itself — confirmed via `docker volume ls`/`docker ps`, no `solan`/laptop
-  dependency as previously guessed. `infra_jenkins_home` (2.865GB) exported, verified (`tar tzf`,
-  278,773 entries), moved via S3 (`s3://terra-api-backups/jenkins-migration/`, reusing TAPI-018's
-  bucket rather than new infra) to EC2 `i-04ef85c382ac39269`, restored into a matching-named
-  volume, brought up via the pre-existing `docker-compose.jenkins.yml` (already pinned to
-  `infra_jenkins_home` — zero config changes needed). Verified at 3 independent levels: volume
-  contents, boot logs (`Jenkins is fully up and running`, jobs/config loaded, GitHub API polling
-  via the existing credential), live auth check (anonymous access correctly rejected — security
-  realm migrated too, not silently reset).
-- **Next Step:** Cutover, not yet started: (1) repoint GitHub webhook URLs + any other repo's CI
-  config off the OLD instance, (2) stop the old local Jenkins container on `DESKTOP-KKJ5QGB` only
-  after (1) is confirmed, (3) decide public-access posture (stay SSM-only vs. real inbound port —
-  folds into TAPI-022 either way), (4) run one real pipeline end-to-end on the new box before
-  fully decommissioning the old one. Resuming on `solan` next — cross-machine merge staged in
-  Notion (`📥 Obsidian Queue — 2026-08-05`, tagged pending merge) rather than written to Obsidian
-  directly from this machine, per Will's explicit instruction. Sequence after TAPI-019 unchanged:
-  → TAPI-020 (SonarQube) → TAPI-021 (EC2 right-size) → TAPI-022 (domains+TLS) → TAPI-023 (OS
-  patching).
-- **Blockers:** None on TAPI-019 itself. Two live Jenkins instances currently running
-  simultaneously (old + new) — deliberate, pending the cutover above, not an oversight. Separately
-  flagged: the AWS account's only login is the root user — root access keys were deliberately NOT
-  created this session (used browser S3 console + in-session `curl` checks instead); a dedicated
-  least-privilege IAM user or IAM Identity Center is still owed before more CLI-heavy sessions.
+- **Active Task:** **TAPI-020 — SonarQube quality gate in Jenkins CI/CD.** **TAPI-019 closed
+  2026-08-05:** the dedicated Jenkins EC2 `i-04ef85c382ac39269` restored the real
+  `infra_jenkins_home` data and completed a fresh `master` pipeline green through production
+  deploy. The Jenkinsfile deploy target now uses prod's private VPC IP `172.31.21.172`; prod SSH
+  permits the Jenkins security group via `sgr-05b94280fb11d357d`. The old local Jenkins was
+  confirmed already off. Jenkins remains SSM-only; public access is deferred to TAPI-022.
+- **Next Step:** Scope the one-time ecosystem SonarQube baseline and Jenkins quality gate. Sequence
+  after TAPI-019: → TAPI-020 (SonarQube) → TAPI-021 (EC2 right-size) → TAPI-022 (domains+TLS) →
+  TAPI-023 (OS patching).
+- **Blockers:** None. A dedicated `will-cli` IAM identity now exists for local AWS work; narrow its
+  AdministratorAccess policy or move to IAM Identity Center as a separate security follow-up.
 - **Context:** **Credential incident (2026-08-01):** a Notion API key was committed live in
   terra-api's `.env` since 2026-07-05 and copied into `DEV_LOG.md` 2026-07-26. Rotated by Will;
   scrubbed from git history via two `git-filter-repo` passes, force-pushed, verified clean.
@@ -151,6 +136,9 @@
   actually starts, not before. Otherwise unchanged: not being redeployed until needed (call first
   made 2026-07-07, reconfirmed 2026-07-22), effectively maintenance mode.
 - **Active Task:** ROMS-001 — first real integration target for Terra API shared services, once live
+- **Queued for later sync / Notion:**
+  - ROMS-001 — expand into a concrete deploy-and-heartbeat checklist: check old ROMS EC2/EIP/snapshots, provision a new EC2, deploy ROMS and confirm its health endpoint, configure heartbeats to Terra API, verify `/api/v1/ecosystem/public-health`, and confirm the public visualizer shifts ROMS to its live health tier.
+  - ROMS-002 — migrate ROMS Jenkins to the shared Terra Jenkins EC2 before redeploying ROMS: back up the ROMS Jenkins volume, inventory jobs/plugins/credentials, import jobs without overwriting `JENKINS_HOME`, recreate or migrate credentials, run a green ROMS pipeline, then retire the old ROMS Jenkins.
 - **Next Step:** Blocked on Will's decision to actually redeploy ROMS — TAPI-001 (JWT auth) makes the
   eventual integration technically unblocked, but there's no live target to integrate against yet.
   Don't scope integration details further until that trigger fires.

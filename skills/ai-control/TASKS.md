@@ -55,6 +55,10 @@
 ## FM (work-at-home thinking — context only, no proprietary code/internals)
 (none yet)
 
+## Queued for later sync / Notion
+- [ ] ROMS-001 — Expand the ROMS integration task into a full deploy-and-heartbeat checklist for Terra API / public visualizer integration.
+- [ ] ROMS-002 — Migrate ROMS Jenkins to the shared Terra Jenkins EC2 before ROMS redeployment.
+
 ## Security (not project-specific — general hygiene follow-ups)
 - [ ] SEC-001 — Move exposed plaintext credentials into a password manager (Bitwarden or Proton
       Pass — both free-tier viable, Bitwarden slightly favored for CLI/dev workflow fit), then
