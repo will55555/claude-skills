@@ -333,6 +333,23 @@
   2026-08-03 — the alarm can actually fire into an inbox now, not just exist. This is the first
   piece of gap (1) actually built; the rest (DB backups, OS patching, domains + TLS) remains
   deferred.
+- **Future heartbeat model refinement — pull, not push (noted 2026-08-08, explicitly NOT for now,
+  save for a dedicated refinement session):** Will's proposal to eventually replace ADR-005's
+  current sidecar PUSH model (each service independently sends a heartbeat payload — including raw
+  metrics like `latency_p95_ms`/`error_rate_1m` — to Terra API on its own schedule) with a PULL
+  model instead: Terra API initiates a query to each service; each service runs its own
+  continuously-updated internal health-evaluation class (constantly comparing actual state against
+  expected state); when queried, the service responds with a minimal, pre-digested tri-state
+  signal (roughly yes/no/maybe — healthy/unhealthy/degraded), not raw metrics. **Rationale
+  (security-driven):** the current push model means N services can each send arbitrary payloads
+  *into* Terra API — a compromised service has a wide, structured inbound surface to exploit. A
+  pull model narrows this dramatically: each service only ever answers one fixed, narrow question
+  when asked, nothing unsolicited ever arrives at Terra API. This is a real architectural shift
+  (inverts ADR-005 Section 1's "push over pull" decision and its own stated rationale — "Terra API
+  stays passive... does not need to know each service's internal health endpoint URL or schema" —
+  a pull model requires exactly that knowledge) and deserves its own ADR amendment/dedicated
+  session when Will returns to it, not a quick retrofit. Not started, not scoped further than this
+  note.
 
 ## claude-skills                                    <!-- prefix: SKILLS -->
 - **Reference Links:** Self-documenting — the hub IS this project's spec: `HUB.md` (rules,
