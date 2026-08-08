@@ -111,12 +111,16 @@
   live, not stale cached HTML. The prior "not production-ready" framing conflated dev-only
   *testing* against real ROMS/PIOS data (still true — no live integration test done) with
   deployment status (false — deployment has been live since at least TFE-201, 2026-08-02).
-- **Active Task:** **SonarQube-related cleanup on `sonarqube-quality-gate`, in progress, uncommitted
-  (noted 2026-08-07).** Real dirty working tree: modified `App.css`, `ProtectedRoute.js`,
-  `Login.js`; new `ProtectedRoute.test.js`, `Login.test.js`; untracked `.vscode/`. Will's own
-  framing: needs cleanup before push/merge — do not push, commit, or touch any of this without
-  explicit direction. Distinct from terra-api's own TAPI-020 (SonarQube quality gate), which IS
-  fully closed and verified green — this is terra-api-fe-specific, unrelated status.
+- **Active Task:** **SonarQube-related cleanup on `sonarqube-quality-gate` — RESOLVED 2026-08-08**
+  (was flagged dirty 2026-08-07: modified `App.css`, `ProtectedRoute.js`, `Login.js`; new
+  `ProtectedRoute.test.js`, `Login.test.js`; untracked `.vscode/`). Committed via `198f591`
+  ("refinements") same day; working tree confirmed clean via `git status`. Separately, this
+  branch's Jenkinsfile gained a `post { always {} }` `npm cache clean --force` stage 2026-08-08,
+  mirroring terra-api's `docker image prune -f` disk-cleanup rule — this pipeline has no Docker
+  build (same-origin embed, see Status above), so npm cache was the equivalent target; not yet
+  committed, pending Will's approval. Distinct from terra-api's own TAPI-020 (SonarQube quality
+  gate), which IS fully closed and verified green — this was terra-api-fe-specific, unrelated
+  status, now also resolved.
   **3 real bugs found and fixed in the port, 2026-08-04:**
   1. Pipeline tubes visually detached from cubes on screen — phase5's per-frame sine-drift cube
      animation moved cubes but tubes were drawn once, statically. Fixed by dropping the drift
