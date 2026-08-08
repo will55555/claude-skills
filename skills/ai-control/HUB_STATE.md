@@ -183,20 +183,28 @@
 - **Reference Links:** Notion ADRs `pios-adr-011`–`015` — URLs not recorded, add when confirmed.
   Strategy page: `terra-hq-site/pios_strategy.html` (architecture, event model, capital
   governance).
-- **Status:** CORRECTED 2026-08-07 — this section was stale. **ADR-013 (event schema versioning,
-  upcasting at the repository layer) is Accepted and resolved**, not gating — verified by fetching
-  the ADR's own page text 2026-08-07 (its own words: "flagged as the most critical unresolved
-  design decision before coding could begin; now resolved"). ADRs 011, 012, 014 are also all
-  Accepted per the ADR index. ADR-015 (Consumer Capital Layer, cashback/CRR) is Accepted at the
-  design level only — its own text: "directionally accepted, not implementation-ready," sequenced
-  after PIOS MVP exists and after Terra API's WebSocket relay (not built). Design phase overall
-  (no PIOS code exists yet) is still accurate — but NOT because ADR-013 is unresolved.
-- **Active Task:** None open — no ADR is currently gating PIOS from starting code. Whenever PIOS
-  work actually begins, first task is standing up the event-sourced write path per ADR-011/012/013.
-- **Next Step:** Awaiting Will's call on when to start PIOS implementation — no technical blocker
-  remains from the ADR sequence itself.
-- **Blockers:** None from ADRs. PIOS starting at all remains Will's own prioritization call, same
-  as ROMS redeploy and Terra API's other sequencing decisions.
+- **Status:** CORRECTED 2026-08-07, REVISED 2026-08-08 after checking PIOS's own Notion project
+  page (not just the ADR index). **ADR-013 (event schema versioning, upcasting at the repository
+  layer) is Accepted and resolved**, not gating — verified via the ADR's own text ("flagged as the
+  most critical unresolved design decision before coding could begin; now resolved"). ADRs 011,
+  012, 014 also all Accepted. ADR-015 (Consumer Capital Layer) is design-level-accepted only,
+  correctly deferred until PIOS MVP + Terra API's WebSocket relay both exist. **However — the
+  2026-08-07 correction was incomplete: PIOS has a SEPARATE, real, still-standing blocker that has
+  nothing to do with ADRs.** Per PIOS's own project page (last synced 2026-05-30, itself possibly
+  stale but the gate condition should be re-verified with Will, not assumed cleared): a
+  **learning-stack prerequisite gate** — CS50P + Karpathy Zero to Hero (Python) → Angular → DSA —
+  is required before any PIOS coding begins, and as of that page's last sync had **not been
+  started**. Design phase (no PIOS code exists yet) is accurate for BOTH reasons: no code has
+  started, and the learning gate was still open as of the last real check.
+- **Active Task:** None — PIOS coding cannot start until the learning-stack gate clears (or Will
+  explicitly decides to waive/reorder it), independent of the ADR sequence being fully resolved.
+- **Next Step:** Confirm with Will whether the learning-stack gate (CS50P/Karpathy → Angular → DSA)
+  has progressed since 2026-05-30 — this project page hasn't been touched since, same staleness
+  risk as everything else in this ecosystem. If cleared, PIOS is ready to start on the
+  event-sourced write path (ADR-011/012/013). If not, it remains genuinely blocked, not just
+  deprioritized.
+- **Blockers:** Learning-stack prerequisite (Python/CS50P+Karpathy → Angular → DSA), NOT any ADR —
+  status of that gate unconfirmed as of this correction, needs a direct check, not inference.
 - **Context:** Event-sourced. FastAPI/Python reserved. Rules-engine-gated AI signals. Two Notion
   pages exist for the same ADR-013 decision (an early 2026-05-12 draft under a superseded
   "Investment System App" page, and the formal 2026-07-13 `pios-adr-013` filed under PIOS itself) —
