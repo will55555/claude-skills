@@ -4,6 +4,10 @@
 <!-- New project? Copy the template from HUB_GUIDE.md → HUB_STATE Section Template. -->
 
 ## Terra API                                        <!-- prefix: TAPI -->
+- **Machine Reference (added 2026-08-08 — previously undocumented):** `terra-api-server`
+  (`i-044e35066f956d506`, us-east-1) — private IP `172.31.21.172:8081`, public IP
+  `100.60.61.209:8081`. Both confirmed reachable via real `curl` (200 OK) 2026-08-08 while wiring
+  ROMS's heartbeat sender. No TLS on either (TAPI-022 still open).
 - **Reference Links:** (added 2026-08-02 — read these BEFORE designing against the project;
   Prime Directive 3) System Design doc: `https://app.notion.com/p/37089370d497814ab6cdf10732687fee`
   · Terra API Notion project: `https://app.notion.com/p/37789370d49781908780e2b4e7a6c480`
@@ -167,13 +171,25 @@
   decommission pending — pre-migration snapshot (`snap-0b96ef480be89b45d`) kept as safety net
   either way. Full sequence/root-cause narrative: `restaurant-order-management-system` DEV_LOG (if
   written) or this session's transcript — not repeated here per HUB_STATE's snapshot-only rule.
-- **Active Task:** Wire ROMS's heartbeat into Terra API's `ecosystem-health` so it shows in the
-  visualizer — the original motivating goal. Also: decommission the old us-east-2 instance once
-  comfortable; add ROMS to SonarCloud via Automatic Analysis (simpler than terra-api's — no
-  Jenkinsfile stage or credential needed, just enable on the SonarCloud project side).
-- **Next Step:** Uncomment/point Terra API's `terra.roms.*` config block at `100.60.7.24`, confirm
-  `POST /api/services/heartbeat` receives real heartbeats, verify
+- **Active Task:** ROMS heartbeat sender BUILT 2026-08-08, not yet deployed. **Correction:**
+  Terra API's `terra.roms.*` config block (mentioned in an earlier version of this line) is NOT
+  the right mechanism — that's an unbuilt, unrelated feature (`ProductGatewayService`, Terra API
+  calling INTO ROMS). ADR-005's actual heartbeat model is the reverse: ROMS pushes to Terra API's
+  `POST /api/services/heartbeat`. New ROMS-side code: `TerraApiProperties`, `TerraApiAuthClient`
+  (logs into Terra API's `/api/auth/login`, caches JWT), `TerraHeartbeatScheduler` (`@Scheduled`,
+  reads real Postgres/Redis/Kafka health via newly-added `spring-boot-starter-actuator`, POSTs
+  every 30s). `docker.env` has real credentials set (shared Terra API service-account, same as
+  `TERRA_AUTH_USERNAME`/`PASSWORD` — ADR-003, one shared credential) and `TERRA_API_URL` set to
+  Terra API's PRIVATE VPC IP (`172.31.21.172:8081`) — confirmed same-VPC as ROMS's new instance,
+  verified reachable via a real `curl` from inside ROMS's box (`200 OK`). **Terra API's public IP
+  discovered and recorded for the first time:** `100.60.61.209:8081` (also confirmed `200 OK`,
+  directly from a local machine — no TLS yet, matches TAPI-022 still being open). Not yet done:
+  rebuild + redeploy ROMS's backend container so the new code/env vars actually take effect, then
+  confirm real heartbeats land (check Terra API logs or `/actuator/ecosystem-health`).
+- **Next Step:** Rebuild/redeploy ROMS backend, confirm heartbeat lands on Terra API, verify
   `GET /api/v1/ecosystem/public-health` reflects ROMS's real tier, confirm the visualizer shows it.
+  Also: decommission the old us-east-2 instance once comfortable; add ROMS to SonarCloud via
+  Automatic Analysis (simpler than terra-api's — no Jenkinsfile stage or credential needed).
 - **Blockers:** None technical.
 - **Context:** Spring Boot + React. First potential revenue source, once actually integrated. New
   Infrastructure Backup Policy (tag `Backup=true`, daily AWS Backup plan) now covers this instance
