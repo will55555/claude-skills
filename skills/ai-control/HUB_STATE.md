@@ -154,34 +154,55 @@
   restaurant-order-management-system/`, gitignored there) — the "OUTSIDE terra-api-home" note was
   stale, same container-rename class of drift as terra-api/terra-jenkins/terra-hq-site (see HUB.md
   Machine Paths, corrected same day). Strategy page: `terra-hq-site/roms_gtm_strategy.html`.
-- **Status:** ⚠️ "Deployed but static" is now DOUBTFUL — **the ROMS EC2 instance may no longer
-  exist.** Noticed 2026-07-29: the us-east-1 console listed "Instances (1)", `terra-api-server`
-  only, no ROMS box. Deliberately not chased — Will's call to resolve it when ROMS integration
-  actually starts, not before. Otherwise unchanged: not being redeployed until needed (call first
-  made 2026-07-07, reconfirmed 2026-07-22), effectively maintenance mode.
+- **Status:** **CONFIRMED 2026-08-07 — the original ROMS EC2 instance is permanently gone, not
+  recoverable.** Will ran a full sweep across all 17 AWS regions: `describe-addresses` for the
+  Jenkinsfile's hardcoded IP (`3.135.55.219`) returned empty (Elastic IP released, no longer owned
+  by the account); direct SSH timed out (not refused — consistent with the IP having moved to a
+  different AWS customer); zero EBS snapshots in any region; zero terminated-instance records in
+  any region (AWS's terminated-instance history has since rolled off, or it was never tagged
+  distinctly). Only artifact found anywhere: a `roms-key` key pair still sitting in `us-east-2`
+  (confirms that was the original deploy region, matching the IP's AWS range, but it's just a
+  leftover key — no instance, no disk, no backup). **This is a clean-slate rebuild, not a
+  recovery** — any data that lived on that box (Postgres DB, etc.) is not recoverable from AWS.
+  Otherwise unchanged: not being redeployed until needed (call first made 2026-07-07, reconfirmed
+  2026-07-22), effectively maintenance mode until Will actually starts ROMS-001.
   **Intent flagged 2026-08-07 (not yet started):** Will's reasoning — enough of the ecosystem
   (Terra API gateway, health/quarantine orchestration, CI/CD, SonarQube) is now in place that
   deploying ROMS would let the visualizer show a real multi-service ecosystem in early/alpha form,
-  not just Terra API alone. This is NOT yet the redeploy trigger — Will explicitly wants the
-  Notion/logs consolidation pass done first to get a concrete full plan before starting ROMS-001.
-  Treat as "leaning toward soon," not "go."
+  not just Terra API alone. Consolidation pass + this AWS sweep are both now done — ROMS-001 is
+  unblocked to start whenever Will chooses; still his call on timing, not auto-started.
 - **Active Task:** ROMS-001 — first real integration target for Terra API shared services, once live
 - **Queued for later sync / Notion:**
-  - ROMS-001 — expand into a concrete deploy-and-heartbeat checklist: check old ROMS EC2/EIP/snapshots, provision a new EC2, deploy ROMS and confirm its health endpoint, configure heartbeats to Terra API, verify `/api/v1/ecosystem/public-health`, and confirm the public visualizer shifts ROMS to its live health tier.
-  - ROMS-002 — migrate ROMS Jenkins to the shared Terra Jenkins EC2 before redeploying ROMS: back up the ROMS Jenkins volume, inventory jobs/plugins/credentials, import jobs without overwriting `JENKINS_HOME`, recreate or migrate credentials, run a green ROMS pipeline, then retire the old ROMS Jenkins. CORRECTED 2026-08-07 (fixed twice — first pass wrongly said Phase 2/3 were disabled): checked `git log -p -- Jenkinsfile` and `git diff` against the current file directly. ALL stages (Checkout through Deploy, including Push to Docker Hub and the SSH Deploy stage) are live, uncommitted, functional — enabled in commits `9bb9016`/`7d86ef3`/`22fcba9`/`20c34fb`, all dated 2026-05-03/04, untouched since. The stage-header comments still said "currently disabled" (stale leftover text from before those commits) — that's what caused the false "not really enabled" read, not once but twice in the same day. Comments fixed in the Jenkinsfile itself 2026-08-07. **The only real remaining unknowns are external**: does the target EC2/IP (`3.135.55.219`, hardcoded in the Deploy stage) still exist, and are the `dockerhub-credentials`/`server-ssh` Jenkins credentials still valid on whatever Jenkins instance ROMS was using.
-- **Next Step:** Blocked on Will's decision to actually redeploy ROMS — TAPI-001 (JWT auth) makes the
-  eventual integration technically unblocked, but there's no live target to integrate against yet.
-  Don't scope integration details further until that trigger fires.
-- **Blockers:** ROMS not redeployed — deliberate, no timeline
+  - ROMS-001 — CONFIRMED 2026-08-07 as a from-scratch rebuild (see Status — old instance
+    permanently gone). Concrete checklist, no longer branching on "recover vs. fresh": (1)
+    provision new EC2 per ADR-005's spec (t3.small minimum — t3.micro OOM'd Kafka's JVM
+    originally; Ubuntu 24.04; Kafka heap capped `-Xmx512m -Xms256m` to coexist with
+    Postgres/Redis/Spring Boot on 2GB); (2) new Elastic IP, new key pair (old `roms-key` in
+    us-east-2 is an orphaned leftover — decide whether to reuse the name or retire it); (3) update
+    the Jenkinsfile's hardcoded deploy target (`ubuntu@3.135.55.219`) to the new IP; (4) confirm/
+    recreate the `dockerhub-credentials` and `server-ssh` Jenkins credentials against the new
+    instance; (5) deploy ROMS, confirm its health endpoint; (6) wire heartbeats to Terra API; (7)
+    verify `/api/v1/ecosystem/public-health`; (8) confirm the public visualizer shows ROMS live.
+  - ROMS-002 — migrate ROMS Jenkins to the shared Terra Jenkins EC2 before redeploying ROMS: back
+    up the ROMS Jenkins volume, inventory jobs/plugins/credentials, import jobs without
+    overwriting `JENKINS_HOME`, recreate or migrate credentials, run a green ROMS pipeline, then
+    retire the old ROMS Jenkins. CONFIRMED 2026-08-07: Jenkinsfile itself needs no pipeline work —
+    all stages (Checkout through Deploy) are live and functional, verified via git history after
+    an earlier same-day misread of stale comment headers was corrected. The only real work here is
+    the Jenkins *instance* migration itself plus re-pointing Deploy at the new EC2 target (ROMS-001
+    item 3 above).
+- **Next Step:** Will's call on when to actually start ROMS-001/002 — technically and
+  informationally unblocked as of 2026-08-07 (AWS sweep confirms clean-slate rebuild, Jenkinsfile
+  confirmed functional, consolidation pass done). No remaining research blocker, only a
+  prioritization decision.
+- **Blockers:** None technical. ROMS-001 start timing remains Will's deliberate call.
 - **Context:** Spring Boot + React. First potential revenue source, once actually integrated.
-  **When ROMS integration does start, check this FIRST** (deferred from 2026-07-29): is the
-  instance gone, or just in another region? Cheapest check is EC2 → **AWS Global View**, which
-  lists resources across all regions at once — the console was on N. Virginia (us-east-1) when the
-  absence was spotted, and a box launched elsewhere simply wouldn't appear. Also worth checking
-  EBS **Snapshots** (is there anything to restore from?) and **Elastic IPs** (an unassociated one
-  both confirms the box existed and quietly bills). Low stakes either way: the ROMS repo is intact
-  locally and on both remotes, so what's potentially lost is the deployment, not the code — and
-  ROMS-001 assumes a redeploy regardless.
+  **RESOLVED 2026-08-07** (was "check this FIRST," deferred from 2026-07-29): full all-region AWS
+  sweep confirms the original instance, its Elastic IP, and any EBS snapshots are all permanently
+  gone — see Status above. Not a stale-doc problem this time, a real, confirmed loss. Low stakes in
+  the sense that the ROMS repo/code is intact locally and on both remotes — what's lost is the
+  deployment and any data that lived on that box's database, not the code. See [[reference_no-ebs-
+  snapshot-policy]] memory for the prevention step this incident prompted.
 
 ## PIOS                                             <!-- prefix: PIOS -->
 - **Reference Links:** Notion ADRs `pios-adr-011`–`015` — URLs not recorded, add when confirmed.
