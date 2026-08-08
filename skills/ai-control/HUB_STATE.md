@@ -115,9 +115,15 @@
   (was flagged dirty 2026-08-07: modified `App.css`, `ProtectedRoute.js`, `Login.js`; new
   `ProtectedRoute.test.js`, `Login.test.js`; untracked `.vscode/`). Committed via `198f591`
   ("refinements") same day; working tree confirmed clean via `git status`. Separately, this
-  branch's Jenkinsfile gained a `post { always {} }` `npm cache clean --force` stage 2026-08-08,
-  mirroring terra-api's `docker image prune -f` disk-cleanup rule — this pipeline has no Docker
-  build (same-origin embed, see Status above), so npm cache was the equivalent target; not yet
+  branch's Jenkinsfile gained a `post { always {} }` cleanup stage 2026-08-08 — considered
+  mirroring terra-api's `docker image prune -f` exactly, but landed on `npm cache verify`
+  instead (an earlier draft used `npm cache clean --force`): the hub's standing disk-cleanup
+  rule (HUB_GUIDE.md, from the ROMS incident) is deliberately unconditional because gradual
+  silent accumulation was the failure mode, but that rule targets Docker image layers
+  specifically — npm's cache is content-addressed and self-managing, no unbounded-growth
+  problem to justify a full wipe. `verify` prunes corrupted/unreachable entries only. Considered
+  and rejected: a `du`-based size-threshold gate — new precedent (no existing pipeline gates the
+  standing rule on a threshold) solving a problem that doesn't apply to npm's cache. Not yet
   committed, pending Will's approval. Distinct from terra-api's own TAPI-020 (SonarQube quality
   gate), which IS fully closed and verified green — this was terra-api-fe-specific, unrelated
   status, now also resolved.
