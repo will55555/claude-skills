@@ -157,23 +157,46 @@ Feature/architecture-level detail (what shipped, why) has no other home and stay
 — HUB_STATE is a fixed ~15–20 line snapshot by design and can't carry it, so only genuinely
 duplicated fields (Next Action / Next Step) should collapse to a pointer, not the whole section.
 
-**ROMS EC2 instance permanently lost, no backup existed (discovered 2026-08-07, originally
-happened sometime before 2026-07-29):** ROMS's original production EC2 instance — Postgres
-database, Elastic IP, everything — was found completely gone during a full 17-region AWS sweep:
-no running/stopped/terminated instance record anywhere, no EBS snapshot in any region, the
-Elastic IP fully released and reassigned to a different AWS customer. Only artifact found was an
-orphaned `roms-key` key pair in `us-east-2`, confirming the original region but recovering
-nothing. Root cause of the loss itself is unknown (never determined whether it was deliberate
-cleanup, an account-level safeguard, or an accident) — the actual gap this exposed is that
-**no EC2 instance in the Terra ecosystem had automated backups**, so whatever happened, there
-was zero path to recovery. Caught only because Will decided to redeploy ROMS and asked to verify
-the instance still existed first — if that check had never happened, the loss would have stayed
-undiscovered indefinitely.
+**ROMS EC2 instance appeared permanently lost, no backup existed to confirm otherwise (discovered
+2026-08-07/08):** an initial full 17-region AWS sweep filtering `instance-state-name=terminated`
+only found nothing — no running/stopped/terminated instance record, no EBS snapshot anywhere, the
+Elastic IP unassociated. Read as total loss. **CORRECTED same investigation:** a later unfiltered
+`describe-instances` (run incidentally during unrelated backup-tagging work) found the instance
+sitting there the whole time, genuinely just STOPPED — the first sweep's `terminated`-only filter
+produced a false negative. Disk, key pair, and everything else were fully intact. Migrated to
+`us-east-1` anyway (deliberate consolidation, not a forced recovery) via AMI export/cross-region
+copy — see the `aws-cross-region-ec2-migration-via-ami` Obsidian note for the full procedure. The
+real, surviving lesson from this incident is NOT "the instance was gone" (it wasn't) — it's that
+**no EC2 instance in the Terra ecosystem had automated backups**, so the investigation had no fast,
+reliable way to distinguish stopped-and-safe from actually-gone, and had to fall back on a slow,
+manual, multi-region sweep to find out. That gap is real regardless of how this specific case
+resolved.
 **Fix pattern (see Infrastructure Backup Policy below for the standing rule):** every EC2 instance
 in the Terra ecosystem gets tagged `Backup=true` and covered by a tag-based AWS Backup plan with
-daily automated EBS snapshots — this makes "instance gone with zero recovery path" structurally
-impossible going forward, independent of why an instance disappears. A manual pre-termination
-snapshot step is the second layer, for the deliberate-termination case specifically.
+daily automated EBS snapshots — this makes "can't tell if an instance is gone or just stopped"
+structurally impossible going forward, independent of what actually happened to any given
+instance. A manual pre-termination snapshot step is the second layer, for the deliberate-
+termination case specifically.
+
+**ROMS deploy target ran out of disk mid-deploy, same day its pipeline started deploying
+regularly (2026-08-08):** `roms-pipeline`'s Deploy stage failed with `no space left on device`
+partway through a `docker-compose pull` — the target EC2's 6.8GB root volume had filled to 96%
+from repeated deploys, each pulling a fresh set of images without ever discarding superseded ones.
+The instance also went fully unresponsive around the same time (failed AWS instance-reachability
+check, required a stop/start to clear) — very likely the full disk itself hanging system-level
+processes, not a separate hardware fault. **Separately, this same investigation also caught a
+Docker Hub account-name mismatch:** the deploy's `docker-compose.prod.yml` substitutes
+`${DOCKERHUB_USERNAME}` from a value that was sourced from server-side state (a stale/wrong
+`will55555` instead of the corrected `willt55555`) with no way for a CI deploy to catch the
+drift — an earlier build had reported green while silently deploying a completely different,
+months-old image with none of that build's actual code changes.
+**Fix pattern (see CI/CD Disk Cleanup and the Deploy-stage fix in ROMS's own Jenkinsfile):**
+`docker image prune -af` added immediately after every deploy's `up -d`, plus a daily cron prune
+directly on the host — both belong in a pipeline's initial design, not bolted on after a disk
+fills. For the account-name drift: Jenkins now passes its own known-correct `DOCKERHUB_USERNAME`
+Global Environment Variable explicitly on the deploy command, and compose reads `--env-file
+docker.env` (git-adjacent, already the app's runtime config source) instead of a second,
+separately-maintained file — one source of truth, not two that can silently disagree.
 
 ## Infrastructure Backup Policy (standing rule since 2026-08-07)
 Added after the ROMS EC2 loss above — see Operating Incidents for the full incident. Two layers,
@@ -198,6 +221,29 @@ Applies to every EC2 instance across the ecosystem — Terra API's prod box, `te
 ROMS's rebuilt instance once ROMS-001 provisions it. Retrofit existing untagged instances the next
 time each is touched, rather than as a dedicated pass — matches this project's established
 pattern of not doing speculative cleanup ahead of actual need.
+
+## CI/CD Disk Cleanup — Design-Time, Not Retrofit (standing rule since 2026-08-08)
+Added after ROMS's deploy target filled to 96% disk and failed a pull mid-download (`no space left
+on device`) the same day its Jenkins pipeline started deploying regularly — see Operating
+Incidents. **Any new deploy pipeline that pulls/builds Docker images must include image cleanup as
+part of its initial design, not as a fix bolted on after a disk fills.** Two layers, matching the
+Infrastructure Backup Policy's own two-layer shape:
+
+1. **Deploy-time prune (primary, tied to the actual cause):** the deploy stage itself runs
+   `docker image prune -af` immediately AFTER bringing the new containers up (never before — a
+   prune before the new containers are confirmed running risks removing an image `down` hasn't
+   fully released yet). `-a` (all unused images, not just dangling) is required — a superseded
+   `:latest` tag is fully tagged, not dangling, and won't be touched by a bare `docker image
+   prune -f`.
+2. **Scheduled cron prune (secondary, catches drift the pipeline itself can't):** a daily
+   `docker system prune -af --filter "until=24h"` cron job directly on any host running Docker
+   long-term, independent of any specific pipeline — catches manual `docker` usage, failed/aborted
+   deploys that never reached the cleanup step, and any image churn from causes outside CI.
+
+Applies to every service's deploy pipeline going forward — not just ROMS. When scaffolding a new
+Jenkinsfile (or any CI config) that pulls/builds images on a deploy target, both layers belong in
+the initial design pass, same footing as the credential/webhook setup itself — not something to
+add only after a disk-space incident forces the question.
 
 ## Commit Conventions
 - Conventional Commits: `feat: | fix: | docs: | refactor: | test: | chore:`; imperative mood;
