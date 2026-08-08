@@ -99,8 +99,18 @@
   starfield, glass/gem materials (confirmed intentional — Will's own reference: "Infinity Stone,
   the blue one in Avengers" — an earlier matte-material pass was reverted), click-to-expand/
   release/collapse state machine, pipeline tubes with shader pulse, mouse repulsion field.
-  Feature-complete against ADR-009's Build Sequence but still NOT production-ready (only ever
-  run via Docker dev compose / CRA dev server, no real ROMS/PIOS deployment to test against).
+  Feature-complete against ADR-009's Build Sequence. **CORRECTED 2026-08-08 — this WAS live
+  in production the whole time**, contrary to the "not production-ready" note previously here:
+  same-origin embed (ADR-009) means terra-api's own Jenkinsfile checks out terra-api-fe,
+  builds/tests it, and copies the CRA build into `src/main/resources/static/` inside the
+  terra-api jar — there is no separate terra-api-fe deploy pipeline or Docker image, so the
+  commented-out `terra-api-fe` service in terra-api's `docker-compose.prod.yml` (mirroring
+  ROMS's separate-container frontend shape) was never the right model and stays commented out
+  correctly. Verified via `curl https://api.terra-hq.com/` returning the CRA shell
+  (`main.054491d5.js`), `Last-Modified` same-day as this correction — confirms current build is
+  live, not stale cached HTML. The prior "not production-ready" framing conflated dev-only
+  *testing* against real ROMS/PIOS data (still true — no live integration test done) with
+  deployment status (false — deployment has been live since at least TFE-201, 2026-08-02).
 - **Active Task:** **SonarQube-related cleanup on `sonarqube-quality-gate`, in progress, uncommitted
   (noted 2026-08-07).** Real dirty working tree: modified `App.css`, `ProtectedRoute.js`,
   `Login.js`; new `ProtectedRoute.test.js`, `Login.test.js`; untracked `.vscode/`. Will's own
