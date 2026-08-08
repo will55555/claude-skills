@@ -298,6 +298,12 @@ If neither resolves, ask Will and remind them to run `setup.py`.
 
 ### Note format
 
+**Default detail bar (standing rule, set 2026-08-08 — do not wait to be asked):** every Obsidian
+note is written at full depth by default — every section below filled in substantively, not
+stubbed. This is the baseline, not an escalation Will has to request. Established after a
+session where he had to explicitly ask for "detailed" notes multiple times before it became the
+default; it should never need asking again.
+
 ```markdown
 > **What this note is:** [One sentence — what this note covers and why it was written]
 
@@ -310,7 +316,21 @@ If neither resolves, ask Will and remind them to run `setup.py`.
 [Consequence, impact, relevance to your work]
 
 ### How it works
-[Mechanism, flow, or structure]
+[Mechanism, flow, or structure — full steps/commands, not a summary]
+
+### How this was actually found / debugged
+**Include this section whenever the note originated from real debugging — a bug hunt, an
+incident, an investigation with more than one step or a wrong turn. Omit entirely (don't stub
+it) for pure reference notes with no investigation story — e.g. "how OAuth refresh tokens
+work," written from general knowledge rather than a live session's troubleshooting.**
+When included, write it as a chronological narrative, not a summary of the end state:
+- The starting symptom, in the words it actually appeared (error messages, log lines)
+- Each hypothesis tried, in order — including the ones that were WRONG or only partially
+  right. A fix that turned out to be real-but-not-sufficient (a genuine bug that didn't fully
+  explain the symptom) is exactly as valuable to record as the final root cause — it's what
+  future-Will will also try first, and should know not to stop there.
+- What ruled each hypothesis in or out (the actual command/log output, not just "it wasn't that")
+- The final root cause, and specifically what distinguished it from the false leads
 
 ### The design principles behind it
 
@@ -318,12 +338,26 @@ If neither resolves, ask Will and remind them to run `setup.py`.
 |---|---|
 | [name] | [1-line explanation] |
 
+### Common misconceptions
+- ["X seems true but isn't, because Y"] — include this section whenever the topic has a
+  plausible-but-wrong mental model worth naming explicitly, not just for debugging-sourced notes.
+
+### Troubleshooting table (symptom → cause → fix)
+[Include when the note documents a setup/config process with identifiable failure modes —
+a table of exact error text → root cause → fix, scannable for a future fast lookup.]
+
 ### Key insight
 [One sentence that would make future-Will immediately recall why this mattered]
 
 ## Related Notes
 - [[Note Title]] — [one-line description of relationship]
 ```
+
+Sections without a bracketed placeholder above (What is it / Why it matters / How it works /
+Design principles / Key insight / Related Notes) are always included. "How this was actually
+found," "Common misconceptions," and "Troubleshooting table" are included whenever they apply
+per their own inline guidance — the default is to include them when in doubt, not to skip them
+for brevity.
 
 ### Filename convention
 - Concept notes (`Software Development/`, `Trading/`, etc.): `lowercase-hyphenated.md`
