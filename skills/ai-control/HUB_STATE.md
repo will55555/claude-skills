@@ -180,18 +180,18 @@
   anyway to consolidate alongside `terra-api-server`/`terra-jenkins`). All 5 containers healthy.
   `roms-pipeline` on shared `terra-jenkins` (`3.211.62.86:8090`) — `github-app-terra-api`
   credential, `server-ssh-roms` credential, shared `dockerhub-credentials`
-  (`willt55555`), webhook + hook-trigger both set. Old `us-east-2` instance
-  (`i-0915f2c2b36899e94`) redundant, decommission pending — pre-migration snapshot
-  (`snap-0b96ef480be89b45d`) kept regardless.
+  (`willt55555`), webhook + hook-trigger both set. **Old us-east-2 instance
+  (`i-0915f2c2b36899e94`) STOPPED 2026-08-08** (was already stopped, confirmed — this closes out
+  the decommission step). Not terminated — EBS volume kept intact and restartable, on top of the
+  separate completed snapshot (`snap-0b96ef480be89b45d`, verified 100%) as a second layer.
 - **Active Task:** None blocking. ROMS's `tier` reported `ORANGE` on first check (expected —
   ADR-005 escalates on missed heartbeats, and ROMS had been "off" a long time before this
   session's first heartbeat landed; should self-correct to GREEN within a few 30s cycles, not
   independently re-verified this session).
-- **Next Step:** Decommission the old us-east-2 instance once comfortable. Add ROMS to SonarCloud
-  via Automatic Analysis (simpler than terra-api's — no Jenkinsfile stage/credential needed).
-  Amend ROMS ADR-005/terra-api-adr-010 with the final migrated-not-restarted outcome. **Flagged by
-  Will for a future sync, not yet scoped:** ROMS frontend pages need a redesign; general ROMS
-  refinement work; possibly a full modernization plan.
+- **Next Step:** Add ROMS to SonarCloud via Automatic Analysis (simpler than terra-api's — no
+  Jenkinsfile stage/credential needed). Amend ROMS ADR-005/terra-api-adr-010 with the final
+  migrated-not-restarted outcome. **Flagged by Will for a future sync, not yet scoped:** ROMS
+  frontend pages need a redesign; general ROMS refinement work; possibly a full modernization plan.
 - **Blockers:** None technical.
 - **Context:** Spring Boot + React. First potential revenue source, once actually integrated. New
   Infrastructure Backup Policy (tag `Backup=true`, daily AWS Backup plan) covers this instance,
