@@ -148,64 +148,36 @@
   regenerated `package-lock.json`). Will's call whether/when to commit.
 
 ## ROMS                                             <!-- prefix: ROMS -->
-- **Reference Links:** Notion ADRs `roms-adr-001`–`005` (domain-prefixed, per the 2026-07-18
-  terra-hq-site refactor) — URLs not recorded, add when confirmed. Repo location CORRECTED
-  2026-08-07: now lives INSIDE `terra-api-home` as a sibling repo (`terra-api-home/
-  restaurant-order-management-system/`, gitignored there) — the "OUTSIDE terra-api-home" note was
-  stale, same container-rename class of drift as terra-api/terra-jenkins/terra-hq-site (see HUB.md
-  Machine Paths, corrected same day). Strategy page: `terra-hq-site/roms_gtm_strategy.html`.
-- **Status:** **CONFIRMED 2026-08-07 — the original ROMS EC2 instance is permanently gone, not
-  recoverable.** Will ran a full sweep across all 17 AWS regions: `describe-addresses` for the
-  Jenkinsfile's hardcoded IP (`3.135.55.219`) returned empty (Elastic IP released, no longer owned
-  by the account); direct SSH timed out (not refused — consistent with the IP having moved to a
-  different AWS customer); zero EBS snapshots in any region; zero terminated-instance records in
-  any region (AWS's terminated-instance history has since rolled off, or it was never tagged
-  distinctly). Only artifact found anywhere: a `roms-key` key pair still sitting in `us-east-2`
-  (confirms that was the original deploy region, matching the IP's AWS range, but it's just a
-  leftover key — no instance, no disk, no backup). **This is a clean-slate rebuild, not a
-  recovery** — any data that lived on that box (Postgres DB, etc.) is not recoverable from AWS.
-  Otherwise unchanged: not being redeployed until needed (call first made 2026-07-07, reconfirmed
-  2026-07-22), effectively maintenance mode until Will actually starts ROMS-001.
-  **Intent flagged 2026-08-07 (not yet started):** Will's reasoning — enough of the ecosystem
-  (Terra API gateway, health/quarantine orchestration, CI/CD, SonarQube) is now in place that
-  deploying ROMS would let the visualizer show a real multi-service ecosystem in early/alpha form,
-  not just Terra API alone. Consolidation pass + this AWS sweep are both now done — ROMS-001 is
-  unblocked to start whenever Will chooses; still his call on timing, not auto-started.
-- **Active Task:** ROMS-001 — first real integration target for Terra API shared services, once live
-- **Queued for later sync / Notion:**
-  - ROMS-001 — CONFIRMED 2026-08-07 as a from-scratch rebuild (see Status — old instance
-    permanently gone). Concrete checklist, no longer branching on "recover vs. fresh": (1)
-    provision new EC2 per ADR-005's spec (t3.small minimum — t3.micro OOM'd Kafka's JVM
-    originally; Ubuntu 24.04; Kafka heap capped `-Xmx512m -Xms256m` to coexist with
-    Postgres/Redis/Spring Boot on 2GB); (2) new Elastic IP, new key pair (old `roms-key` in
-    us-east-2 is an orphaned leftover — decide whether to reuse the name or retire it); (3) update
-    the Jenkinsfile's hardcoded deploy target (`ubuntu@3.135.55.219`) to the new IP; (4) confirm/
-    recreate the `dockerhub-credentials` and `server-ssh` Jenkins credentials against the new
-    instance; (5) deploy ROMS, confirm its health endpoint; (6) wire heartbeats to Terra API; (7)
-    verify `/api/v1/ecosystem/public-health`; (8) confirm the public visualizer shows ROMS live.
-  - ROMS-002 — migrate ROMS Jenkins to the shared Terra Jenkins EC2 before redeploying ROMS: back
-    up the ROMS Jenkins volume, inventory jobs/plugins/credentials, import jobs without
-    overwriting `JENKINS_HOME`, recreate or migrate credentials, run a green ROMS pipeline, then
-    retire the old ROMS Jenkins. CONFIRMED 2026-08-07: Jenkinsfile itself needs no pipeline work —
-    all stages (Checkout through Deploy) are live and functional, verified via git history after
-    an earlier same-day misread of stale comment headers was corrected. The only real work here is
-    the Jenkins *instance* migration itself plus re-pointing Deploy at the new EC2 target (ROMS-001
-    item 3 above).
-- **Next Step:** Will's call on when to actually start ROMS-001/002 — technically and
-  informationally unblocked as of 2026-08-07 (AWS sweep confirms clean-slate rebuild, Jenkinsfile
-  confirmed functional, consolidation pass done). No remaining research blocker, only a
-  prioritization decision.
-- **Blockers:** None technical. ROMS-001 start timing remains Will's deliberate call.
-- **Context:** Spring Boot + React. First potential revenue source, once actually integrated.
-  **RESOLVED 2026-08-07** (was "check this FIRST," deferred from 2026-07-29): full all-region AWS
-  sweep confirms the original instance, its Elastic IP, and any EBS snapshots are all permanently
-  gone — see Status above. Not a stale-doc problem this time, a real, confirmed loss. Low stakes in
-  the sense that the ROMS repo/code is intact locally and on both remotes — what's lost is the
-  deployment and any data that lived on that box's database, not the code. Prevention: new
-  Infrastructure Backup Policy added to HUB.md/HUB_GUIDE.md AND to the source ADRs — ROMS ADR-005
-  and terra-api-adr-010 (Ecosystem CI/CD) both amended 2026-08-07 with the same rule. The Notion
-  task that originally flagged this ("ROMS — confirm whether the EC2 instance still exists") is
-  now marked Done with the resolution recorded on the task page itself.
+- **Reference Links:** Notion ADRs `roms-adr-001`–`005`. Repo: `terra-api-home/
+  restaurant-order-management-system/` (gitignored there). Strategy page:
+  `terra-hq-site/roms_gtm_strategy.html`. **ROMS ADR-005 and terra-api-adr-010 still need a
+  follow-up amendment** — their 2026-08-07 text says the original instance was "found stopped,
+  recoverable in place," which was accurate mid-investigation but is now superseded (see Status).
+- **Status:** ✅ Live and deployed. New instance `i-04f3abfb579f2bd1d` (`100.60.7.24`, us-east-1,
+  security group `sg-0b239d152c176840d`, key `roms-server-key`) — migrated there 2026-08-08 via
+  AMI export/cross-region-copy from the original `us-east-2` instance's disk (which turned out to
+  be merely stopped, not deleted, but was migrated anyway to consolidate into us-east-1 alongside
+  `terra-api-server`/`terra-jenkins`). All 5 containers (frontend/backend/postgres/redis/kafka)
+  confirmed healthy; nginx (80) and Spring Security (8080, 401 pre-auth as expected) both
+  responding. CI/CD: `roms-pipeline` job created on the shared `terra-jenkins`
+  (`3.211.62.86:8090`) — `github-app-terra-api` credential (extended to this repo), new
+  `server-ssh-roms` credential, existing `dockerhub-credentials` reused (one shared Docker Hub
+  account, `willt55555`). GitHub webhook + hook-trigger checkbox both set on this job. First full
+  pipeline run: all green. Old `us-east-2` instance (`i-0915f2c2b36899e94`) is redundant,
+  decommission pending — pre-migration snapshot (`snap-0b96ef480be89b45d`) kept as safety net
+  either way. Full sequence/root-cause narrative: `restaurant-order-management-system` DEV_LOG (if
+  written) or this session's transcript — not repeated here per HUB_STATE's snapshot-only rule.
+- **Active Task:** Wire ROMS's heartbeat into Terra API's `ecosystem-health` so it shows in the
+  visualizer — the original motivating goal. Also: decommission the old us-east-2 instance once
+  comfortable; add ROMS to SonarCloud via Automatic Analysis (simpler than terra-api's — no
+  Jenkinsfile stage or credential needed, just enable on the SonarCloud project side).
+- **Next Step:** Uncomment/point Terra API's `terra.roms.*` config block at `100.60.7.24`, confirm
+  `POST /api/services/heartbeat` receives real heartbeats, verify
+  `GET /api/v1/ecosystem/public-health` reflects ROMS's real tier, confirm the visualizer shows it.
+- **Blockers:** None technical.
+- **Context:** Spring Boot + React. First potential revenue source, once actually integrated. New
+  Infrastructure Backup Policy (tag `Backup=true`, daily AWS Backup plan) now covers this instance
+  and is recorded in HUB.md/HUB_GUIDE.md, ROMS ADR-005, and terra-api-adr-010.
 
 ## PIOS                                             <!-- prefix: PIOS -->
 - **Reference Links:** Notion ADRs `pios-adr-011`–`015` — URLs not recorded, add when confirmed.
