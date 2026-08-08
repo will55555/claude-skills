@@ -191,9 +191,14 @@
   ADR-005 escalates on missed heartbeats, and ROMS had been "off" a long time before this
   session's first heartbeat landed; should self-correct to GREEN within a few 30s cycles, not
   independently re-verified this session).
-- **Next Step:** Add ROMS to SonarCloud via Automatic Analysis (simpler than terra-api's — no
-  Jenkinsfile stage/credential needed). Amend ROMS ADR-005/terra-api-adr-010 with the final
-  migrated-not-restarted outcome. **Flagged by Will for a future sync, not yet scoped:** ROMS
+- **Next Step:** ✅ **ROMS SonarCloud confirmed 2026-08-08** — project already existed with
+  Automatic Analysis already enabled; deliberately kept as Automatic Analysis (Will's call,
+  explicitly considered and rejected wiring CI-based analysis into `roms-pipeline` — same
+  Automatic-Analysis-vs-CI conflict terra-api hit earlier this session, avoided here by not mixing
+  the two). No Jenkinsfile/credential changes needed or made. Remaining: amend ROMS
+  ADR-005/terra-api-adr-010 with the final migrated-not-restarted outcome; terminate/delete the
+  old us-east-2 instance once confident (see Status). **Flagged by Will for a future sync, not yet
+  scoped:** ROMS
   frontend pages need a redesign; general ROMS refinement work; possibly a full modernization plan.
 - **Blockers:** None technical.
 - **Context:** Spring Boot + React. First potential revenue source, once actually integrated. New
