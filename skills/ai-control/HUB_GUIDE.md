@@ -157,6 +157,48 @@ Feature/architecture-level detail (what shipped, why) has no other home and stay
 — HUB_STATE is a fixed ~15–20 line snapshot by design and can't carry it, so only genuinely
 duplicated fields (Next Action / Next Step) should collapse to a pointer, not the whole section.
 
+**ROMS EC2 instance permanently lost, no backup existed (discovered 2026-08-07, originally
+happened sometime before 2026-07-29):** ROMS's original production EC2 instance — Postgres
+database, Elastic IP, everything — was found completely gone during a full 17-region AWS sweep:
+no running/stopped/terminated instance record anywhere, no EBS snapshot in any region, the
+Elastic IP fully released and reassigned to a different AWS customer. Only artifact found was an
+orphaned `roms-key` key pair in `us-east-2`, confirming the original region but recovering
+nothing. Root cause of the loss itself is unknown (never determined whether it was deliberate
+cleanup, an account-level safeguard, or an accident) — the actual gap this exposed is that
+**no EC2 instance in the Terra ecosystem had automated backups**, so whatever happened, there
+was zero path to recovery. Caught only because Will decided to redeploy ROMS and asked to verify
+the instance still existed first — if that check had never happened, the loss would have stayed
+undiscovered indefinitely.
+**Fix pattern (see Infrastructure Backup Policy below for the standing rule):** every EC2 instance
+in the Terra ecosystem gets tagged `Backup=true` and covered by a tag-based AWS Backup plan with
+daily automated EBS snapshots — this makes "instance gone with zero recovery path" structurally
+impossible going forward, independent of why an instance disappears. A manual pre-termination
+snapshot step is the second layer, for the deliberate-termination case specifically.
+
+## Infrastructure Backup Policy (standing rule since 2026-08-07)
+Added after the ROMS EC2 loss above — see Operating Incidents for the full incident. Two layers,
+not one, since either can fail independently:
+
+1. **Automated (primary defense):** every EC2 instance in the Terra ecosystem is tagged
+   `Backup=true` at creation and covered by a tag-based AWS Backup plan (daily EBS snapshots, 7-day
+   retention minimum — tune per instance if a longer window is warranted, e.g. a database-bearing
+   box). This is the layer that survives forgetting, accidents, and account-level cleanups — it
+   requires no human to remember anything at termination time. One-time setup: a backup vault +
+   plan + tag-based selection rule (commands: ask Claude for the current `aws backup` CLI sequence
+   when setting up a new AWS account/region, since exact syntax may drift). Ongoing requirement:
+   every NEW instance gets the `Backup=true` tag at launch — this doesn't retroactively cover
+   anything untagged.
+2. **Manual pre-termination check (secondary defense):** before deliberately terminating any EC2
+   instance, confirm a recent backup exists (`aws backup list-recovery-points-by-resource
+   --resource-arn <arn>`) or take one explicitly if automation isn't yet wired up for that
+   instance. This catches the case where an instance was spun up between backup-policy setup and
+   now, or backup automation itself silently failed.
+
+Applies to every EC2 instance across the ecosystem — Terra API's prod box, `terra-jenkins`, and
+ROMS's rebuilt instance once ROMS-001 provisions it. Retrofit existing untagged instances the next
+time each is touched, rather than as a dedicated pass — matches this project's established
+pattern of not doing speculative cleanup ahead of actual need.
+
 ## Commit Conventions
 - Conventional Commits: `feat: | fix: | docs: | refactor: | test: | chore:`; imperative mood;
   subject ≤ ~65 chars; reference the task ID when one exists — `feat(TAPI-003): add TokenValidator seam`.

@@ -1,5 +1,5 @@
 # Engineering Hub (load hub)
-<!-- Freshness: 2026-08-07 | v1.8 | Home: claude-skills/skills/ai-control/ -->
+<!-- Freshness: 2026-08-07 | v1.9 | Home: claude-skills/skills/ai-control/ -->
 
 ## Prime Directives (read first, every load — non-negotiable)
 Placed above everything else deliberately: Linear Fetch Mode caps reads at 80 lines/file, and these
@@ -177,6 +177,7 @@ Fixed read order — never deviate, never parallelize:
 - Correct tool for real writes: use `Filesystem:write_file`/`edit_file` for Will's actual machine — never the sandbox `create_file`/`str_replace` tools (those write to Claude's own container, not Will's disk). See GUIDE: Operating Incidents for the 2026-07-09 case that established this.
 - Verify writes outside the claude-skills repo by re-reading immediately after editing — a successful tool response is not proof of persistence. See GUIDE: Operating Incidents for why.
 - Multi-remote push discipline: supply push commands for EVERY configured remote, not just one (terra-api: GitHub + Bitbucket mirror `terra-inc-dev/terra-api`). Lead with `git remote -v` first when a repo's remotes are unconfirmed — never assume a single `origin`.
+- Infrastructure backup policy: every EC2 instance in the Terra ecosystem must carry a `Backup=true` tag covered by a tag-based AWS Backup plan (daily snapshots) — flag any new/untagged instance encountered. See GUIDE: Infrastructure Backup Policy for the full two-layer rule and GUIDE: Operating Incidents for the 2026-08-07 ROMS EC2 total-loss case that established it.
 
 ## Working Memory Contract
 - Append to every substantive response (skip for ultra-short replies: yes/no, one-line confirms):
