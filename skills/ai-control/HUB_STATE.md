@@ -1,5 +1,5 @@
 # Engineering Hub State
-<!-- Freshness: 2026-08-08 (rev 56) | v1.3 | Snapshots only — overwritten in place. History lives in DEV_LOGs. -->
+<!-- Freshness: 2026-08-08 (rev 57) | v1.3 | Snapshots only — overwritten in place. History lives in DEV_LOGs. -->
 <!-- Last Audit: 2026-08-02 | Monthly Hub Audit (HUB.md) fires from Startup Sequence step 7 when this is >30 days old. Update this line after each audit. -->
 <!-- New project? Copy the template from HUB_GUIDE.md → HUB_STATE Section Template. -->
 
@@ -156,44 +156,48 @@
   restaurant-order-management-system/` (gitignored there). Strategy page:
   `terra-hq-site/roms_gtm_strategy.html`. **ROMS ADR-005 and terra-api-adr-010 still need a
   follow-up amendment** — their 2026-08-07 text says the original instance was "found stopped,
-  recoverable in place," which was accurate mid-investigation but is now superseded (see Status).
-- **Status:** ✅ Live and deployed. New instance `i-04f3abfb579f2bd1d` (`100.60.7.24`, us-east-1,
-  security group `sg-0b239d152c176840d`, key `roms-server-key`) — migrated there 2026-08-08 via
-  AMI export/cross-region-copy from the original `us-east-2` instance's disk (which turned out to
-  be merely stopped, not deleted, but was migrated anyway to consolidate into us-east-1 alongside
-  `terra-api-server`/`terra-jenkins`). All 5 containers (frontend/backend/postgres/redis/kafka)
-  confirmed healthy; nginx (80) and Spring Security (8080, 401 pre-auth as expected) both
-  responding. CI/CD: `roms-pipeline` job created on the shared `terra-jenkins`
-  (`3.211.62.86:8090`) — `github-app-terra-api` credential (extended to this repo), new
-  `server-ssh-roms` credential, existing `dockerhub-credentials` reused (one shared Docker Hub
-  account, `willt55555`). GitHub webhook + hook-trigger checkbox both set on this job. First full
-  pipeline run: all green. Old `us-east-2` instance (`i-0915f2c2b36899e94`) is redundant,
-  decommission pending — pre-migration snapshot (`snap-0b96ef480be89b45d`) kept as safety net
-  either way. Full sequence/root-cause narrative: `restaurant-order-management-system` DEV_LOG (if
-  written) or this session's transcript — not repeated here per HUB_STATE's snapshot-only rule.
-- **Active Task:** ROMS heartbeat sender BUILT 2026-08-08, not yet deployed. **Correction:**
-  Terra API's `terra.roms.*` config block (mentioned in an earlier version of this line) is NOT
-  the right mechanism — that's an unbuilt, unrelated feature (`ProductGatewayService`, Terra API
-  calling INTO ROMS). ADR-005's actual heartbeat model is the reverse: ROMS pushes to Terra API's
-  `POST /api/services/heartbeat`. New ROMS-side code: `TerraApiProperties`, `TerraApiAuthClient`
-  (logs into Terra API's `/api/auth/login`, caches JWT), `TerraHeartbeatScheduler` (`@Scheduled`,
-  reads real Postgres/Redis/Kafka health via newly-added `spring-boot-starter-actuator`, POSTs
-  every 30s). `docker.env` has real credentials set (shared Terra API service-account, same as
-  `TERRA_AUTH_USERNAME`/`PASSWORD` — ADR-003, one shared credential) and `TERRA_API_URL` set to
-  Terra API's PRIVATE VPC IP (`172.31.21.172:8081`) — confirmed same-VPC as ROMS's new instance,
-  verified reachable via a real `curl` from inside ROMS's box (`200 OK`). **Terra API's public IP
-  discovered and recorded for the first time:** `100.60.61.209:8081` (also confirmed `200 OK`,
-  directly from a local machine — no TLS yet, matches TAPI-022 still being open). Not yet done:
-  rebuild + redeploy ROMS's backend container so the new code/env vars actually take effect, then
-  confirm real heartbeats land (check Terra API logs or `/actuator/ecosystem-health`).
-- **Next Step:** Rebuild/redeploy ROMS backend, confirm heartbeat lands on Terra API, verify
-  `GET /api/v1/ecosystem/public-health` reflects ROMS's real tier, confirm the visualizer shows it.
-  Also: decommission the old us-east-2 instance once comfortable; add ROMS to SonarCloud via
-  Automatic Analysis (simpler than terra-api's — no Jenkinsfile stage or credential needed).
+  recoverable in place," which was accurate mid-investigation but is now superseded (migrated to a
+  new instance instead — see Status).
+- **Status:** ✅✅ **FULLY LIVE AND VERIFIED END-TO-END 2026-08-08** — ROMS is deployed, its
+  ADR-005 heartbeat sender is running, and Terra API is receiving and publicly reporting its real
+  status. Confirmed via `curl http://100.60.61.209:8081/api/v1/ecosystem/public-health` returning
+  `roms` with a real `last_heartbeat` timestamp — the original motivating goal for this whole
+  session's ROMS work. Getting here required three separate, unrelated bugs found and fixed the
+  same day (see Operating Incidents / CI/CD Disk Cleanup in HUB_GUIDE.md for full detail): (1)
+  `roms-pipeline`'s Deploy stage silently deployed a stale, wrong-account Docker image because
+  `DOCKERHUB_USERNAME` substitution depended on a separate, drifted config value — fixed by having
+  Jenkins pass its own known-correct value explicitly + consolidating onto `docker.env`; (2) the
+  deploy target's small (6.8GB) root volume filled to 96% from repeated undiscarded image pulls
+  and failed mid-deploy, also likely causing a full instance hang requiring a reboot — fixed with
+  `docker image prune -af` after every deploy plus a daily cron prune; (3) even after both fixes, a
+  stale Docker BUILD layer cache deployed a JAR compiled an hour before that run's own Maven
+  build — fixed with `--no-cache` on both image builds. New standing rule from bug #2 (Will's
+  explicit design principle): **auto-cleanup must be designed into any new CI/CD pipeline up
+  front, not retrofitted after a disk fills** — see HUB_GUIDE.md.
+  Infra: new instance `i-04f3abfb579f2bd1d` (`100.60.7.24`, us-east-1, security group
+  `sg-0b239d152c176840d`, key `roms-server-key`) — migrated 2026-08-08 via AMI export/cross-region
+  copy from the original `us-east-2` instance (found merely stopped, not deleted, but migrated
+  anyway to consolidate alongside `terra-api-server`/`terra-jenkins`). All 5 containers healthy.
+  `roms-pipeline` on shared `terra-jenkins` (`3.211.62.86:8090`) — `github-app-terra-api`
+  credential, `server-ssh-roms` credential, shared `dockerhub-credentials`
+  (`willt55555`), webhook + hook-trigger both set. Old `us-east-2` instance
+  (`i-0915f2c2b36899e94`) redundant, decommission pending — pre-migration snapshot
+  (`snap-0b96ef480be89b45d`) kept regardless.
+- **Active Task:** None blocking. ROMS's `tier` reported `ORANGE` on first check (expected —
+  ADR-005 escalates on missed heartbeats, and ROMS had been "off" a long time before this
+  session's first heartbeat landed; should self-correct to GREEN within a few 30s cycles, not
+  independently re-verified this session).
+- **Next Step:** Decommission the old us-east-2 instance once comfortable. Add ROMS to SonarCloud
+  via Automatic Analysis (simpler than terra-api's — no Jenkinsfile stage/credential needed).
+  Amend ROMS ADR-005/terra-api-adr-010 with the final migrated-not-restarted outcome. **Flagged by
+  Will for a future sync, not yet scoped:** ROMS frontend pages need a redesign; general ROMS
+  refinement work; possibly a full modernization plan.
 - **Blockers:** None technical.
 - **Context:** Spring Boot + React. First potential revenue source, once actually integrated. New
-  Infrastructure Backup Policy (tag `Backup=true`, daily AWS Backup plan) now covers this instance
-  and is recorded in HUB.md/HUB_GUIDE.md, ROMS ADR-005, and terra-api-adr-010.
+  Infrastructure Backup Policy (tag `Backup=true`, daily AWS Backup plan) covers this instance,
+  recorded in HUB.md/HUB_GUIDE.md, ROMS ADR-005, terra-api-adr-010. Terra API's IPs recorded for
+  the first time this session: private `172.31.21.172:8081`, public `100.60.61.209:8081` (no TLS,
+  matches TAPI-022 still open) — both confirmed reachable via real `curl`.
 
 ## PIOS                                             <!-- prefix: PIOS -->
 - **Reference Links:** Notion ADRs `pios-adr-011`–`015` — URLs not recorded, add when confirmed.
