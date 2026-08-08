@@ -181,9 +181,12 @@
   `roms-pipeline` on shared `terra-jenkins` (`3.211.62.86:8090`) — `github-app-terra-api`
   credential, `server-ssh-roms` credential, shared `dockerhub-credentials`
   (`willt55555`), webhook + hook-trigger both set. **Old us-east-2 instance
-  (`i-0915f2c2b36899e94`) STOPPED 2026-08-08** (was already stopped, confirmed — this closes out
-  the decommission step). Not terminated — EBS volume kept intact and restartable, on top of the
-  separate completed snapshot (`snap-0b96ef480be89b45d`, verified 100%) as a second layer.
+  (`i-0915f2c2b36899e94`) STOPPED 2026-08-08** (was already stopped, confirmed). Not terminated —
+  EBS volume kept intact and restartable, on top of the separate completed snapshot
+  (`snap-0b96ef480be89b45d`, verified 100%) as a second layer. **Open follow-up, not yet
+  scheduled: terminate/delete this instance (and its volume) once confident it's genuinely
+  unneeded** — stopped-not-terminated was deliberately the cautious first step, not the final
+  state; still incurs EBS storage cost while stopped (compute itself isn't billed while stopped).
 - **Active Task:** None blocking. ROMS's `tier` reported `ORANGE` on first check (expected —
   ADR-005 escalates on missed heartbeats, and ROMS had been "off" a long time before this
   session's first heartbeat landed; should self-correct to GREEN within a few 30s cycles, not
