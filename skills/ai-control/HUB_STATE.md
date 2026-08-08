@@ -179,6 +179,11 @@
   npm install` — fixed a `react-router`/`react-router-dom` version mismatch (stale lockfile had
   pulled a v7 `react-router` under a v6 `react-router-dom`) plus a `caniuse-lite` submodule gap
   that broke the Docker build's CSS/PostCSS step. Confirmed fixed via clean container rebuild.
+  **2026-08-08: Jenkinsfile gained a post-build `npm cache verify` stage** (`8b9ae71`, superseding
+  an initial `clean --force` draft `813959a` — full reasoning in DEV_LOG). GitHub webhook payload
+  URL identified for push-triggered builds: `http://3.211.62.86:8090/github-webhook/` (same
+  global receiver as terra-api's) — not yet confirmed added on GitHub, and not yet confirmed the
+  `terra-api-fe-main`/`-branches` jobs have "GitHub hook trigger for GITScm polling" enabled.
 - **Context:** CRA (React 19, plain JS — no TypeScript). Sibling to terra-api + terra-jenkins under
   `terra-api-home`. Docker Compose stack **fixed 2026-08-04**: was scattered across two separate
   compose projects (`terra-api` vs `terra-api-home`) due to a missing explicit `-p` flag on some
@@ -233,11 +238,16 @@
   ADR-005 escalates on missed heartbeats, and ROMS had been "off" a long time before this
   session's first heartbeat landed; should self-correct to GREEN within a few 30s cycles, not
   independently re-verified this session).
-- **Next Step:** ✅ **ROMS SonarCloud confirmed 2026-08-08** — project already existed with
-  Automatic Analysis already enabled; deliberately kept as Automatic Analysis (Will's call,
-  explicitly considered and rejected wiring CI-based analysis into `roms-pipeline` — same
-  Automatic-Analysis-vs-CI conflict terra-api hit earlier this session, avoided here by not mixing
-  the two). No Jenkinsfile/credential changes needed or made. Remaining: amend ROMS
+- **Next Step:** **SonarQube CI analysis added 2026-08-08** (`1aa5427`, `pom.xml` +
+  `Jenkinsfile`) — supersedes the earlier same-day "kept as Automatic Analysis" call: Will
+  decided to add CI-based analysis (`jacoco` + `sonar-maven-plugin`, reuses terra-api's
+  `sonar-token` credential) after all. An enforced `waitForQualityGate` was attempted first
+  (`47af7f2`) but dropped — this SonarCloud org's plan doesn't allow project webhooks, so the
+  gate would only hang to timeout every build, never actually grade in time. Landed on
+  report-only analysis, matching terra-api's own stage exactly. **Manual step still open, not
+  yet done:** disable SonarCloud Automatic Analysis for the ROMS project (Administration →
+  Analysis Method) — until then, SonarCloud gets two competing submissions for the same project,
+  the exact conflict TAPI-020 fixed on terra-api. Remaining, unrelated: amend ROMS
   ADR-005/terra-api-adr-010 with the final migrated-not-restarted outcome; terminate/delete the
   old us-east-2 instance once confident (see Status). **Flagged by Will for a future sync, not yet
   scoped:** ROMS
