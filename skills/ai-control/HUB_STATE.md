@@ -201,8 +201,11 @@
   sweep confirms the original instance, its Elastic IP, and any EBS snapshots are all permanently
   gone — see Status above. Not a stale-doc problem this time, a real, confirmed loss. Low stakes in
   the sense that the ROMS repo/code is intact locally and on both remotes — what's lost is the
-  deployment and any data that lived on that box's database, not the code. See [[reference_no-ebs-
-  snapshot-policy]] memory for the prevention step this incident prompted.
+  deployment and any data that lived on that box's database, not the code. Prevention: new
+  Infrastructure Backup Policy added to HUB.md/HUB_GUIDE.md AND to the source ADRs — ROMS ADR-005
+  and terra-api-adr-010 (Ecosystem CI/CD) both amended 2026-08-07 with the same rule. The Notion
+  task that originally flagged this ("ROMS — confirm whether the EC2 instance still exists") is
+  now marked Done with the resolution recorded on the task page itself.
 
 ## PIOS                                             <!-- prefix: PIOS -->
 - **Reference Links:** Notion ADRs `pios-adr-011`–`015` — URLs not recorded, add when confirmed.
