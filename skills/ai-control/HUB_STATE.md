@@ -1,13 +1,18 @@
 # Engineering Hub State
-<!-- Freshness: 2026-08-08 (rev 57) | v1.3 | Snapshots only — overwritten in place. History lives in DEV_LOGs. -->
+<!-- Freshness: 2026-08-08 (rev 58) | v1.3 | Snapshots only — overwritten in place. History lives in DEV_LOGs. -->
 <!-- Last Audit: 2026-08-02 | Monthly Hub Audit (HUB.md) fires from Startup Sequence step 7 when this is >30 days old. Update this line after each audit. -->
 <!-- New project? Copy the template from HUB_GUIDE.md → HUB_STATE Section Template. -->
 
 ## Terra API                                        <!-- prefix: TAPI -->
-- **Machine Reference (added 2026-08-08 — previously undocumented):** `terra-api-server`
-  (`i-044e35066f956d506`, us-east-1) — private IP `172.31.21.172:8081`, public IP
-  `100.60.61.209:8081`. Both confirmed reachable via real `curl` (200 OK) 2026-08-08 while wiring
-  ROMS's heartbeat sender. No TLS on either (TAPI-022 still open).
+- **Machine Reference (added 2026-08-08, port corrected same day):** `terra-api-server`
+  (`i-044e35066f956d506`, us-east-1) — private IP `172.31.21.172:8080`, public IP
+  `100.60.61.209:8080` (**port moved 8081→8080 2026-08-08**, security group has both open during
+  transition, 8081 not yet removed). **Real HTTPS now live: `https://api.terra-hq.com`** —
+  Cloudflare-proxied (Flexible SSL/TLS mode) + an Origin Rule rewriting destination port to 8080
+  (required: Cloudflare's free tier only proxies to a fixed origin-port allowlist, 8081 wasn't on
+  it). This is TAPI-022's actual scope (domains + TLS) becoming real for the first time, though
+  only this one public endpoint has been verified through the HTTPS path so far — not a full
+  TAPI-022 close.
 - **Reference Links:** (added 2026-08-02 — read these BEFORE designing against the project;
   Prime Directive 3) System Design doc: `https://app.notion.com/p/37089370d497814ab6cdf10732687fee`
   · Terra API Notion project: `https://app.notion.com/p/37789370d49781908780e2b4e7a6c480`
@@ -36,17 +41,34 @@
   Proposed, unscheduled; resolves ADR-011's open question (new ADR, not an ADR-003 amendment);
   sequenced last, after TAPI-021/023, blocked on pending frontend rework + a design pass on
   `/internal` and the customer visualizer (tied to queued terra-hq-site design work, TBD).
+  **2026-08-08: ROMS's visualizer confirmed rendering live in a real browser** (not just via
+  `curl`) — required finding and fixing 3 layered bugs: (1) Terra API had zero CORS config, fixed
+  with a deliberately narrow `CorsConfigurationSource` scoped to `/api/v1/ecosystem/public-health`
+  + `https://terra-hq.com` only, documented as an explicit exception to the 2026-06-06 "CORS not
+  in API layer" decision (that decision solved terra-api-fe's problem via same-origin, which isn't
+  available to a separately-deployed Cloudflare Pages site); (2) mixed-content blocking (browser
+  policy, separate from CORS, blocks any plain-HTTP fetch from an HTTPS page before CORS is even
+  evaluated) — real root cause of "CORS fixed but browser still fails," found by scrolling up in
+  DevTools Console for a separate browser-native warning; (3) Cloudflare's free-tier proxy only
+  forwards to a fixed origin-port allowlist, which didn't include Terra API's old port — resolved
+  by the 8081→8080 move above plus a Cloudflare Origin Rule. Full chronological debugging writeup,
+  including the false leads (522 initially looked like a firewall problem, wasn't): Obsidian
+  `cloudflare-https-proxy-for-non-standard-port-origin`. Separately, terra-hq-site's own Cloudflare
+  Pages deploy was ALSO found silently broken since mid-July (bot-generated `wrangler.jsonc` never
+  merged from its own branch into `main`) — fixed same session, see terra-hq-site's devlog.
 - **Active Task:** **TAPI-021 — EC2 right-size.** TAPI-019 (Jenkins EC2 data restore) and TAPI-020
   (SonarQube) both closed. TAPI-019 recap: the dedicated Jenkins EC2 `i-04ef85c382ac39269` restored
   the real `infra_jenkins_home` data and completed a fresh `master` pipeline green through
   production deploy; deploy target uses prod's private VPC IP `172.31.21.172`; prod SSH permits the
   Jenkins security group via `sgr-05b94280fb11d357d`. Old local Jenkins confirmed already off.
 - **Next Step:** Scope TAPI-021 (EC2 right-size). Remaining sequence: → TAPI-021 (EC2 right-size) →
-  TAPI-023 (OS patching) → TAPI-022 (domains+TLS, still open — Jenkins' public IP access is a
-  narrower side-effect, not the same thing) → ADR-013 (customer identity/login, blocked on frontend
-  + design rework, TBD). Confirmed NOT a new ROMS→Jenkins task: that's already `ROMS-002` (migrate
-  ROMS's own separate Jenkins to the shared Terra Jenkins EC2), blocked on `ROMS-001` (Will's
-  undecided, no-timeline call to redeploy ROMS) — see ROMS section below, not duplicated here.
+  TAPI-023 (OS patching) → TAPI-022 (domains+TLS — one real endpoint now live via
+  `api.terra-hq.com`, per above; NOT a full close, most of the ecosystem is still raw IP:port,
+  including ROMS's own address) → ADR-013 (customer identity/login, blocked on frontend + design
+  rework, TBD). Also open, not yet scheduled: remove the old 8081 security-group rule once
+  confident nothing references it. Confirmed NOT a new ROMS→Jenkins task: that's already
+  `ROMS-002` (migrate ROMS's own separate Jenkins to the shared Terra Jenkins EC2) — CLOSED
+  2026-08-08, see ROMS section below, not duplicated here.
 - **Blockers:** None. A dedicated `will-cli` IAM identity now exists for local AWS work; narrow its
   AdministratorAccess policy or move to IAM Identity Center as a separate security follow-up.
 - **Context:** **Credential incident (2026-08-01):** a Notion API key was committed live in
