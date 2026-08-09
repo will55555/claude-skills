@@ -703,3 +703,37 @@ committed — it touches live rendering logic that was never visually
 confirmed working before the session got redirected. Committing it
 sight-unseen would have been exactly the kind of unrequested,
 unconfirmed change this session was explicitly asked to avoid.
+
+## 2026-08-09 — HUB_STATE rev 59: terra-api-fe's `/internal` page ported from HTML + moved to `/`
+
+### Changes
+- HUB_STATE terra-api-fe section: `Next Step` fully rewritten (was stale,
+  still describing the 2026-08-04 dashboard restyle). Now points to the
+  session's actual work and to `terra-api-fe/DEV_LOG.md`'s new long-form
+  entry ("Terra API Internal Surface — HTML-to-React Port, /internal
+  (ApiDashboard), Root Route Swap") for full detail — deliberately not
+  duplicated here at length, per this field's own fixed-size-snapshot
+  design (HUB_STATE isn't meant to carry feature-level narrative, the
+  dev log is).
+- `Blockers` field: flagged that the entire session's work is
+  uncommitted (verified via `git status`/`git log` before writing this),
+  and that mobile/narrow-viewport rendering for the new page has not
+  been visually verified (no browser automation tool available this
+  session — checked by reading CSS against the HTML source's own
+  breakpoints instead).
+
+### Note
+Short version of the session, for anyone who wants it without opening
+the dev log: `terra_api_strategy.html` (terra-hq-site) ported into
+terra-api-fe as a real page, absorbing the old standalone `/internal`
+operator route as a 9th tab, then the whole page moved from `/internal`
+to `/` (Will: this is his own internal tool right now, not a live
+customer product — root should land here). The port went through a full
+redo partway through: the first pass rebuilt the HTML's look using this
+app's existing shared CSS tokens instead of copying the HTML's actual
+values, and visibly drifted — same failure mode as an earlier, separate
+incident this session where a visualizer's tuning values were sourced
+from an intermediate git commit message instead of the file's current
+state. Both were fixed the same way: re-read the actual current source,
+copy it directly, and only THEN layer in explicitly-approved deviations
+on top.

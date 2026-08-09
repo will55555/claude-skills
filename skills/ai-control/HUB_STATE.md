@@ -1,5 +1,5 @@
 # Engineering Hub State
-<!-- Freshness: 2026-08-08 (rev 58) | v1.3 | Snapshots only — overwritten in place. History lives in DEV_LOGs. -->
+<!-- Freshness: 2026-08-09 (rev 59) | v1.3 | Snapshots only — overwritten in place. History lives in DEV_LOGs. -->
 <!-- Last Audit: 2026-08-02 | Monthly Hub Audit (HUB.md) fires from Startup Sequence step 7 when this is >30 days old. Update this line after each audit. -->
 <!-- New project? Copy the template from HUB_GUIDE.md → HUB_STATE Section Template. -->
 
@@ -155,26 +155,36 @@
   matches production) and `?mockHealthAll=1` (all 8 domains, synthetic statuses spanning all 4
   tiers, for inspecting every cube/child pair in one pass). Opt-in via URL param only; real
   fetch/poll runs unmodified on every normal page load.
-- **Next Step:** **Dashboard restyled 2026-08-04** — Montfort Group (mont-fort.com)'s markup
-  used as a structural reference, explicitly scoped to layout/spacing only (Will: borrow
-  structure, keep Terra's existing palette/type — consistent with colors-frozen rule):
-  `.cm-grid` gap 28→40px & max-width 1400→1700px, card padding 26→34px, numbered section index
-  badges (01/02/03) added to each card, corner ornaments reshaped from angular low-poly
-  triangles to a soft oval/quarter-circle glow at lower opacity (Will: dashboard "looks too much
-  like a game" — same complaint a family member gave independently), base font 11→13px,
-  smallest labels 8/9px→9/10px, `--text-dim`/`--text-muted` brightened for contrast, light-mode
-  `--border-sub` alpha 0.08→0.18 (was invisible against `--surface`). Visualizer card sizing
-  tuned separately (`visualizer.css`): aspect-ratio settled at 3/2 with a `max-height: 460px`
-  cap (needed once discovered the `/internal` operator page hosts it full-width, unlike the
-  customer dashboard's 60/40 split — uncapped aspect-ratio alone produced a ~930px-tall card).
-  **terra-hq-site explicitly DEFERRED to a fresh session** (Will's call, given session length):
-  same Montfort structural pass (whitespace, numbered sections) PLUS a second pattern Will
-  identified from Montfort's markup — in-page anchor-tab navigation with the site's existing
-  animated section-reveal system (fade/slide/white-curtain transitions) playing during the jump,
-  not an instant `#anchor` snap. 13 standalone HTML files, no shared CSS (each ~900+ lines,
-  inline `<style>` blocks) — needs its own session with full context budget. TFE-502/503
-  (401 redirect UX, 10/12 modules untested) remain untouched, still open from prior sessions.
-- **Blockers:** None. Standing caution unchanged: never run `npm audit fix --force` here.
+- **Next Step:** **2026-08-09 — `terra_api_strategy.html` ported into this app as a real page,
+  now the app's DEFAULT LANDING ROUTE.** Full writeup: `terra-api-fe/DEV_LOG.md`, "Terra API
+  Internal Surface — HTML-to-React Port, /internal (ApiDashboard), Root Route Swap" (long
+  entry — covers the initial scaffold, a full redo after the first pass drifted from the HTML's
+  actual CSS values instead of copying them, 4 distinct visual bugs found only by Will looking
+  at the rendered page, new UI with no HTML equivalent, and the final route swap). Short version:
+  new `ApiDashboard.js` at `/` (moved off `/internal` in the same session — Will: this is his
+  own internal tool right now, not a live customer product, so root should land here, not on
+  the customer dashboard) — 9 tabs: the HTML's original 8 (Overview/Core Services/Health &
+  Isolation/Build Sequence/ADRs/Ecosystem Public/Ecosystem Architecture/For Partners, migrated
+  as a near-verbatim CSS+markup copy) plus a 9th "Operator" tab absorbing the old standalone
+  `/internal` route (`OperatorDashboard.js`, now deleted). Customer dashboard moved to
+  `/dashboard` behind the same `ProtectedRoute`; `OperatorRoute`'s non-operator fallback updated
+  to `/dashboard` (was `/`, would have infinite-looped once `/` became the same gated route).
+  Also ported: `HeartbeatBackdrop.js`, a React port of the HTML's animated procedural
+  circuit-trace canvas (not a static image — random-walk PCB trace generator + scroll parallax +
+  heartbeat-interval flash propagation). `EcosystemVisualizer`/`terraScene.js` gained an opt-in
+  `transparent` prop (default `false`, zero behavior change for existing callers) so the
+  Overview/Operator tabs' visualizer can show the circuit backdrop through it — the one
+  deliberate exception to "identical to the HTML," per Will: the live React visualizer itself
+  stays, only its background treatment needed to match. TFE-602 opened for two placeholder-
+  branding slots pending Will's own designs (nav logo, browser favicon) — see terra-api-fe/
+  TASKS.md. TFE-502/503 (401 redirect UX, 10/12 modules untested) remain untouched, still open
+  from prior sessions.
+- **Blockers:** **Everything above is UNCOMMITTED** (confirmed via `git status`/`git log`
+  before this note was written — nothing pushed, nothing committed this session). Also:
+  mobile/narrow-viewport rendering for this new page has NOT been visually verified — no browser
+  automation tool was available; claims are based on a careful CSS read against the HTML
+  source's own breakpoints, not an actual screenshot. See DEV_LOG's "Known Limitations" for
+  specifics. Standing caution unchanged: never run `npm audit fix --force` here.
   **2026-08-04: `package-lock.json` regenerated** via `rm -rf node_modules package-lock.json &&
   npm install` — fixed a `react-router`/`react-router-dom` version mismatch (stale lockfile had
   pulled a v7 `react-router` under a v6 `react-router-dom`) plus a `caniuse-lite` submodule gap
