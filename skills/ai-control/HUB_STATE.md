@@ -1,5 +1,5 @@
 # Engineering Hub State
-<!-- Freshness: 2026-08-09 (rev 59) | v1.3 | Snapshots only — overwritten in place. History lives in DEV_LOGs. -->
+<!-- Freshness: 2026-08-09 (rev 60) | v1.3 | Snapshots only — overwritten in place. History lives in DEV_LOGs. -->
 <!-- Last Audit: 2026-08-02 | Monthly Hub Audit (HUB.md) fires from Startup Sequence step 7 when this is >30 days old. Update this line after each audit. -->
 <!-- New project? Copy the template from HUB_GUIDE.md → HUB_STATE Section Template. -->
 
@@ -56,6 +56,23 @@
   `cloudflare-https-proxy-for-non-standard-port-origin`. Separately, terra-hq-site's own Cloudflare
   Pages deploy was ALSO found silently broken since mid-July (bot-generated `wrangler.jsonc` never
   merged from its own branch into `main`) — fixed same session, see terra-hq-site's devlog.
+  **2026-08-09: TAPI-025 closed, TAPI-024 still open.** Root cause was no prod DB access
+  existing at all (SSH/SSM/Serial Console all failed) — fixed by attaching
+  `AmazonSSMManagedInstanceCore` to `terra-api-server`'s IAM role (`terra-api-backup-role`,
+  previously S3/SNS-only from the backup-automation work, SSM was simply never in scope).
+  SSM now works on `terra-api-server` AND `roms-server` (latter had NO instance profile at all —
+  created `roms-server-ssm-role`/`roms-server-ssm-profile` from scratch, same additive pattern).
+  New prod operator account created directly via SSM (`admin@terra-hq.com`, `role=internal`,
+  `ops:read`) — no registration endpoint exists in this codebase, account creation has always
+  been an undocumented manual DB step. A self-inflicted bug during this fix (a `docker-prod.env`
+  append landed on the same line as `TERRA_AUTH_PASSWORD` with no newline, corrupting it and
+  breaking ROMS's heartbeat auth with 401s) was found and fixed same session. Full
+  command-by-command tutorial, including a 6-attempt Jenkinsfile detour (3 distinct Groovy
+  pitfalls: GString-interpolated secrets get masked/blanked by `withCredentials`, declarative
+  `steps{}` rejects plain Groovy statements, multi-line `+` concatenation across pipeline lines
+  fails to parse) that was abandoned once SSM access was fixed properly: Obsidian
+  `ec2-ssm-access-provisioning-and-jenkins-groovy-secret-pitfalls`. Full narrative + root causes:
+  `terra-api/DEV_LOG.md`, "TAPI-024/025 Resolved" (2026-08-09).
 - **Active Task:** **TAPI-021 — EC2 right-size.** TAPI-019 (Jenkins EC2 data restore) and TAPI-020
   (SonarQube) both closed. TAPI-019 recap: the dedicated Jenkins EC2 `i-04ef85c382ac39269` restored
   the real `infra_jenkins_home` data and completed a fresh `master` pipeline green through
@@ -71,6 +88,11 @@
   2026-08-08, see ROMS section below, not duplicated here.
 - **Blockers:** None. A dedicated `will-cli` IAM identity now exists for local AWS work; narrow its
   AdministratorAccess policy or move to IAM Identity Center as a separate security follow-up.
+  **2026-08-09: this access was used directly for real prod writes** (IAM policy attach on 2
+  instances, direct SQL via SSM against prod Postgres) — fast and effective, but a same-session
+  self-inflicted bug (the `docker-prod.env` corruption above) is a concrete example of what broad
+  admin access can do wrong when a single command is slightly off. Narrowing this remains open
+  and unscheduled.
 - **Context:** **Credential incident (2026-08-01):** a Notion API key was committed live in
   terra-api's `.env` since 2026-07-05 and copied into `DEV_LOG.md` 2026-07-26. Rotated by Will;
   scrubbed from git history via two `git-filter-repo` passes, force-pushed, verified clean.

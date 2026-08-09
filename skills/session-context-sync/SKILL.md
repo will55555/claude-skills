@@ -304,6 +304,35 @@ stubbed. This is the baseline, not an escalation Will has to request. Establishe
 session where he had to explicitly ask for "detailed" notes multiple times before it became the
 default; it should never need asking again.
 
+**Self-sufficiency bar (standing rule, set 2026-08-09 — do not wait to be asked): every note
+for a coding/debugging/infra session must be written so a technically competent person with
+ZERO session context — no access to this conversation, no access to Claude at all — could
+reproduce the fix and debug the same class of problem independently from the note alone.**
+Will's own framing: "if my agent is down, I could always go to my notes and do this myself."
+This is a higher bar than "detailed" — detailed can still assume the reader remembers what
+"the endpoint" or "the box" refers to. Self-sufficient means:
+- **Every command actually run, verbatim, not paraphrased** — real file paths, real flags, real
+  AWS CLI / SSM / SQL / curl invocations exactly as executed, not "then I checked the logs."
+  If a command was run via a specific tool/console path (e.g. AWS Console → EC2 → Connect →
+  Session Manager, not just "connected to the box"), name that exact path — a reader without
+  that context can't guess which of 4 connection methods was the one that worked.
+- **Every wrong turn kept, not just the final fix** — per the existing "How this was actually
+  found / debugged" section below, a false lead that seemed to work but didn't is exactly as
+  valuable as the real fix, because it's what the reader will also try first.
+- **All prerequisite context stated inline, not assumed** — credentials/identities involved
+  (by role, e.g. "an IAM user with AdministratorAccess," not assuming the reader already knows
+  which user that is), account/instance IDs, exact error text and status codes, exact file
+  paths and line numbers where a bug lived. A reader who has never seen this codebase should be
+  able to locate the same file and see the same bug.
+- **The underlying mechanism explained, not just the symptom→fix pair** — e.g. not just "add a
+  newline before appending," but WHY the append corrupted the value (no trailing newline on the
+  prior line + shell `>>` doesn't add one), so the reader can recognize and avoid the same
+  failure mode in a completely different file/context later.
+- This bar applies whenever the session involved real debugging, infra work, or a
+  multi-step build (i.e., whenever the "How this was actually found / debugged" section below
+  would apply) — pure concept/reference notes with no investigation story don't need this
+  level of forensic command-by-command detail, just the existing full-depth bar above.
+
 ```markdown
 > **What this note is:** [One sentence — what this note covers and why it was written]
 
