@@ -1,5 +1,5 @@
 # Engineering Hub State
-<!-- Freshness: 2026-08-09 (rev 60) | v1.3 | Snapshots only — overwritten in place. History lives in DEV_LOGs. -->
+<!-- Freshness: 2026-08-10 (rev 65) | v1.3 | Snapshots only — overwritten in place. History lives in DEV_LOGs. -->
 <!-- Last Audit: 2026-08-02 | Monthly Hub Audit (HUB.md) fires from Startup Sequence step 7 when this is >30 days old. Update this line after each audit. -->
 <!-- New project? Copy the template from HUB_GUIDE.md → HUB_STATE Section Template. -->
 
@@ -73,6 +73,32 @@
   fails to parse) that was abandoned once SSM access was fixed properly: Obsidian
   `ec2-ssm-access-provisioning-and-jenkins-groovy-secret-pitfalls`. Full narrative + root causes:
   `terra-api/DEV_LOG.md`, "TAPI-024/025 Resolved" (2026-08-09).
+  **2026-08-09: Jenkins outage + recovery.** `terra-jenkins` (`3.211.62.86:8090`,
+  `i-04ef85c382ac39269`) hung after 3-4 near-simultaneous pipeline triggers from this session's
+  push wave — TCP connected, zero HTTP response. An SSM-issued `reboot` did NOT clear it (still
+  hung ~8 min later); a full AWS Console reboot did (confirmed via `curl` → `403`). Root cause
+  unconfirmed — no `free -h`/`docker ps` data was ever captured before the box was rebooted.
+  Collateral: ROMS-Pipeline's Build Frontend stage was killed mid-run by the reboot (not a real
+  code bug) — retriggered same session, confirmed running cleanly (a stage-replay reproduced the
+  same stuck symptom once; a fresh full pipeline run succeeded). Full writeup: `terra-api/
+  DEV_LOG.md`, "Jenkins Outage" entry; Obsidian `jenkins-hung-instance-ssm-reboot-vs-console-
+  reboot`. Two new, unscoped forward-looking asks now in Notion Tasks DB: "Scope a Jenkins
+  capacity/scaling session" and "Scope a service-load learning session (ROMS under high
+  concurrency, etc.)" — Will's explicit sequencing: learning/design pass first, review before
+  any implementation.
+  **2026-08-09: ApiDashboard + terra-hq-site content accuracy audit.** Ported HTML text (both
+  `terra-api-fe`'s `/` `ApiDashboard.js`, 9 tabs, and `terra-hq-site`'s 11 static pages) checked
+  against current Notion/hub state via two read-only background-agent passes, then corrected.
+  Real bug found, not just staleness: AdrsTab.js's ADR-010 card described a completely different
+  ADR (CI/CD content, mislabeled) than the actual `terra-api-adr-010` (Tier/Role Claim
+  Separation, Proposed) — fixed, plus "9 ADRs Accepted" miscounts, ADR-011/012/013 cards added
+  (were missing entirely), and ADR-012 itself amended in Notion (its own text said no operator
+  identity exists — stale since TAPI-025 provisioned one same session). terra-hq-site: fixed a
+  repeated false claim (Terra API "EVENT BUS" — no such capability exists, only an ADR-007 audit
+  log) across 4 spots in `terra_initiative.html`, plus 2 minor staleness fixes. Full writeup:
+  `terra-api/DEV_LOG.md` and `terra-api-fe/DEV_LOG.md`. Some lower-severity findings (Build
+  Sequence tab framing, a few overclaimed-capability lines) flagged but not yet fixed — follow-up
+  pass, not urgent.
 - **Active Task:** **TAPI-021 — EC2 right-size.** TAPI-019 (Jenkins EC2 data restore) and TAPI-020
   (SonarQube) both closed. TAPI-019 recap: the dedicated Jenkins EC2 `i-04ef85c382ac39269` restored
   the real `infra_jenkins_home` data and completed a fresh `master` pipeline green through
@@ -230,66 +256,50 @@
   `useEcosystemHealth.js`, `visualizer.css`, `Dashboard.js`, `dashboard.css`, plus the
   regenerated `package-lock.json`). Will's call whether/when to commit.
 
-## ROMS                                             <!-- prefix: ROMS -->
+## ROMS repo, product name Ha'bem (OMS)        <!-- prefix: ROMS -->
+- **Naming (corrected 2026-08-10):** Product acronym is **OMS** (Order Management System), not
+  ROMS — "ROMS" is only the literal legacy repo/package name in the codebase (short for the
+  original "Real-time Order Management System"). Product docs now say "Ha'bem (OMS)"
+  consistently. Notion (main project page, all 5 ADRs, Resort Deployment Tracker) and Obsidian
+  (notes 01, 02, 12) all updated same day.
 - **Reference Links:** Notion ADRs `roms-adr-001`–`005`. Repo: `terra-api-home/
-  restaurant-order-management-system/` (gitignored there). Strategy page:
-  `terra-hq-site/roms_gtm_strategy.html`. **ROMS ADR-005 and terra-api-adr-010 still need a
-  follow-up amendment** — their 2026-08-07 text says the original instance was "found stopped,
-  recoverable in place," which was accurate mid-investigation but is now superseded (migrated to a
-  new instance instead — see Status).
-- **Status:** ✅✅ **FULLY LIVE AND VERIFIED END-TO-END 2026-08-08** — ROMS is deployed, its
-  ADR-005 heartbeat sender is running, and Terra API is receiving and publicly reporting its real
-  status. Confirmed via `curl http://100.60.61.209:8081/api/v1/ecosystem/public-health` returning
-  `roms` with a real `last_heartbeat` timestamp — the original motivating goal for this whole
-  session's ROMS work. Getting here required three separate, unrelated bugs found and fixed the
-  same day (see Operating Incidents / CI/CD Disk Cleanup in HUB_GUIDE.md for full detail): (1)
-  `roms-pipeline`'s Deploy stage silently deployed a stale, wrong-account Docker image because
-  `DOCKERHUB_USERNAME` substitution depended on a separate, drifted config value — fixed by having
-  Jenkins pass its own known-correct value explicitly + consolidating onto `docker.env`; (2) the
-  deploy target's small (6.8GB) root volume filled to 96% from repeated undiscarded image pulls
-  and failed mid-deploy, also likely causing a full instance hang requiring a reboot — fixed with
-  `docker image prune -af` after every deploy plus a daily cron prune; (3) even after both fixes, a
-  stale Docker BUILD layer cache deployed a JAR compiled an hour before that run's own Maven
-  build — fixed with `--no-cache` on both image builds. New standing rule from bug #2 (Will's
-  explicit design principle): **auto-cleanup must be designed into any new CI/CD pipeline up
-  front, not retrofitted after a disk fills** — see HUB_GUIDE.md.
-  Infra: new instance `i-04f3abfb579f2bd1d` (`100.60.7.24`, us-east-1, security group
-  `sg-0b239d152c176840d`, key `roms-server-key`) — migrated 2026-08-08 via AMI export/cross-region
-  copy from the original `us-east-2` instance (found merely stopped, not deleted, but migrated
-  anyway to consolidate alongside `terra-api-server`/`terra-jenkins`). All 5 containers healthy.
-  `roms-pipeline` on shared `terra-jenkins` (`3.211.62.86:8090`) — `github-app-terra-api`
-  credential, `server-ssh-roms` credential, shared `dockerhub-credentials`
-  (`willt55555`), webhook + hook-trigger both set. **Old us-east-2 instance
-  (`i-0915f2c2b36899e94`) STOPPED 2026-08-08** (was already stopped, confirmed). Not terminated —
-  EBS volume kept intact and restartable, on top of the separate completed snapshot
-  (`snap-0b96ef480be89b45d`, verified 100%) as a second layer. **Open follow-up, not yet
-  scheduled: terminate/delete this instance (and its volume) once confident it's genuinely
-  unneeded** — stopped-not-terminated was deliberately the cautious first step, not the final
-  state; still incurs EBS storage cost while stopped (compute itself isn't billed while stopped).
-- **Active Task:** None blocking. ROMS's `tier` reported `ORANGE` on first check (expected —
-  ADR-005 escalates on missed heartbeats, and ROMS had been "off" a long time before this
-  session's first heartbeat landed; should self-correct to GREEN within a few 30s cycles, not
-  independently re-verified this session).
-- **Next Step:** **SonarQube CI analysis added 2026-08-08** (`1aa5427`, `pom.xml` +
-  `Jenkinsfile`) — supersedes the earlier same-day "kept as Automatic Analysis" call: Will
-  decided to add CI-based analysis (`jacoco` + `sonar-maven-plugin`, reuses terra-api's
-  `sonar-token` credential) after all. An enforced `waitForQualityGate` was attempted first
-  (`47af7f2`) but dropped — this SonarCloud org's plan doesn't allow project webhooks, so the
-  gate would only hang to timeout every build, never actually grade in time. Landed on
-  report-only analysis, matching terra-api's own stage exactly. **Manual step still open, not
-  yet done:** disable SonarCloud Automatic Analysis for the ROMS project (Administration →
-  Analysis Method) — until then, SonarCloud gets two competing submissions for the same project,
-  the exact conflict TAPI-020 fixed on terra-api. Remaining, unrelated: amend ROMS
-  ADR-005/terra-api-adr-010 with the final migrated-not-restarted outcome; terminate/delete the
-  old us-east-2 instance once confident (see Status). **Flagged by Will for a future sync, not yet
-  scoped:** ROMS
-  frontend pages need a redesign; general ROMS refinement work; possibly a full modernization plan.
+  restaurant-order-management-system/` (gitignored there). Design ref: `roms-expansion-sketch.md`
+  (Claude-generated, not yet in repo) · Obsidian `Projects/ROMS/12 - Habem Expansion & Brand
+  Design`. **ROMS ADR-005 and terra-api-adr-010 still need a follow-up amendment** (stale
+  "found stopped, recoverable in place" text, superseded by actual migration).
+- **Status:** Live in prod, single property, verified end-to-end (heartbeat → Terra API public
+  health). **2026-08-10: guest-facing brand renamed ROMS → "Ha'bem"** — ROMS stays the internal/
+  engineering codename (repo, packages, ADRs unchanged). Full pre-implementation design pass
+  done this session: `Property`-scoped multi-tenancy + multi-category data model sketched
+  (`CatalogCategory`/`CatalogItem`/`Booking`/`ServiceRequest`/`PaymentMethod`, adapter pattern
+  for African mobile money); Phase 2 conceptual framework for an eventual Africa-wide open
+  delivery network (provisioning-only, nothing built); brand/icon system (wordmark + per-category
+  tab badges) drafted, palette not finalized. **Frontend page mockup built** (`habem-pages.jsx`
+  + companion `habem-pages-tutorial.md`, both Claude-generated, not yet in repo): functional
+  React mockup of the browse grid/sidebar/hero/cart flow, themed via a single `THEME` object and
+  a shared `CategoryGlyph` image-or-icon component for one-place color/asset swapping.
+  **Currency generalized**: replaced hardcoded XAF formatting with a `CURRENCIES` registry
+  (XAF/KES/NGN/USD) + a `PROPERTY` object + `formatPrice()`, mirroring `Property.currency` —
+  adding a new region's currency is now one registry entry. **Portability layer completed
+  2026-08-10:** added `APP_IDENTITY` (product naming — `Logo` renders from it dynamically
+  instead of hardcoding "Ha'/bem") and `DESIGN_TOKENS` (corner radius scale + typeface) —
+  four total swap points now (`THEME`/`APP_IDENTITY`/`DESIGN_TOKENS`/`CURRENCIES`+`PROPERTY`).
+  Matching §0 Naming Registry added to `roms-expansion-sketch.md` as the prose-side source of
+  truth for future renames.
+- **Active Task:** None blocking prod. Design/brand/frontend-mockup work above is
+  pre-implementation, no backend code changed this session.
+- **Next Step:** Decide final Ha'bem wordmark palette; verify domain + OAPI (Cameroon/CEMAC)
+  trademark availability before brand commit; decide Grocery category's real fulfillment model
+  before building it as a separate tab; pin `CatalogItem` price to a currency on the backend
+  (frontend pattern now exists as reference); replace placeholder 8% Nkap discount rate once
+  Terra Chain settlement design is real; build Spa/Tours/Housekeeping category pages once
+  `Booking`/`ServiceRequest` entities exist. Unrelated/still open: disable SonarCloud Automatic
+  Analysis for ROMS project; amend ADR-005 with final migration outcome; terminate/delete old
+  us-east-2 instance once confident.
 - **Blockers:** None technical.
-- **Context:** Spring Boot + React. First potential revenue source, once actually integrated. New
-  Infrastructure Backup Policy (tag `Backup=true`, daily AWS Backup plan) covers this instance,
-  recorded in HUB.md/HUB_GUIDE.md, ROMS ADR-005, terra-api-adr-010. Terra API's IPs recorded for
-  the first time this session: private `172.31.21.172:8081`, public `100.60.61.209:8081` (no TLS,
-  matches TAPI-022 still open) — both confirmed reachable via real `curl`.
+- **Context:** Spring Boot + React, single 2GB EC2 instance (us-east-1). Data model extension
+  is non-breaking (5-step migration path drafted, not run). Full brand/data-model reference:
+  Obsidian note 12 in `Projects/ROMS/`.
 
 ## PIOS                                             <!-- prefix: PIOS -->
 - **Reference Links:** Notion ADRs `pios-adr-011`–`015` — URLs not recorded, add when confirmed.
@@ -470,4 +480,3 @@
   jsonwebtoken dep, 30-day TTL via `ACCESS_TOKEN_TTL_SECONDS`). Added `.github/workflows/keep-alive.yml`
   (10min health ping) as secondary defense against spin-down itself. Full history in repo's own
   `DEV_LOG.md` (Phase 1 + Phase 2). Notion: PAI subproject page `📨 Yahoo Mail MCP Server`.
-
