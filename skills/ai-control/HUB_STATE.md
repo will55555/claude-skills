@@ -1,5 +1,5 @@
 # Engineering Hub State
-<!-- Freshness: 2026-08-10 (rev 65) | v1.3 | Snapshots only — overwritten in place. History lives in DEV_LOGs. -->
+<!-- Freshness: 2026-08-21 (rev 69) | v1.3 | Snapshots only — overwritten in place. History lives in DEV_LOGs. -->
 <!-- Last Audit: 2026-08-02 | Monthly Hub Audit (HUB.md) fires from Startup Sequence step 7 when this is >30 days old. Update this line after each audit. -->
 <!-- New project? Copy the template from HUB_GUIDE.md → HUB_STATE Section Template. -->
 
@@ -285,9 +285,21 @@
   instead of hardcoding "Ha'/bem") and `DESIGN_TOKENS` (corner radius scale + typeface) —
   four total swap points now (`THEME`/`APP_IDENTITY`/`DESIGN_TOKENS`/`CURRENCIES`+`PROPERTY`).
   Matching §0 Naming Registry added to `roms-expansion-sketch.md` as the prose-side source of
-  truth for future renames.
-- **Active Task:** None blocking prod. Design/brand/frontend-mockup work above is
-  pre-implementation, no backend code changed this session.
+  truth for future renames. **2026-08-11: §13 conceptual cross-vertical sourcing link drafted**
+  — Ha'bem's Food & Beverage catalog sourcing from Terra Agriculture (mirrors the existing Terra
+  Apparel/bamboo off-take pattern). Explicitly not build-ready: Terra Agriculture is
+  planning-only, no active ops, only defined scope is a Ghana bamboo/calabash pilot — nothing
+  about produce yet. Geography mismatch flagged (Ghana pilot vs. Cameroon-only Ha'bem property).
+  One real thread: both sides independently already plan to use Terra Nkap. Cross-linked from
+  the Terra Agriculture Notion page; open question (Cameroon-only vs. standing principle) not
+  yet decided.
+- **Active Task:** None blocking prod. **2026-08-13: real prod login bug found and fixed same
+  session** — `POST /api/users/login` was returning `500` for any login typed with different
+  username casing than at signup (registration lowercases, login lookup didn't — two separate
+  un-normalized `findByUsername()` call sites). Compounded by `GlobalExceptionHandler`'s catch-all
+  masking the real exception as an opaque `500` with zero logging. Both fixed, committed (`8c7d7e0`),
+  deployed. Full debugging narrative (3 false leads before the real root cause, confirmed live with
+  Will): `oms/DEVLOG.md`, "Login 500 Root-Caused" entry.
 - **Next Step:** Decide final Ha'bem wordmark palette; verify domain + OAPI (Cameroon/CEMAC)
   trademark availability before brand commit; decide Grocery category's real fulfillment model
   before building it as a separate tab; pin `CatalogItem` price to a currency on the backend
@@ -295,11 +307,15 @@
   Terra Chain settlement design is real; build Spa/Tours/Housekeeping category pages once
   `Booking`/`ServiceRequest` entities exist. Unrelated/still open: disable SonarCloud Automatic
   Analysis for ROMS project; amend ADR-005 with final migration outcome; terminate/delete old
-  us-east-2 instance once confident.
+  us-east-2 instance once confident. New: OMS-018 (favicon/touch-icon needs tighter cropping,
+  blocked on a real source image — binary asset, not a code fix); OMS-015 (Redis health-check
+  race/config bug, root cause still genuinely uncertain, needs a dedicated investigation session).
 - **Blockers:** None technical.
-- **Context:** Spring Boot + React, single 2GB EC2 instance (us-east-1). Data model extension
-  is non-breaking (5-step migration path drafted, not run). Full brand/data-model reference:
-  Obsidian note 12 in `Projects/ROMS/`.
+- **Context:** Spring Boot + React, single 2GB EC2 instance (us-east-1, `oms-server` /
+  `i-04f3abfb579f2bd1d`, public IP `100.60.7.24`). Data model extension is non-breaking (5-step
+  migration path drafted, not run). Full brand/data-model reference: Obsidian note 12 in
+  `Projects/ROMS/`. SSM access confirmed working on this box (used directly 2026-08-13 to pull
+  container logs and query prod Postgres for the login-bug investigation).
 
 ## PIOS                                             <!-- prefix: PIOS -->
 - **Reference Links:** Notion ADRs `pios-adr-011`–`015` — URLs not recorded, add when confirmed.
@@ -358,7 +374,24 @@
   replacing the old binary connected/disconnected model against hardcoded per-domain ports.
   Design question resolved: single ecosystem-health poll, not per-cube. Domain cubes with no
   reporting service render as a distinct "unbuilt" navy, separate from "off."
-- **Next Step:** **THQ-003, found 2026-08-04, uncommitted**: live-testing THQ-002 against a real
+  **2026-08-13: terra_africa_strategy.html gained a new "FARM RENDERS" tab (THQ-004, committed
+  locally, not yet pushed)** — 21 Gemini-generated images for the Terra Agriculture Cameroon
+  pilot (beehive field, approved wide site mockup, the 11-panel modular-shell schematic sheet,
+  and realistic component/configuration renders for the shell system) added under
+  `Assets/agriculture/`, each with its exact generation prompt inline via a show/hide toggle +
+  click-to-enlarge lightbox (new `.render-*` CSS block + `toggleRenderPrompt`/
+  `openRenderLightbox` JS, none of it colliding with existing page classes). A new "Pilot Status"
+  section (00) precedes the gallery: a 6-phase budget grid pulled from this session's Notion sync
+  (Beekeeping $1,200–3,700 · Chickens $500–2,000 · Crops $200–700/cycle · Hydroponics $150–3,000 ·
+  Pigs & Cattle $2,000–5,000+ · Agrivoltaics not yet scoped), plus two callouts: the open hive/
+  living-fence security gate (Flow Hive explicitly ruled out as a security fix) and the modern-hive
+  pricing comparison that reaffirmed the top-bar build decision. The BRAND & STRUCTURE tab's Terra
+  Agriculture card was also rewritten to match (was a stale generic "AgTech platform" blurb).
+  3 draft images intentionally excluded (in-progress schematic duplicate + 2 rejected coop
+  iterations missing a foundation) — flagged inline on the page, not deleted from disk. No roof-
+  only realistic render exists yet (schematic-only) — flagged inline too.
+- **Next Step:** Commit + push `terra_africa_strategy.html` (THQ-004, currently uncommitted on
+  disk only). Also unrelated/still open — **THQ-003, found 2026-08-04, uncommitted**: live-testing THQ-002 against a real
   ROMS heartbeat surfaced that pipeline extension tubes (created on cube expand-click) freeze
   their connected state at creation time and never refresh — `createPipelineExtension()` used
   `tube.userData.cube` (singular), which `updateCubeConnection()`'s live-refresh loop doesn't
@@ -388,6 +421,23 @@
 - **Context:** Java default. Arrays → Strings → Linked Lists → Trees → Graphs → DP.
 
 ## Cross-Project Notes                              <!-- no prefix — ecosystem-wide, not project-scoped -->
+- **Folder rename completed 2026-08-20: `terra-api-home` → `terra-initiative-home`** (final name
+  differs from the earlier-planned `terra-home` — see Claude memory `terra-api-home-future-
+  rename`). All Machine Paths / local-path references across this hub, CLAUDE.md files, and
+  Notion should use the new name going forward; `terra-api-home` in older HUB_STATE entries
+  above is historical and hasn't been retroactively edited. Local Claude memory (project-scoped,
+  not git-tracked) was migrated file-for-file from the old project path to the new one same day.
+  The 🌍 Terra Inc Notion page (`39289370d49780178d44c4e2c87c5488`) now carries a "Local machine"
+  note pointing at the new folder path, added directly under its intro paragraph.
+- **New `ALL_TASKS.md` at the `terra-initiative-home` root (2026-08-21):** cross-references the
+  canonical Notion Tasks DB (Terra-domain rows) against oms/terra-api/terra-api-fe/terra-hq-site's
+  own local `TASKS.md` files. Found 4 Notion rows that read as stale against more current/detailed
+  repo TASKS.md entries (TAPI-020 SonarQube gate, JVM heap caps "not yet applied," ADR-012/
+  operator-account provisioning, ROMS EC2/Phase D) — flagged for Will's confirmation, not
+  auto-corrected. Also surfaced the single biggest silent risk in the whole task list: terra-hq-
+  site has ~13 items marked "Done — pending commit" in its own TASKS.md (THQ-005 through THQ-017)
+  that have never actually landed in git. This file is a manually-regenerated snapshot, not a
+  live sync — re-pull Notion + re-read each TASKS.md each session that needs it current.
 - **EC2 right-sizing back to `t3.micro` (noted 2026-07-29, TAPI) — now `TAPI-021`, scope
   corrected 2026-08-03:** Resized `t3.micro`→`t3.small` (~$7.50→$15/mo) to stop repeated OOM
   freezes, explicitly as a stabilizer — Will's call is to engineer the footprint back down later.
