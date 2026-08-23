@@ -1,5 +1,5 @@
 # Engineering Hub State
-<!-- Freshness: 2026-08-21 (rev 69) | v1.3 | Snapshots only — overwritten in place. History lives in DEV_LOGs. -->
+<!-- Freshness: 2026-08-23 (rev 70) | v1.3 | Snapshots only — overwritten in place. History lives in DEV_LOGs. -->
 <!-- Last Audit: 2026-08-02 | Monthly Hub Audit (HUB.md) fires from Startup Sequence step 7 when this is >30 days old. Update this line after each audit. -->
 <!-- New project? Copy the template from HUB_GUIDE.md → HUB_STATE Section Template. -->
 
@@ -433,11 +433,47 @@
   canonical Notion Tasks DB (Terra-domain rows) against oms/terra-api/terra-api-fe/terra-hq-site's
   own local `TASKS.md` files. Found 4 Notion rows that read as stale against more current/detailed
   repo TASKS.md entries (TAPI-020 SonarQube gate, JVM heap caps "not yet applied," ADR-012/
-  operator-account provisioning, ROMS EC2/Phase D) — flagged for Will's confirmation, not
-  auto-corrected. Also surfaced the single biggest silent risk in the whole task list: terra-hq-
-  site has ~13 items marked "Done — pending commit" in its own TASKS.md (THQ-005 through THQ-017)
-  that have never actually landed in git. This file is a manually-regenerated snapshot, not a
-  live sync — re-pull Notion + re-read each TASKS.md each session that needs it current.
+  operator-account provisioning, ROMS EC2/Phase D). This file is a manually-regenerated snapshot,
+  not a live sync — re-pull Notion + re-read each TASKS.md each session that needs it current. The
+  terra-hq-site "~13 items pending commit" (THQ-005–017) risk this file flagged turned out to
+  describe the `solan` machine's session state specifically — the `test` machine's own
+  `terra-hq-site` clone has always had a clean working tree and only ever tracked THQ-001/002/003;
+  re-check on `solan` directly rather than trusting this note for that machine (found 2026-08-22).
+- **All 4 stale-Notion-row contradictions above resolved 2026-08-23**, via live Notion MCP access
+  (finally connected in a Claude Code/VSCode session, not just claude.ai): (1) TAPI-020 had no
+  standalone Notion row to correct — only referenced inside Phase A's title and the meta-correction
+  task, nothing to close. (2) JVM heap caps task marked Done, referencing TAPI-013's verified
+  `-XX:+PrintFlagsFinal` confirmation. (3) Phase B (ADR-012) marked Done — operator account +
+  endpoints both live; ADR-012's own Notion page Status field also flipped Proposed→Accepted,
+  since its 2026-08-09 update note already documented live verification. (4) Phase D (ROMS EC2)
+  marked Done, per Ha'bem (OMS)'s own Notion page confirming ROMS-001/002 closed 2026-08-08 — one
+  real fragment survives, undone: disabling SonarCloud Automatic Analysis for the OMS project,
+  which that same page's log still lists as an open manual step. Also fixed in the same pass: the
+  terra-api-fe Notion project page wrongly said its own repo was `will55555/terra-api-home` (should
+  be `will55555/terra-api-fe`, confirmed via `git remote -v`). Two meta-tasks this uncovered were
+  also closed: "Correct stale Notion Tasks DB rows" (this work) and "Confirm whether a Machine
+  Paths table exists in Notion" (confirmed via search: it does not — Machine Paths is a
+  `claude-skills`-only artifact, never built in Notion). **Left open, not closed** (a scope call,
+  not a factual correction): "Phase A: Terra API branch consolidation" — its Notion page is blank
+  and names branches (`frontend-CI`, `public-health`, `customer-identity`) that don't exist under
+  those names in `terra-api`'s current branch list; the underlying work looks done via
+  differently-named merges, but confirm with Will before closing it.
+- **HUB.md's Machine Paths table was stale against the 2026-08-20 folder rename — fixed 2026-08-23.**
+  All `(machine: test)` rows for terra-api/terra-api-fe/terra-jenkins/terra-hq-site previously
+  pointed at a "New folder\" sibling layout that no longer exists on this machine; corrected to
+  `terra-initiative-home\<repo>\`, matching the real structure (one outer git repo,
+  `origin=will55555/terra-api-home` — not yet renamed on GitHub to match the local folder — with
+  each of the four as a gitignored nested-repo subdirectory, confirmed via direct `ls`/`git
+  remote -v` checks). The `terra-hq-site (machine: test)` row was doubly wrong: it pointed at a
+  standalone clone path (`Programing\terra-hq-site\`) that hasn't existed since the rename either.
+- **`terra-hq-site/TASKS.md`'s THQ-003 row corrected 2026-08-23**: previously said "uncommitted,
+  local to `test` machine only" — false on this machine (the fix IS committed, `43805a9a`,
+  2026-08-03). The real finding: the commit only half-applies the fix — the child tube's
+  `cube1`/`cube2` assignment is live code, but the parent extension tube's matching fix is
+  literally commented out (`// tube.userData.cube1 = cube;`), so the bug THQ-003 was opened for
+  still reproduces on the parent tube specifically. TASKS.md updated to describe this precisely;
+  **the file edit itself is uncommitted on `terra-hq-site`** — Will's call whether/when to commit
+  a docs-only change.
 - **EC2 right-sizing back to `t3.micro` (noted 2026-07-29, TAPI) — now `TAPI-021`, scope
   corrected 2026-08-03:** Resized `t3.micro`→`t3.small` (~$7.50→$15/mo) to stop repeated OOM
   freezes, explicitly as a stabilizer — Will's call is to engineer the footprint back down later.
