@@ -1,7 +1,7 @@
 ---
 name: session-context-sync
 description: |
-  Unified session-end sync skill. Triggers at end of any substantial session — coding, planning, design, or learning. Handles five write targets in one pass: each repo's own DEV_LOG.md (thorough, recipe-quality narrative — the ONLY target detailed enough to reproduce a session's work from), Notion (project state), Obsidian (note candidates), the Engineering Hub's HUB_STATE.md (live project snapshot), and Tasks DB (actionable items). Trigger on: "sync", "wrap up", "end of session", "push to Notion", "update Notion", "update Obsidian", "sync state", or proactively when meaningful work was done on any active project. Always prompt at session end — never skip when the session produced decisions, code, or learning artifacts.
+  Unified session-end sync skill. Triggers at end of any substantial session — coding, planning, design, or learning. Handles six write targets in one pass: each repo's own DEV_LOG.md (thorough, recipe-quality narrative — the ONLY target detailed enough to reproduce a session's work from), Notion (project state), Obsidian (note candidates), the Engineering Hub's HUB_STATE.md (live project snapshot), Tasks DB (new actionable items), and task reconciliation (fixes EXISTING repo TASKS.md/Notion/HUB_STATE rows this session's work shows are stale — runs every sync, not just on request; a full ecosystem-wide pass is a separate "reconcile all tasks" trigger). Trigger on: "sync", "wrap up", "end of session", "push to Notion", "update Notion", "update Obsidian", "sync state", or proactively when meaningful work was done on any active project. Always prompt at session end — never skip when the session produced decisions, code, or learning artifacts.
 ---
 
 # Session Sync Skill
@@ -31,6 +31,7 @@ to safely dual-author between Notion and git. Edit this file directly in the rep
 | **Obsidian** | Note candidate(s) distilled from session | Session produced a concept, pattern, or decision worth keeping | Desktop or Code |
 | **HUB_STATE.md** | Active project section snapshot (overwrite in place) | Session touched a hub-tracked project (any Terra project, DSA, claude-skills, etc.) | Desktop or Code |
 | **Tasks DB** | New task rows (actionable items for routing to appropriate tool/hub) | Session surfaced an actionable item not already in Tasks DB — from chat commitments, buried TODOs in a Notion page touched this session, or action items from Gmail/Calendar tool results this session | Desktop or Code |
+| **Task reconciliation** (Step 4D-2) | Fixes to EXISTING task status — repo TASKS.md rows, Notion rows, HUB_STATE claims — that this session's work shows are stale; `ALL_TASKS.md` refresh when scope warrants it | Runs every sync, scoped to repo(s)/project(s) touched this session — always checked, not just when something looks obviously wrong | Local file edit + Notion, via Filesystem/MCP tools |
 
 Both Claude Desktop and Claude Code sessions sync to all targets that apply.
 The session type determines what content is available, not which targets apply.
@@ -144,6 +145,8 @@ Session classification:
 → Obsidian: [yes — candidate list] / [no]
 → HUB_STATE: [yes — which project section] / [no]
 → Tasks DB: [yes — N candidates found] / [no]
+→ Task reconciliation: [yes — N contradictions found across repo TASKS.md/Notion/HUB_STATE] /
+  [checked, none found] — always run this check for repo(s) touched this session, never skip
 ```
 
 DEV_LOG applies whenever ANY hub-tracked repo had code shipped, a real bug found+fixed, or a
@@ -192,10 +195,17 @@ Updates: Status / Active Task / Next Step / Blockers / Context (≤3 lines)
 2. [title] — Source: Notion-Note — Domain: Personal — from page: [page name]
 [list all candidates; omit section entirely if none found]
 
+─── TASK RECONCILIATION ──────────────────
+[repo]/TASKS.md → [TASK-ID]: says "[stale status]", session confirms "[real status]"
+  → fix: repo TASKS.md + [Notion row / HUB_STATE section, if also stale]
+[repeat per contradiction; write "Checked [repo(s)], none found." if the check ran clean —
+ never omit this block silently, unlike the others above, since its absence should mean
+ "checked and clean," not "forgot to check"]
+
 ─── SYNC QUEUE (if any target unreachable) ──
 [target] unreachable → queued in Notion Sync Queue, will retry next sync
 
-Sync all? (yes / edit first / skip [devlog|notion|obsidian|hubstate|tasks])
+Sync all? (yes / edit first / skip [devlog|notion|obsidian|hubstate|tasks|reconcile])
 ```
 
 ---
@@ -476,6 +486,91 @@ that look obvious.
 
 ---
 
+## Step 4D-2 — Existing task reconciliation (runs every sync, not just on request)
+
+**Why this exists (added 2026-08-31):** Step 4D above only ever creates NEW task rows from
+session chatter — it has no mechanism for catching an EXISTING task row that's gone stale
+against a repo's own `TASKS.md`. That gap was real: on 2026-08-30, a manual pass found
+`terra-api/TASKS.md` and `terra-hq-site/TASKS.md` both had status labels contradicted by their
+own repos' git history (one said "Planned" for work closed 3 weeks earlier; thirteen rows said
+"Done — pending commit" for a batch that had been merged and pushed for a week) — and nothing
+about a normal `sync` would ever have caught or fixed that, because reconciliation wasn't a step.
+This step is the fix: a lightweight check, scoped to whatever this session actually touched,
+run automatically as part of every sync — not a separate thing Will has to remember to ask for.
+
+**Scope — deliberately narrow, not the full ecosystem:** only the repo(s)/project(s) this
+session actually worked in. A full cross-repo sweep (every hub-tracked repo, live Notion Tasks
+DB pull, `ALL_TASKS.md` regeneration) is a bigger, slower operation — that's a separate explicit
+trigger ("reconcile all tasks" / "audit tasks ecosystem-wide"), not something every routine sync
+pays the cost of. Most sessions touch one or two repos; check only those.
+
+### Procedure
+1. For each repo touched this session that has a `TASKS.md`: re-read the specific task ID
+   row(s) this session's work relates to (not the whole file — just what's relevant to what
+   was done). Compare that row's Status against what actually happened this session.
+2. Cross-check the same task ID (or its Notion-row equivalent, if one exists — not every repo
+   task ID has a matching Notion row) against:
+   - The Notion Tasks DB, if a row references this task (search by title/ID substring).
+   - `HUB_STATE.md`'s section for this project, if it makes a claim about the same task.
+3. If any of the three (repo TASKS.md / Notion / HUB_STATE) disagrees with what this session
+   confirmed actually happened, that's a reconciliation candidate — surface it in the Step 3
+   preview under a new `─── TASK RECONCILIATION ───` block (format below), don't fix it
+   silently. This is a "did the docs catch up to reality" check, not a full audit — don't go
+   hunting for staleness in rows unrelated to this session's work.
+4. On confirmation, fix the stale side(s) directly:
+   - Repo `TASKS.md` — local file edit via Filesystem tools, same as any other repo write this
+     skill makes. Note it in Step 5's post-sync confirmation as uncommitted, same treatment as
+     DEV_LOG.md.
+   - Notion row — `notion-update-page` on the Status/relevant property, same call shape as
+     Step 4A-props.
+   - HUB_STATE.md — same overwrite-in-place rule as Step 4C; don't accumulate history here.
+5. If the session's active project is `terra-initiative-home` specifically (or this session
+   touched 3+ hub-tracked repos), also refresh `ALL_TASKS.md` at that repo's root: re-pull the
+   live Notion Tasks DB, re-read each repo's `TASKS.md` directly (not from a prior snapshot),
+   and rewrite the file per its own "What changed" convention (see the file's own header
+   comment for the expected shape). This is the heavier ecosystem-wide op referenced in Scope
+   above — only pay for it when the session's own footprint already justifies it, or Will asks
+   for the full pass explicitly.
+
+### Task reconciliation preview block (added to Step 3)
+```
+─── TASK RECONCILIATION ─────────────────
+[repo]/TASKS.md → [TASK-ID]: says "[stale status]", session confirms "[real status]"
+  → fix: repo TASKS.md + [Notion row / HUB_STATE section, if also stale]
+[repeat per contradiction found; omit this block entirely if none found]
+```
+
+### What this step is NOT
+Not a full-ecosystem audit on every sync (that's the separate "reconcile all tasks" trigger,
+scoped like the 2026-08-30 `ALL_TASKS.md` regeneration). Not a substitute for Step 4D's
+new-task-candidate scan — both run every sync, they catch different things (4D: new items never
+recorded anywhere; 4D-2: existing items whose recorded status is now wrong).
+
+### Separate trigger — full ecosystem-wide reconciliation ("reconcile all tasks" / "audit tasks")
+Not part of a routine `sync` — this is the heavier operation Step 4D-2 above deliberately stays
+narrow to avoid paying for on every sync. Trigger explicitly on phrases like "reconcile all
+tasks," "audit tasks ecosystem-wide," or "make sure everything's aligned with Notion" (not just
+"sync"). Procedure, matching the 2026-08-30 session that established this pattern:
+1. Confirm which hub-tracked repos are actually present/cloned on this machine (don't assume
+   from a prior session's snapshot — `git status`/directory-list each one directly; the
+   2026-08-30 pass itself got this wrong once, assuming `oms` and `terra-hq-site` weren't
+   cloned locally when they were, nested under `terra-initiative-home/`).
+2. For each present repo: `git fetch`, check for local/origin divergence, fast-forward if clean
+   and behind (flag, don't force, if diverged with local changes).
+3. Read each repo's `TASKS.md` directly, in full — not from HUB_STATE or a prior `ALL_TASKS.md`
+   snapshot, both of which can themselves be stale.
+4. Re-pull the live Notion Tasks DB (Terra-domain or project-relevant rows).
+5. Cross-reference all three (repo TASKS.md × Notion × HUB_STATE) per task ID; for every
+   contradiction, fix the stale side(s) — repo file edit + commit + push, Notion property
+   update, or HUB_STATE overwrite, per Step 4D-2's fix procedure above.
+6. Regenerate `ALL_TASKS.md` (or the equivalent cross-reference doc for a non-Terra project, if
+   one exists) with a "What changed since last pass" section at the top, not a silent overwrite.
+7. Preview every fix before writing (same confirmation bar as everything else in this skill) —
+   this is a bigger diff than routine reconciliation, so batch the preview by repo, not as one
+   undifferentiated wall of changes.
+
+---
+
 ## Step 4E — DEV_LOG.md sync (per repo)
 
 The full narrative — the ONE target with the mandate and the room to be thorough enough that
@@ -522,6 +617,7 @@ Notion     → [project] content + properties (Status/Last Synced) updated (or: 
 Obsidian   → [note title] written to [vault path] (or: queued)
 HUB_STATE  → [project] section overwritten (claude-skills/skills/ai-control/HUB_STATE.md)
 Tasks DB   → [N] task(s) created ([sources]) / none this session (or: queued)
+Reconcile  → [N] stale task status(es) fixed ([repo TASKS.md / Notion / HUB_STATE]) / checked, none found
 
 Remind: git add skills/ai-control/HUB_STATE.md && git commit && git push if not done.
 Remind: DEV_LOG.md change(s) in [repo(s)] also uncommitted — same repo, Will's call when to commit.
@@ -573,3 +669,4 @@ in `/mnt/user-data/outputs/` with the same commands.
 | Tasks DB missing Source property | Use title-prefix workaround, flag once at sync end (Source now exists as of 2026-07 — this is a fallback for future schema drift only) |
 | Tasks DB missing Engineering Domain option | Same workaround — prefix title (e.g. "[Engineering] ..."), flag once (Engineering added to Domain as of 2026-07 — fallback only) |
 | Tasks DB query/write fails | Retry once; show candidates for manual paste if it fails again |
+| Repo TASKS.md not reachable (repo not cloned/present on this machine) | Skip reconciliation for that repo silently — don't guess its status from HUB_STATE or an old ALL_TASKS.md snapshot; note it as "not checked this pass," same as Step 4D-2's own procedure |
