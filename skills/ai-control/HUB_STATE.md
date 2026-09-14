@@ -1,6 +1,6 @@
 # Engineering Hub State
 <!-- Freshness: 2026-08-23 (rev 70) | v1.3 | Snapshots only — overwritten in place. History lives in DEV_LOGs. -->
-<!-- Last Audit: 2026-08-02 | Monthly Hub Audit (HUB.md) fires from Startup Sequence step 7 when this is >30 days old. Update this line after each audit. -->
+<!-- Last Audit: 2026-09-13 | Monthly Hub Audit (HUB.md) fires from Startup Sequence step 7 when this is >30 days old. Update this line after each audit. -->
 <!-- New project? Copy the template from HUB_GUIDE.md → HUB_STATE Section Template. -->
 
 ## Terra API                                        <!-- prefix: TAPI -->
