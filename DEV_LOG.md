@@ -1,5 +1,46 @@
 # claude-skills Dev Log
 
+## 2026-10-03 — HUB.md: Startup Sequence now pulls live Notion task drift every load
+
+### What changed and why
+Added Startup Sequence step 2b (`HUB.md`) — a live Notion Tasks DB check that runs on every
+`load hub`, any session type, Notion reachable. Previously, Linear Fetch Mode was entirely
+local-file-only (`HUB.md → HUB_STATE.md → TASKS.md → DEV_LOG.md`), which was a deliberate design
+choice for speed — but it meant a session that only ever created Notion tasks directly, without
+touching any repo or running a sync, left zero trace any future `load hub` would ever see.
+
+This stopped being theoretical on 2026-10-03: 8 real tasks (a mobile audit, QR-code ordering,
+app-store readiness, a payments-abstraction layer, several terra-hq-site items) were created in
+the canonical Tasks DB between 2026-09-28 and 2026-10-02, entirely outside any session that
+touched this hub — and no `load hub` in that window surfaced any of them. They were only found
+because Will directly asked "did you check the tasks in the Terra Inc space in Notion?" Found
+alongside it: 4 Obsidian Queue sub-pages under the Terra API Notion project, 3 genuinely
+undrained (1 note missing from the vault entirely, the other 2 pages' notes had already landed
+but were never marked drained). Both gaps fixed same session — see `terra-initiative-home`'s
+`ALL_TASKS.md` for the task reconciliation, and the vault's `Software Development/Testing/
+linter-driven-fixes-can-introduce-real-bugs.md` for the recovered note.
+
+### Design decisions
+- **New step, not folded into Linear Fetch Mode.** Linear Fetch Mode's whole design center is
+  "fast, local, one-pass" (fixed-size snapshot files, no live calls) — a Notion API query is a
+  different cost profile entirely and would muddy that contract. Kept as its own numbered step
+  (2b) instead, positioned between project detection (2) and the fetch path (3).
+- **Every load, not staleness-gated.** Considered gating this behind a threshold (e.g. only check
+  if >3-7 days since last check, mirroring the Monthly Audit's >30-day gate) — rejected because
+  the whole point is catching drift BEFORE it reaches weeks, and a single Tasks DB query is cheap
+  enough to not need that gate the way the Audit's much wider 5-item sweep does.
+- **Count + pointer only, not the task list.** The orientation line is a single line by contract
+  — new tasks get a count and a pointer to `ALL_TASKS.md`/a `reconcile tasks` pass, not inlined
+  detail. Quiet-by-default when nothing's new, same pattern as the Promotion Engine and the Audit.
+- **New HUB_STATE header stamp**: `Last Notion Task Pull:`, same row format as `Last Audit:` —
+  tracks "last checked," updated every run regardless of findings, so the next session's diff
+  query has a real baseline instead of re-deriving one.
+
+Full reasoning, the orientation-line template update, and the exact step text: `HUB.md` Startup
+Sequence step 2b + Trigger Contract (freshness bumped to 2026-10-03, v2.1).
+
+---
+
 ## 2026-05-30 — Repo initialized and skills library deployed
 
 ### What this is and why it exists

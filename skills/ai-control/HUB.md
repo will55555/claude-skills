@@ -1,5 +1,5 @@
 # Engineering Hub (load hub)
-<!-- Freshness: 2026-08-23 | v2.0 | Home: claude-skills/skills/ai-control/ -->
+<!-- Freshness: 2026-10-03 | v2.1 | Home: claude-skills/skills/ai-control/ -->
 
 ## Prime Directives (read first, every load — non-negotiable)
 Placed above everything else deliberately: Linear Fetch Mode caps reads at 80 lines/file, and these
@@ -36,7 +36,7 @@ model.
 - Auto-activation: in Claude Code, a repo CLAUDE.md pointer loads this hub without the trigger phrase.
   Both activation modes follow the same Startup Sequence.
 - First response after activation MUST confirm orientation in one line:
-  `Hub loaded → [project] | [active task ID] | next: [next step] | claude-skills: [sync result]`.
+  `Hub loaded → [project] | [active task ID] | next: [next step] | claude-skills: [sync result] | notion: [task-drift result, omit if clean]`.
   The `claude-skills: [sync result]` segment reports the Startup Sequence step 1 self-sync pull
   that already runs every load — surface it (e.g. "up to date (9afa750)" or "pulled 2 new commits
   (abc123→def456)") instead of doing it silently. Claude Code only — web/Desktop sessions reading
@@ -46,6 +46,10 @@ model.
   `repos: all current` or `repos: terra-api pulled 3 (a1b2c3→d4e5f6), rest current`). Flag any
   repo that failed to pull or sits on an unexpected branch — that is a staleness signal, not
   noise (step 4 covers the same ground for the active project).
+  The `notion: [...]` segment reports step 2b's task-drift check — omit entirely when nothing new
+  was found (quiet-by-default), include as `notion: N new tasks since <date>, not yet in
+  ALL_TASKS.md` when something was. Applies to any session type with Notion reachable, not just
+  Claude Code.
   **Implementation note (2026-07-18):** run this as plain sequential `cd`/`git` commands only —
   `cd "<path>" && git log -1 --oneline && git pull origin master && git log -1 --oneline` — and
   read the before/after SHAs straight from that output. Do NOT use shell variable capture
@@ -70,6 +74,25 @@ model.
      is now reachable (full mechanism: session-context-sync → Universal Sync & Fallback Queue).
    - Lightweight only — not the full Notion/Obsidian/HUB_STATE pass `sync` does at session end.
 2) Detect active project from working folder (or from `load hub <project>` argument).
+2b) **Notion task-drift check (every load, any session type with Notion reachable).** Added
+    2026-10-03 after 8 tasks sat in the live Tasks DB for 2+ weeks, created entirely outside any
+    `load hub` session, completely invisible the whole time — Linear Fetch Mode is local-file-only
+    by design (step 3 below), so nothing in a normal load ever looked at Notion at all. This step
+    is the fix, kept deliberately cheap and quiet rather than folded into Linear Fetch Mode itself:
+    - Query the canonical Notion Tasks DB for rows with `createdTime` after HUB_STATE's
+      `Last Notion Task Pull:` header stamp (same row/format as `Last Audit:`). One query, not a
+      scoped-per-project fetch — cheap enough to run unconditionally every load, unlike the
+      Monthly Audit's wider sweep.
+    - **Nothing new → say nothing** (same quiet-by-default rule as the Promotion Engine and the
+      Audit). Don't pad the orientation line on a clean check.
+    - **Something new → one line in the orientation confirmation**: a count + pointer, not the
+      task list itself (e.g. `| notion: 3 new tasks since 09-30, not yet in ALL_TASKS.md`) — full
+      detail belongs in a `reconcile tasks` pass (session-context-sync's Step 4D-2 / the heavier
+      ecosystem-wide trigger), not stuffed into the one-line startup confirmation.
+    - Update `Last Notion Task Pull:` to today regardless of whether anything new was found —
+      this stamp tracks "last checked," not "last found something."
+    - If Notion is unreachable this session, skip silently — same treatment as web/Desktop
+      sessions skipping the git pull in step 1; don't block orientation on it.
 3) Follow Linear Fetch Mode below. Read nothing outside it.
 4) Active-project staleness check (cheap, not a full audit — Claude Code only, local repo
    reachable): one `git log -1 --oneline` + `git status --short` at the active project's Machine
