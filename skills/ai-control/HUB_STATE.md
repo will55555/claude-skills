@@ -257,66 +257,76 @@
   `useEcosystemHealth.js`, `visualizer.css`, `Dashboard.js`, `dashboard.css`, plus the
   regenerated `package-lock.json`). Will's call whether/when to commit.
 
-## ROMS repo, product name Ha'bem (OMS)        <!-- prefix: ROMS -->
-- **Naming (corrected 2026-08-10):** Product acronym is **OMS** (Order Management System), not
-  ROMS — "ROMS" is only the literal legacy repo/package name in the codebase (short for the
-  original "Real-time Order Management System"). Product docs now say "Ha'bem (OMS)"
-  consistently. Notion (main project page, all 5 ADRs, Resort Deployment Tracker) and Obsidian
-  (notes 01, 02, 12) all updated same day.
-- **Reference Links:** Notion ADRs `roms-adr-001`–`005`. Repo: `terra-api-home/
-  restaurant-order-management-system/` (gitignored there). Design ref: `roms-expansion-sketch.md`
-  (Claude-generated, not yet in repo) · Obsidian `Projects/ROMS/12 - Habem Expansion & Brand
-  Design`. **ROMS ADR-005 and terra-api-adr-010 still need a follow-up amendment** (stale
-  "found stopped, recoverable in place" text, superseded by actual migration).
-- **Status:** Live in prod, single property, verified end-to-end (heartbeat → Terra API public
-  health). **2026-08-10: guest-facing brand renamed ROMS → "Ha'bem"** — ROMS stays the internal/
-  engineering codename (repo, packages, ADRs unchanged). Full pre-implementation design pass
-  done this session: `Property`-scoped multi-tenancy + multi-category data model sketched
-  (`CatalogCategory`/`CatalogItem`/`Booking`/`ServiceRequest`/`PaymentMethod`, adapter pattern
-  for African mobile money); Phase 2 conceptual framework for an eventual Africa-wide open
-  delivery network (provisioning-only, nothing built); brand/icon system (wordmark + per-category
-  tab badges) drafted, palette not finalized. **Frontend page mockup built** (`habem-pages.jsx`
-  + companion `habem-pages-tutorial.md`, both Claude-generated, not yet in repo): functional
-  React mockup of the browse grid/sidebar/hero/cart flow, themed via a single `THEME` object and
-  a shared `CategoryGlyph` image-or-icon component for one-place color/asset swapping.
-  **Currency generalized**: replaced hardcoded XAF formatting with a `CURRENCIES` registry
-  (XAF/KES/NGN/USD) + a `PROPERTY` object + `formatPrice()`, mirroring `Property.currency` —
-  adding a new region's currency is now one registry entry. **Portability layer completed
-  2026-08-10:** added `APP_IDENTITY` (product naming — `Logo` renders from it dynamically
-  instead of hardcoding "Ha'/bem") and `DESIGN_TOKENS` (corner radius scale + typeface) —
-  four total swap points now (`THEME`/`APP_IDENTITY`/`DESIGN_TOKENS`/`CURRENCIES`+`PROPERTY`).
-  Matching §0 Naming Registry added to `roms-expansion-sketch.md` as the prose-side source of
-  truth for future renames. **2026-08-11: §13 conceptual cross-vertical sourcing link drafted**
-  — Ha'bem's Food & Beverage catalog sourcing from Terra Agriculture (mirrors the existing Terra
-  Apparel/bamboo off-take pattern). Explicitly not build-ready: Terra Agriculture is
-  planning-only, no active ops, only defined scope is a Ghana bamboo/calabash pilot — nothing
-  about produce yet. Geography mismatch flagged (Ghana pilot vs. Cameroon-only Ha'bem property).
-  One real thread: both sides independently already plan to use Terra Nkap. Cross-linked from
-  the Terra Agriculture Notion page; open question (Cameroon-only vs. standing principle) not
-  yet decided.
-- **Active Task:** None blocking prod. **2026-08-13: real prod login bug found and fixed same
-  session** — `POST /api/users/login` was returning `500` for any login typed with different
-  username casing than at signup (registration lowercases, login lookup didn't — two separate
-  un-normalized `findByUsername()` call sites). Compounded by `GlobalExceptionHandler`'s catch-all
-  masking the real exception as an opaque `500` with zero logging. Both fixed, committed (`8c7d7e0`),
-  deployed. Full debugging narrative (3 false leads before the real root cause, confirmed live with
-  Will): `oms/DEVLOG.md`, "Login 500 Root-Caused" entry.
-- **Next Step:** Decide final Ha'bem wordmark palette; verify domain + OAPI (Cameroon/CEMAC)
-  trademark availability before brand commit; decide Grocery category's real fulfillment model
-  before building it as a separate tab; pin `CatalogItem` price to a currency on the backend
-  (frontend pattern now exists as reference); replace placeholder 8% Nkap discount rate once
-  Terra Chain settlement design is real; build Spa/Tours/Housekeeping category pages once
-  `Booking`/`ServiceRequest` entities exist. Unrelated/still open: disable SonarCloud Automatic
-  Analysis for ROMS project; amend ADR-005 with final migration outcome; terminate/delete old
-  us-east-2 instance once confident. New: OMS-018 (favicon/touch-icon needs tighter cropping,
-  blocked on a real source image — binary asset, not a code fix); OMS-015 (Redis health-check
-  race/config bug, root cause still genuinely uncertain, needs a dedicated investigation session).
+## OMS repo, product name Ha'bem (OMS)        <!-- prefix: OMS (was ROMS, renamed 2026-10-03) -->
+- **Naming — fully completed 2026-10-03, supersedes the 2026-08-10 partial rename below.**
+  Two separate migrations existed and are now BOTH done: (1) the 2026-08-10 structural
+  rename (repo/package/doc naming, ROMS→"Ha'bem (OMS)" in prose) — was already done; (2) the
+  actual code-level `id`/`name`/`serviceId` value rename (internal codenames `id: 'roms'`,
+  `name: 'ROMS'`, Java `SERVICE_ID = "roms"`, Jenkins credential/image names) — executed this
+  session across oms, terra-api-fe, and terra-api. Confirmed zero functional "roms"/"ROMS"
+  strings remain anywhere in these repos outside genuine historical/dated comments and two
+  frozen, unreferenced `design-reference/*.html` mockups in terra-api-fe (left untouched,
+  dead files). `oms/assets/roms-expansion-sketch.md` renamed to `oms-expansion-sketch.md`
+  (`git mv`, 11 citing files + TASKS.md updated to match).
+- **Reference Links:** Notion ADRs `roms-adr-001`–`005` (Notion page names not yet renamed to
+  match — flag if this causes confusion). Repo: `terra-initiative-home/oms/` (gitignored there,
+  nested sibling). Design ref: `oms/assets/oms-expansion-sketch.md` (renamed 2026-10-03, was
+  `roms-expansion-sketch.md`) · Obsidian `Projects/ROMS/12 - Habem Expansion & Brand Design`
+  (Obsidian note title/path not yet renamed to match — same flag). **ROMS ADR-005 and
+  terra-api-adr-010 still need a follow-up amendment** (stale "found stopped, recoverable in
+  place" text, superseded by actual migration) — carried forward, still not done.
+- **Status:** Live in prod, single property. **2026-10-03: new internal admin dashboard shipped**
+  — `OMS-fe/src/internal/OmsDashboard.js` + 11 tab components under `src/internal/oms/`, folding
+  the static `terra-hq-site/roms_gtm_strategy.html` GTM content (Overview, Market Analysis,
+  Customer Profile, Positioning, Pricing, Sales Playbook, Build Sequence, Unit Economics, US
+  Competition, Product Requirements) plus a new Architecture Notes tab (sourced from
+  `oms-expansion-sketch.md`, framed as a working sketch, not a fabricated ADR catalog) into a
+  real React page — same fold-in pattern Terra API's strategy page went through earlier. Uses
+  antd `Tabs` (existing OMS-fe dependency), gated at `/internal/dashboard` with
+  `requiredRole="INTERNAL"` — deliberately a SEPARATE role from the existing `/admin/menu` and
+  `/admin/orders` routes (`requiredRole="ADMIN"`), since this carries Terra corporate strategy
+  content, not restaurant-operator tooling; a restaurant location admin account must not reach
+  it. Matches Terra API's own `role=internal` convention. Committed locally (`3339af7`) —
+  **not yet pushed** as of this sync (Will's call on when to push/deploy). terra-hq-site's
+  `terra_tech.html` Ha'bem product card now points at
+  `http://100.60.7.24/internal/dashboard` (temp raw IP + HTTP, no Ha'bem domain purchased yet —
+  see Claude memory `habem-domain-pending`; revisit once Will buys one, same pattern as Terra
+  API's card pointing at `api.terra-hq.com`).
+- **2026-10-03: disk-full deploy failure root-caused and fixed (Jenkinsfile).** Deploy failed
+  mid-pull with "no space left on device" despite the 2026-10-04-dated before/after
+  `docker image prune -af` already in the Jenkinsfile (see that entry's own inline comment,
+  commit `045fe3a`). Root cause confirmed live via `docker system df -v` on `oms-server`:
+  7.4GB sitting in Docker's BUILD CACHE, a completely separate store `docker image prune` never
+  touches, untouched for 8 weeks; also dozens of old but still-tagged image versions
+  (`oms-backend:19`–`:37`, `roms-backend/frontend:1`–`:12`) accumulating since `-af` only drops
+  zero-reference images, not old-but-reachable tags. Immediate unblock: manually cleared via
+  SSM (`docker builder prune -af` + targeted `docker rmi` on old tags) — root volume went from
+  79%/23G used to 53%/16G used. Permanent fix: added `docker builder prune -af` alongside the
+  existing image prunes in the Jenkinsfile, same `;`-chained non-blocking placement before AND
+  after each deploy (commit `aa9e019`, pushed). **Same fix mirrored in terra-api's Jenkinsfile**
+  (commit `6b1e072`, pushed to both GitHub and Bitbucket) — terra-api-server runs both staging
+  and prod on one shared disk, higher risk than oms's single-tier box.
+- **Active Task:** None blocking prod beyond the above. 2026-08-13 login-casing bug (fixed,
+  `8c7d7e0`, deployed) — carried forward from before, still accurate.
+- **Next Step:** Will to push OMS-fe's internal-dashboard commit (`3339af7`) and the OMS-013
+  rename commit (`79079c0`, TerraHeartbeatScheduler) when ready, then verify the new dashboard
+  route is reachable and the Jenkins deploy pipeline goes green with the builder-prune fix in
+  place. Also carried forward, still open: decide final Ha'bem wordmark palette; verify domain +
+  OAPI (Cameroon/CEMAC) trademark availability before brand commit (note: Will said 2026-10-03
+  he'll buy a Ha'bem domain "at some point" — no firm date); decide Grocery category's real
+  fulfillment model; pin `CatalogItem` price to a currency on the backend; replace placeholder
+  8% Nkap discount rate once Terra Chain settlement design is real; build Spa/Tours/Housekeeping
+  category pages once `Booking`/`ServiceRequest` entities exist; disable SonarCloud Automatic
+  Analysis for the OMS project (name not yet updated in SonarCloud itself); amend ADR-005 with
+  final migration outcome; terminate/delete old us-east-2 instance once confident. OMS-018
+  (favicon/touch-icon cropping, blocked on a real source image); OMS-015 (Redis health-check
+  race/config bug, root cause still genuinely uncertain).
 - **Blockers:** None technical.
 - **Context:** Spring Boot + React, single 2GB EC2 instance (us-east-1, `oms-server` /
   `i-04f3abfb579f2bd1d`, public IP `100.60.7.24`). Data model extension is non-breaking (5-step
   migration path drafted, not run). Full brand/data-model reference: Obsidian note 12 in
-  `Projects/ROMS/`. SSM access confirmed working on this box (used directly 2026-08-13 to pull
-  container logs and query prod Postgres for the login-bug investigation).
+  `Projects/ROMS/`. SSM access confirmed working on this box (used 2026-08-13 for the login-bug
+  investigation, and again 2026-10-03 for the disk-full diagnosis/cleanup above).
 
 ## PIOS                                             <!-- prefix: PIOS -->
 - **Reference Links:** Notion ADRs `pios-adr-011`–`015` — URLs not recorded, add when confirmed.
@@ -351,65 +361,51 @@
   duplicate but not urgent.
 
 ## terra-hq-site                                    <!-- prefix: THQ -->
-- **Reference Links:** Local specs (authoritative, verified 2026-08-02):
-  `terra-hq-site/CLAUDE.md` — page inventory + the two-visualizer architecture (lines 39-43) ·
-  `terra-hq-site/TASKS.md` (THQ-001/002) · `terra-hq-site/devlog.md`. Live visualizer:
-  `terra_api_visualizer_phase5.js` at the repo ROOT (1,556 lines — phases 1–4 are superseded and
-  sit in `archive/`; don't port from those). Notion: (none recorded — add when confirmed).
-- **Status:** Active — parallel track
-- **Active Task:** None open. **Montfort structural pass shipped 2026-08-04** (`e0699aa`,
-  committed and pushed): numbered section-index badges + a choreographed reveal system
-  (IntersectionObserver scroll-reveal on single-scroll pages, tab-panel fade-in via double-rAF
-  on tab-driven pages) ported across 11 of 13 pages — structure/spacing/animation only, zero
-  color values touched anywhere (verified via diff scan across the whole commit). index.html
-  built first as proof-of-concept, Will reviewed it in-browser and approved before the other 10
-  ran. `home-hub.html` (iframe launcher) and `terra_api_visualizer_phase5.html` (WebGL canvas,
-  no text sections) deliberately excluded — neither has content this pattern applies to.
-  `terra_enterprise.html` got a lighter treatment (click-to-drill panel fade-in only, no badges
-  — a tree diagram doesn't want a second numbering system). Design reference is
-  `https://mont-fort.com/` itself, not just its markup — Will's framing: "final product will be
-  similar," treat as the standing visual north star for future terra-hq-site work, not a one-off
-  (tracked in Claude memory as `reference_montfort-design`). **THQ-002 shipped** (`bf8d54c`,
-  2026-08-03): public visualizer now polls Terra API's `GET /api/v1/ecosystem/public-health`
-  (TAPI-014) once per tick and colors ROMS/PIOS by real HEALTHY/YELLOW/ORANGE/RED tier,
-  replacing the old binary connected/disconnected model against hardcoded per-domain ports.
-  Design question resolved: single ecosystem-health poll, not per-cube. Domain cubes with no
-  reporting service render as a distinct "unbuilt" navy, separate from "off."
-  **2026-08-13: terra_africa_strategy.html gained a new "FARM RENDERS" tab (THQ-004, committed
-  locally, not yet pushed)** — 21 Gemini-generated images for the Terra Agriculture Cameroon
-  pilot (beehive field, approved wide site mockup, the 11-panel modular-shell schematic sheet,
-  and realistic component/configuration renders for the shell system) added under
-  `Assets/agriculture/`, each with its exact generation prompt inline via a show/hide toggle +
-  click-to-enlarge lightbox (new `.render-*` CSS block + `toggleRenderPrompt`/
-  `openRenderLightbox` JS, none of it colliding with existing page classes). A new "Pilot Status"
-  section (00) precedes the gallery: a 6-phase budget grid pulled from this session's Notion sync
-  (Beekeeping $1,200–3,700 · Chickens $500–2,000 · Crops $200–700/cycle · Hydroponics $150–3,000 ·
-  Pigs & Cattle $2,000–5,000+ · Agrivoltaics not yet scoped), plus two callouts: the open hive/
-  living-fence security gate (Flow Hive explicitly ruled out as a security fix) and the modern-hive
-  pricing comparison that reaffirmed the top-bar build decision. The BRAND & STRUCTURE tab's Terra
-  Agriculture card was also rewritten to match (was a stale generic "AgTech platform" blurb).
-  3 draft images intentionally excluded (in-progress schematic duplicate + 2 rejected coop
-  iterations missing a foundation) — flagged inline on the page, not deleted from disk. No roof-
-  only realistic render exists yet (schematic-only) — flagged inline too.
-- **Next Step:** Commit + push `terra_africa_strategy.html` (THQ-004, currently uncommitted on
-  disk only). Also unrelated/still open — **THQ-003, found 2026-08-04, uncommitted**: live-testing THQ-002 against a real
-  ROMS heartbeat surfaced that pipeline extension tubes (created on cube expand-click) freeze
-  their connected state at creation time and never refresh — `createPipelineExtension()` used
-  `tube.userData.cube` (singular), which `updateCubeConnection()`'s live-refresh loop doesn't
-  recognize (only `cube1`/`cube2`, the main radial tubes' naming). Candidate fix drafted
-  (syntax-checked, NOT visually confirmed) — touches only tube wiring, zero color values, per
-  Will's explicit constraint. **Deliberately left uncommitted, local to the `test` machine only**
-  — resume there specifically (not a fresh-clone situation) to verify + commit. Full repro steps
-  in `terra-hq-site/TASKS.md` → THQ-003. `local-test-proxy.js` (added alongside THQ-002) is the
-  same-origin dev proxy used for this testing — may still be running on port 5500 on `test`.
+- **Reference Links:** Local specs (verify freshness before trusting detail — this section had
+  drifted months stale before the 2026-10-03 rewrite below): `terra-hq-site/CLAUDE.md` — page
+  inventory + Cloudflare Access/visualizer status (now corrected, see Status) ·
+  `terra-hq-site/TASKS.md` (THQ-001 through THQ-019) · `terra-hq-site/devlog.md`. The repo's own
+  Three.js visualizer is ARCHIVED (`Assets/archive/terra_api_visualizer_phase5.js/.html`,
+  2026-08-09) — the live/maintained visualizer is terra-api-fe's own
+  (`terra-api-fe/src/visualizer/`), see that section. Notion: (none recorded — add when
+  confirmed).
+- **Status — rewritten 2026-10-03, this whole section was stale since ~August.** THQ-001/002/003
+  all CLOSED 2026-10-04 per Will's direct confirmation — superseded, not built-in-place: the
+  visualizer migration THQ-001 was tracking already happened (lives in `terra-api-fe/src/
+  visualizer/`, live at `api.terra-hq.com`); THQ-002 (health-tier coloring) and THQ-003
+  (pipeline-tube refresh bug) both already shipped in that terra-api-fe copy instead of this
+  repo's own archived one. **Cloudflare Access plan abandoned, superseded** — CLAUDE.md's old
+  "NOT enabled, setup pending" language was stale; that plan was dropped in favor of JWT-based
+  route gating via Terra API (`OperatorRoute`, ADR-012), which already shipped. `terra-hq.com`
+  itself stays intentionally public; only operator-gated pages (now on `api.terra-hq.com`, not
+  this repo) require auth. **2026-10-03: index.html's standalone Terra API puzzle piece
+  removed** (commit `5de8ea6`) — corrected an earlier misread of "fold Terra API into Terra
+  Tech" (an agent had read it as a content/link question, already resolved; the real ask was
+  removing a redundant top-level card, since Terra Tech's own card already listed "Terra API
+  Shipped"). Hero stat + section-count copy updated to match (now "Terra Inc + 5 divisions",
+  not "+ API platform"). **2026-10-03: terra_tech.html's Products & Infrastructure cards all
+  made clickable** (commit `97dd2d8`) — Terra API Visualizer card now links to the local
+  archived copy, Terra CI/CD card links to the Jenkins temp URL (`http://3.211.62.86:8090`,
+  plaintext HTTP + raw IP, will break on IP change — same caveat as Ha'bem's temp link below).
+  **2026-10-03: Ha'bem (OMS) card repointed** (commit `3919b96`) from the static
+  `roms_gtm_strategy.html` page to the new OMS-fe internal dashboard
+  (`http://100.60.7.24/internal/dashboard`, temp raw IP, no Ha'bem domain yet — see Claude
+  memory `habem-domain-pending`).
+- **Active Task:** None open as of this sync. THQ-004 (terra_africa_strategy.html FARM RENDERS
+  tab) status unconfirmed since 2026-08-13 — carried forward from the prior stale entry, verify
+  before trusting; may already be committed/pushed or may still be sitting local-only.
+- **Next Step:** Verify THQ-004's actual commit state (the prior note said "committed locally,
+  not yet pushed" as of 2026-08-13 — nearly two months stale, don't trust without checking
+  `git log`). Once the new OMS-fe internal dashboard (see OMS section) is pushed/deployed,
+  confirm the Ha'bem card's temp link actually resolves. Revisit Jenkins/Ha'bem temp links once
+  real domains exist for either.
 - **Blockers:** None
-- **Context:** 2026-07-18 session completed: (1) Clarified dual-visualizer architecture (terra-hq-site
-  public + terra-api-fe scoped both read from Terra API ecosystem-health endpoint — single source
-  of truth); (2) Refactored terra_api_strategy.html (removed 430 lines embedded WebGL, added
-  domain-prefixed ADRs terra-api-adr-001–010, linked to build phases); (3) Fixed product pages
-  (ROMS/PIOS using domain-prefixed ADRs roms-adr-001–005, pios-adr-011–015); (4) Cleaned up Notion
-  CI/CD pages (renamed ADR-009→terra-api-adr-010, updated status/references). All changes staged for
-  commit. CLAUDE.md, TASKS.md, terra_api_strategy.html modified locally; ready to commit.
+- **Context:** Full page inventory and page-by-page detail live in `terra-hq-site/CLAUDE.md` —
+  this section intentionally stays a pointer rather than re-duplicating page-by-page content
+  that already drifted once before (see the Monthly Hub Audit item 3 pattern: duplicated detail
+  rots quietly between sessions). THQ-019 (the Terra API card-removal task) and its ALL_TASKS.md
+  counterpart were corrected in the same 2026-10-03 pass — the entry previously said "already
+  done in substance, no new work needed," which was wrong; both now reflect the actual fix.
 
 ## DSA Practice                                     <!-- prefix: DSA -->
 - **Reference Links:** Method lives in the hub, not a project doc: HUB_GUIDE → DSA Methodology
