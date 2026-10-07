@@ -1,7 +1,7 @@
 # Engineering Hub State
-<!-- Freshness: 2026-08-23 (rev 70) | v1.3 | Snapshots only — overwritten in place. History lives in DEV_LOGs. -->
+<!-- Freshness: 2026-10-06 (rev 71) | v1.3 | Snapshots only — overwritten in place. History lives in DEV_LOGs. -->
 <!-- Last Audit: 2026-09-13 | Monthly Hub Audit (HUB.md) fires from Startup Sequence step 7 when this is >30 days old. Update this line after each audit. -->
-<!-- Last Notion Task Pull: 2026-10-03 | Startup Sequence step 2b checks the live Tasks DB for rows created after this date, every load. Update this line every time step 2b runs, regardless of whether anything new was found. -->
+<!-- Last Notion Task Pull: 2026-10-06 | Startup Sequence step 2b checks the live Tasks DB for rows created after this date, every load. Update this line every time step 2b runs, regardless of whether anything new was found. One non-Terra item found (2026-10-05, "Decide Altitude Reserve replacement + whether to add United Club Infinite") — personal finance, not Terra-scoped, no hub action needed. -->
 <!-- New project? Copy the template from HUB_GUIDE.md → HUB_STATE Section Template. -->
 
 ## Terra API                                        <!-- prefix: TAPI -->
@@ -275,58 +275,66 @@
   (Obsidian note title/path not yet renamed to match — same flag). **ROMS ADR-005 and
   terra-api-adr-010 still need a follow-up amendment** (stale "found stopped, recoverable in
   place" text, superseded by actual migration) — carried forward, still not done.
-- **Status:** Live in prod, single property. **2026-10-03: new internal admin dashboard shipped**
-  — `OMS-fe/src/internal/OmsDashboard.js` + 11 tab components under `src/internal/oms/`, folding
-  the static `terra-hq-site/roms_gtm_strategy.html` GTM content (Overview, Market Analysis,
-  Customer Profile, Positioning, Pricing, Sales Playbook, Build Sequence, Unit Economics, US
-  Competition, Product Requirements) plus a new Architecture Notes tab (sourced from
-  `oms-expansion-sketch.md`, framed as a working sketch, not a fabricated ADR catalog) into a
-  real React page — same fold-in pattern Terra API's strategy page went through earlier. Uses
-  antd `Tabs` (existing OMS-fe dependency), gated at `/internal/dashboard` with
-  `requiredRole="INTERNAL"` — deliberately a SEPARATE role from the existing `/admin/menu` and
-  `/admin/orders` routes (`requiredRole="ADMIN"`), since this carries Terra corporate strategy
-  content, not restaurant-operator tooling; a restaurant location admin account must not reach
-  it. Matches Terra API's own `role=internal` convention. Committed locally (`3339af7`) —
-  **not yet pushed** as of this sync (Will's call on when to push/deploy). terra-hq-site's
-  `terra_tech.html` Ha'bem product card now points at
+- **Status:** Live in prod, single property. **Internal admin dashboard shipped, deployed, and
+  live-verified 2026-10-03–04** — `OMS-fe/src/internal/OmsDashboard.js` + 11 tabs under
+  `src/internal/oms/` (GTM strategy content + an Architecture Notes tab from
+  `oms-expansion-sketch.md`), left-sidebar antd `Tabs` layout (switched from cramped top tabs
+  after live review), gated at `/internal/dashboard` with `requiredRole="INTERNAL"`. Pushed and
+  deployed (`3339af7`…`8f14b37`). Verifying the dashboard actually worked surfaced and fixed 4
+  real bugs in sequence: (1) `INTERNAL` didn't exist in the backend `Role` enum OR the live
+  Postgres `user_role_check` constraint — fixed via code + a one-off manual SQL statement
+  against prod (**no migration file captures the constraint change** — flagged gap, if prod DB
+  is ever recreated from scratch `INTERNAL` will be missing again); (2) `ProtectedRoute`
+  false-redirected role-gated routes on page refresh (pre-existing `user=null` race before the
+  profile fetch resolves, affects `/admin/*` too, not just this route) — fixed (`5b17b37`);
+  (3) the dashboard rendered inside the customer storefront's navbar — fixed, moved outside
+  `AppLayout` (`99f21af`); (4) visiting `/internal/dashboard` logged-out sent users to the
+  customer `/login` page, which hardcoded `navigate('/menu')` and never returned them to the
+  internal page — fixed by adding a genuinely separate `/internal/login` page + dark-themed,
+  no storefront chrome, always lands on `/internal/dashboard` (`399887d`, 2026-10-06).
+  terra-hq-site's `terra_tech.html`/`terra_initiative.html` cards point at
   `http://100.60.7.24/internal/dashboard` (temp raw IP + HTTP, no Ha'bem domain purchased yet —
-  see Claude memory `habem-domain-pending`; revisit once Will buys one, same pattern as Terra
-  API's card pointing at `api.terra-hq.com`).
-- **2026-10-03: disk-full deploy failure root-caused and fixed (Jenkinsfile).** Deploy failed
-  mid-pull with "no space left on device" despite the 2026-10-04-dated before/after
-  `docker image prune -af` already in the Jenkinsfile (see that entry's own inline comment,
-  commit `045fe3a`). Root cause confirmed live via `docker system df -v` on `oms-server`:
-  7.4GB sitting in Docker's BUILD CACHE, a completely separate store `docker image prune` never
-  touches, untouched for 8 weeks; also dozens of old but still-tagged image versions
-  (`oms-backend:19`–`:37`, `roms-backend/frontend:1`–`:12`) accumulating since `-af` only drops
-  zero-reference images, not old-but-reachable tags. Immediate unblock: manually cleared via
-  SSM (`docker builder prune -af` + targeted `docker rmi` on old tags) — root volume went from
-  79%/23G used to 53%/16G used. Permanent fix: added `docker builder prune -af` alongside the
-  existing image prunes in the Jenkinsfile, same `;`-chained non-blocking placement before AND
-  after each deploy (commit `aa9e019`, pushed). **Same fix mirrored in terra-api's Jenkinsfile**
-  (commit `6b1e072`, pushed to both GitHub and Bitbucket) — terra-api-server runs both staging
-  and prod on one shared disk, higher risk than oms's single-tier box.
+  see Claude memory `habem-domain-pending`).
+- **Disk-full deploy failure — root-caused TWICE, both fixed (Jenkinsfile + EBS resize).**
+  First pass (2026-10-03): build cache (7.4GB, untouched 8 weeks, invisible to
+  `docker image prune`) was the real culprit behind a prior image-prune-only fix not working —
+  added `docker builder prune -af` alongside existing image prunes (`aa9e019`, mirrored in
+  terra-api's Jenkinsfile `6b1e072`). **Recurred the same session** — disk filled again mid-
+  deploy and SSM itself became unreachable ("Plugin with name Standard_Stream not found").
+  Root-caused to the box's root EBS volume being genuinely undersized (6.8GB) for
+  Postgres+Kafka+Redis+2 app images, not just accumulated junk. SSH key was lost, Serial
+  Console had no password set — recovered access via **EC2 Instance Connect** (confirmed
+  working on this box, useful fallback if SSM ever fails again), cleaned 17 orphaned Docker
+  volumes, resized the volume to 20GB via EC2 console + in-OS `growpart`/`resize2fs` — confirmed
+  durable (13GB free after a full stack rebuild).
+- **OMS-015 (Redis health-check race) re-verified 2026-10-03, downgraded to resolved-in-
+  practice.** The `spring.data.redis.*` rename fix (commit `3034458`) was actually already
+  committed and live on `main`, contrary to that task's own stale "held locally" text.
+  Independently re-confirmed stable across this session's multiple full-stack rebuilds — Redis
+  came up healthy every time, zero connection errors. Original timing-race theory never
+  formally proven, not worth further investigation time given zero recurrence since.
 - **Active Task:** None blocking prod beyond the above. 2026-08-13 login-casing bug (fixed,
   `8c7d7e0`, deployed) — carried forward from before, still accurate.
-- **Next Step:** Will to push OMS-fe's internal-dashboard commit (`3339af7`) and the OMS-013
-  rename commit (`79079c0`, TerraHeartbeatScheduler) when ready, then verify the new dashboard
-  route is reachable and the Jenkins deploy pipeline goes green with the builder-prune fix in
-  place. Also carried forward, still open: decide final Ha'bem wordmark palette; verify domain +
-  OAPI (Cameroon/CEMAC) trademark availability before brand commit (note: Will said 2026-10-03
-  he'll buy a Ha'bem domain "at some point" — no firm date); decide Grocery category's real
-  fulfillment model; pin `CatalogItem` price to a currency on the backend; replace placeholder
-  8% Nkap discount rate once Terra Chain settlement design is real; build Spa/Tours/Housekeeping
-  category pages once `Booking`/`ServiceRequest` entities exist; disable SonarCloud Automatic
-  Analysis for the OMS project (name not yet updated in SonarCloud itself); amend ADR-005 with
-  final migration outcome; terminate/delete old us-east-2 instance once confident. OMS-018
-  (favicon/touch-icon cropping, blocked on a real source image); OMS-015 (Redis health-check
-  race/config bug, root cause still genuinely uncertain).
+- **Next Step:** Confirm the Jenkins deploy pipeline goes fully green end-to-end with the
+  builder-prune fix + EBS resize in place (last manual deploy succeeded via SSM/Instance
+  Connect intervention, not a clean automated run). Also carried forward, still open: decide
+  final Ha'bem wordmark palette; verify domain + OAPI (Cameroon/CEMAC) trademark availability
+  before brand commit (Will said 2026-10-03 he'll buy a Ha'bem domain "at some point" — no firm
+  date); decide Grocery category's real fulfillment model; pin `CatalogItem` price to a
+  currency on the backend; replace placeholder 8% Nkap discount rate once Terra Chain
+  settlement design is real; build Spa/Tours/Housekeeping category pages once
+  `Booking`/`ServiceRequest` entities exist; disable SonarCloud Automatic Analysis for the OMS
+  project (name not yet updated in SonarCloud itself); amend ADR-005 with final migration
+  outcome; terminate/delete old us-east-2 instance once confident; write a real migration file
+  for the `user_role_check` constraint's `INTERNAL` addition (currently only a manual SQL
+  statement in session history, no migration tooling exists in this repo yet — real gap).
+  OMS-018 (favicon/touch-icon cropping, blocked on a real source image).
 - **Blockers:** None technical.
-- **Context:** Spring Boot + React, single 2GB EC2 instance (us-east-1, `oms-server` /
-  `i-04f3abfb579f2bd1d`, public IP `100.60.7.24`). Data model extension is non-breaking (5-step
-  migration path drafted, not run). Full brand/data-model reference: Obsidian note 12 in
-  `Projects/ROMS/`. SSM access confirmed working on this box (used 2026-08-13 for the login-bug
-  investigation, and again 2026-10-03 for the disk-full diagnosis/cleanup above).
+- **Context:** Spring Boot + React, single EC2 instance (us-east-1, `oms-server` /
+  `i-04f3abfb579f2bd1d`, public IP `100.60.7.24`, root EBS volume resized 6.8GB→20GB
+  2026-10-03). Data model extension is non-breaking (5-step migration path drafted, not run).
+  Full brand/data-model reference: Obsidian note 12 in `Projects/ROMS/`. Both SSM and EC2
+  Instance Connect confirmed working access paths on this box.
 
 ## PIOS                                             <!-- prefix: PIOS -->
 - **Reference Links:** Notion ADRs `pios-adr-011`–`015` — URLs not recorded, add when confirmed.
@@ -391,14 +399,33 @@
   `roms_gtm_strategy.html` page to the new OMS-fe internal dashboard
   (`http://100.60.7.24/internal/dashboard`, temp raw IP, no Ha'bem domain yet — see Claude
   memory `habem-domain-pending`).
+- **2026-10-03/04/06 follow-on work.** `terra_tech.html` Overview tab reordered — the embedded
+  prototype visualizer moved from section 05 to section 01 (top), per Will's direct ask
+  (`36ec6ae`). **Visualizer cube taxonomy fixed in BOTH copies** (terra-api-fe's live
+  `domainConfig.js` AND this repo's embedded `Assets/archive/terra_api_visualizer_phase5.js`,
+  commit `b851c5b`) — stale Hospitality/Africa cube names replaced per Will's confirmed
+  2026-09-28 model (Tech, Fabrication, Finance, Ventures, Real Estate, Agriculture, Apparel,
+  Solar); also discovered `Assets/archive/` was fully gitignored so this fix wouldn't have
+  deployed — added a precise `.gitignore` exception for just these 2 files (full reasoning
+  inline in `.gitignore` itself). `terra_initiative.html`'s Org Chart child-service cards
+  (Ha'bem/PIOS/Terra API under Terra Tech's expanded panel) linked to their real destinations,
+  matching `terra_tech.html`'s own choices (`b901119`). **Repo-wide broken-image-path sweep**
+  (`4d16f3e`, `2ce6945`) — found a systemic bug: `cards/`, `coins/`, `apparel/`, `resort/`, and
+  `Tech/` (JS-constructed, missed by the first static-grep pass) were all referenced without
+  their real `Assets/` parent directory across 5 pages (`resortConcept.html`,
+  `terra_apparel.html`, `terra_nkap.html`, `terra_ventures.html`, `terra_tech.html`'s Gallery
+  tab) — fixed all of them. Also found/fixed a stale `terra-roms-windbreaker.png` filename
+  (HTML already said `terra-habem-windbreaker.png`, asset file was never renamed to match).
+  **2 images remain genuinely missing, not a path bug** — `resortConcept.html`'s two
+  `Gemini_Generated_Image_*` files don't exist anywhere in the repo; need new assets, not a
+  code fix.
 - **Active Task:** None open as of this sync. THQ-004 (terra_africa_strategy.html FARM RENDERS
   tab) status unconfirmed since 2026-08-13 — carried forward from the prior stale entry, verify
   before trusting; may already be committed/pushed or may still be sitting local-only.
 - **Next Step:** Verify THQ-004's actual commit state (the prior note said "committed locally,
   not yet pushed" as of 2026-08-13 — nearly two months stale, don't trust without checking
-  `git log`). Once the new OMS-fe internal dashboard (see OMS section) is pushed/deployed,
-  confirm the Ha'bem card's temp link actually resolves. Revisit Jenkins/Ha'bem temp links once
-  real domains exist for either.
+  `git log`). Replace the 2 missing `resortConcept.html` Gemini images (new assets needed, not
+  code). Revisit Jenkins/Ha'bem temp links once real domains exist for either.
 - **Blockers:** None
 - **Context:** Full page inventory and page-by-page detail live in `terra-hq-site/CLAUDE.md` —
   this section intentionally stays a pointer rather than re-duplicating page-by-page content
@@ -418,6 +445,18 @@
 - **Context:** Java default. Arrays → Strings → Linked Lists → Trees → Graphs → DP.
 
 ## Cross-Project Notes                              <!-- no prefix — ecosystem-wide, not project-scoped -->
+- **Terra Finance vs. Terra Ventures — confirmed distinct, 2026-10-06 (re-checked Notion directly
+  after Will asked "was Terra Finance retired?").** They are NOT the same entity and neither
+  supersedes the other: **Terra Finance** = live, active — PIOS, trading, capital governance
+  (via Investment Hub); **Terra Ventures** = separate, not-yet-formed Rung 3 placeholder for
+  external investing/acquisitions, Nkap sits under it. A 2026-06-18 Notion edit had briefly
+  renamed "Terra Finance" → "Terra Ventures" as if they were one thing — that merge was
+  superseded 2026-08-30 (reaffirmed 2026-09-28), per Notion's own "Terra Ventures" page history.
+  The visualizer's `Finance` cube (plain label, no "Terra" prefix, matching every other cube's
+  naming convention) already correctly represents Terra Finance — confirmed correct as-is,
+  no rename needed. Will separately considered folding Solar into Tech and using that freed
+  8th cube slot for something else, but explicitly held off — **current 8-cube list (Tech,
+  Real Estate, Finance, Ventures, Agriculture, Apparel, Fabrication, Solar) stays as-is.**
 - **Folder rename completed 2026-08-20: `terra-api-home` → `terra-initiative-home`** (final name
   differs from the earlier-planned `terra-home` — see Claude memory `terra-api-home-future-
   rename`). All Machine Paths / local-path references across this hub, CLAUDE.md files, and
