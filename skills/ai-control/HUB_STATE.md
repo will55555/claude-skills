@@ -1,7 +1,7 @@
 # Engineering Hub State
-<!-- Freshness: 2026-10-06 (rev 71) | v1.3 | Snapshots only — overwritten in place. History lives in DEV_LOGs. -->
-<!-- Last Audit: 2026-09-13 | Monthly Hub Audit (HUB.md) fires from Startup Sequence step 7 when this is >30 days old. Update this line after each audit. -->
-<!-- Last Notion Task Pull: 2026-10-06 | Startup Sequence step 2b checks the live Tasks DB for rows created after this date, every load. Update this line every time step 2b runs, regardless of whether anything new was found. One non-Terra item found (2026-10-05, "Decide Altitude Reserve replacement + whether to add United Club Infinite") — personal finance, not Terra-scoped, no hub action needed. -->
+<!-- Freshness: 2026-10-10 (rev 72) | v1.3 | Snapshots only — overwritten in place. History lives in DEV_LOGs. -->
+<!-- Last Audit: 2026-09-13 | Monthly Hub Audit (HUB.md) fires from Startup Sequence step 7 when this is >30 days old. Update this line after each audit. Currently 27 days old — due within the next ~3 days of load activity. -->
+<!-- Last Notion Task Pull: 2026-10-10 | Startup Sequence step 2b checks the live Tasks DB for rows created after this date, every load. Update this line every time step 2b runs, regardless of whether anything new was found. Nothing new found this pull (clean since 2026-10-06's check). -->
 <!-- New project? Copy the template from HUB_GUIDE.md → HUB_STATE Section Template. -->
 
 ## Terra API                                        <!-- prefix: TAPI -->
@@ -353,11 +353,17 @@
   is required before any PIOS coding begins, and as of that page's last sync had **not been
   started**. Design phase (no PIOS code exists yet) is accurate for BOTH reasons: no code has
   started, and the learning gate was still open as of the last real check.
+- **Re-confirmed 2026-10-06 (Will):** learning-stack gate still NOT started — asked directly,
+  this is still the one real blocker, nothing else. Also clarified a separate source of
+  confusion: Notion's `Current Phase` property reads `"Blocked — Needs Decision"`, which sounds
+  like a distinct open design question, but it isn't — it's a fixed-option Notion select field
+  (no closer wording available, can't free-edit it) describing this exact same learning-stack
+  gate. Corrected the PIOS Notion page's own Blockers section with an explicit note so this
+  doesn't get re-asked as if it were a new/different blocker.
 - **Active Task:** None — PIOS coding cannot start until the learning-stack gate clears (or Will
   explicitly decides to waive/reorder it), independent of the ADR sequence being fully resolved.
 - **Next Step:** Confirm with Will whether the learning-stack gate (CS50P/Karpathy → Angular → DSA)
-  has progressed since 2026-05-30 — this project page hasn't been touched since, same staleness
-  risk as everything else in this ecosystem. If cleared, PIOS is ready to start on the
+  has progressed since the 2026-10-06 re-check. If cleared, PIOS is ready to start on the
   event-sourced write path (ADR-011/012/013). If not, it remains genuinely blocked, not just
   deprioritized.
 - **Blockers:** Learning-stack prerequisite (Python/CS50P+Karpathy → Angular → DSA), NOT any ADR —
