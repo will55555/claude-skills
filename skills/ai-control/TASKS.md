@@ -71,8 +71,9 @@
       hard goods (utensils, flasks, coasters, resort amenity items) are a separate line that
       shares the four design pillars (Flora, Panthera, Axis, Ndop) as design language only.
       Partly done 2026-10-21: "Bamboo / Calabash Goods Line" project row created in Notion, Owner
-      deliberately blank. Still open: entity home decision (own line vs. Terra Tech vs.
-      shared-infra pattern like Solar); update Terra Apparel page + terra-hq-site
+      deliberately blank. Entity home RESOLVED 2026-08-29 (found by 2026-10-22 crawl): cross-vertical
+      material line — products routed per item (shoe → Apparel, flasks/coasters/amenities → OMS
+      resort inventory); SKU/marker draft exists under Terra Africa. Still open: update Terra Apparel page + terra-hq-site
       (terra_business_structure.html); SKU/marker scheme for guest-purchasable vs. resort-owned
       goods for Ha'bem (OMS) inventory.
 
@@ -81,7 +82,7 @@
 - [ ] ROMS-002 — Migrate ROMS Jenkins to the shared Terra Jenkins EC2 before ROMS redeployment.
 
 ## Security (not project-specific — general hygiene follow-ups)
-- [ ] SEC-001 — Move exposed plaintext credentials into a password manager (Bitwarden or Proton
+- [x] SEC-001 — RESOLVED (Will confirmed 2026-10-22; Terra CI/CD page had it resolved 2026-07-20). Move exposed plaintext credentials into a password manager (Bitwarden or Proton
       Pass — both free-tier viable, Bitwarden slightly favored for CLI/dev workflow fit), then
       delete the plaintext copies:
       - `C:\Users\solan\OneDrive\Desktop\SDE\Github PAT key.txt`
