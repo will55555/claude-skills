@@ -25,6 +25,11 @@
       (restaurant-order-management-system): `../` (NEW minimal CLAUDE.md created, none existed);
       PIOS skipped, no repo exists yet)
 - [ ] SKILLS-006 — Dogfood: run `load hub tapi` in a fresh Claude Code session, log friction
+- [x] SKILLS-018 — notion-space-audit: merged the 2026-10-21 Audit Skill Upgrade Spec (Full-
+      Workspace Crawl mode, Page Registry DB, in-place page markers, Routines DB intake
+      flagging, transfer-queue sweep). Done 2026-10-22 — fused, existing hub-audit logic kept.
+- [ ] SKILLS-019 — Pilot the crawl mode on ONE hub (spec: pilot before workspace-wide): create
+      the Page Registry DB, run the crawl, write markers, then decide on rollout.
 - [x] SKILLS-016 — RESOLVED 2026-07-09: fetched ADR-003 directly from Notion — confirms
       self-issued JWT on master, Terra Auth provisioned-not-built, activates on 2nd identity
       consumer ("Issuer Model — Resolved 2026-07-08"). Memory was correct; terra-api's local
@@ -55,6 +60,22 @@
 ## FM (work-at-home thinking — context only, no proprietary code/internals)
 (none yet)
 
+## TERRA (cross-project — no single repo home)
+<!-- Transferred 2026-10-22 from Notion "Task Queue (Manual Transfer)" (Terra Inc / Ops, logged 2026-08-19). -->
+- [ ] TERRA-001 — Build an idempotent watermarking script: prepends a visible authorship header
+      (license line + per-file UUID/hash) to source files across Terra repos; skips files that
+      already carry the marker. Deliberately NOT zero-width/steganographic (fragile, stripped by
+      formatters, reads as suspicious). Open decision: all files vs. core/business-logic classes
+      only — confirm before writing the walk-and-prepend script (bash or Node).
+- [ ] TERRA-002 — Apparel scope split: Apparel = wearables only (clothes, shoes); bamboo/calabash
+      hard goods (utensils, flasks, coasters, resort amenity items) are a separate line that
+      shares the four design pillars (Flora, Panthera, Axis, Ndop) as design language only.
+      Partly done 2026-10-21: "Bamboo / Calabash Goods Line" project row created in Notion, Owner
+      deliberately blank. Still open: entity home decision (own line vs. Terra Tech vs.
+      shared-infra pattern like Solar); update Terra Apparel page + terra-hq-site
+      (terra_business_structure.html); SKU/marker scheme for guest-purchasable vs. resort-owned
+      goods for Ha'bem (OMS) inventory.
+
 ## Queued for later sync / Notion
 - [ ] ROMS-001 — Expand the ROMS integration task into a full deploy-and-heartbeat checklist for Terra API / public visualizer integration.
 - [ ] ROMS-002 — Migrate ROMS Jenkins to the shared Terra Jenkins EC2 before ROMS redeployment.
@@ -69,3 +90,9 @@
       (Note: the copies of these files INSIDE `restaurant-order-management-system\` are already
       gitignored — lower urgency there. These three are the ones sitting unprotected at bare
       SDE root, outside any repo.)
+- [ ] SEC-002 — AWS access hygiene: root-only login flagged 2026-08-05 (TAPI-019); an admin IAM
+      user (AdministratorAccess) was in use by 2026-08-09. Scope day-to-day CLI/console work to a
+      least-privilege IAM user or IAM Identity Center. (Carried out of Terra API's Obsidian queue,
+      archived 2026-10-22.)
+- [ ] SEC-003 — Confirm the old local Jenkins container on DESKTOP-KKJ5QGB is stopped — webhooks
+      moved to the terra-jenkins EC2 box by 2026-08-07, but shutdown was never confirmed.

@@ -1,5 +1,31 @@
 # claude-skills Dev Log
 
+## 2026-10-22 — notion-space-audit: full-workspace crawl mode, Page Registry, page markers
+
+### What changed and why
+"Go through my whole Notion" runs kept missing pages. Root cause: `notion-search` is
+relevance-ranked and result-capped, so it can't enumerate a workspace — any sweep built on it
+silently drops pages. `notion-space-audit` now has a second mode, Full-Workspace Crawl: a
+breadth-first `notion-fetch` crawl from every sidebar root, every database paged to the end,
+search used only as an orphan cross-check. Coverage is tracked in a Page Registry DB (one row
+per page) and a faint in-place `Claude indexed · date` marker, so later runs re-review only new,
+unmarked, or edited-since pages. The crawl also flags actionable items for the Routines DB
+(Task / Deadline / Cost / Source / Space) — the intake side of the execution radar.
+
+### Design decisions
+- **Fusion, not replacement.** The existing hub audit (link walk, DB query, reconciliation,
+  approval gate, batched execution) is untouched; crawl mode swaps only the Phase 1 inventory
+  method and adds report sections. Same four-phase contract, same guardrails.
+- **Registry + markers are writes, so they wait for the gate.** The crawl itself stays read-only.
+- **Corrected a stale assumption.** The old guardrail "Notion MCP cannot delete" is no longer
+  true — that belief is why Terra API's drained Obsidian queues sat for months. Default archive
+  is now a move to Global → Archive; trash only when Will names the pages.
+- **Pilot first** (SKILLS-019) before workspace-wide markers.
+
+Same session: swept Notion for transfer queues — Terra API's 5 drained queues moved to Archive
+(index left on the Terra API page); the Ops "Task Queue (Manual Transfer)" items moved into
+TASKS.md as TERRA-001/002, plus SEC-002/003 carried out of the TAPI-019 queue.
+
 ## 2026-10-03 — HUB.md: Startup Sequence now pulls live Notion task drift every load
 
 ### What changed and why
