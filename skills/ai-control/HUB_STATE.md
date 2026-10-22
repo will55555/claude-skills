@@ -1,7 +1,7 @@
 # Engineering Hub State
 <!-- Freshness: 2026-10-10 (rev 72) | v1.3 | Snapshots only — overwritten in place. History lives in DEV_LOGs. -->
-<!-- Last Audit: 2026-09-13 | Monthly Hub Audit (HUB.md) fires from Startup Sequence step 7 when this is >30 days old. Update this line after each audit. Currently 27 days old — due within the next ~3 days of load activity. -->
-<!-- Last Notion Task Pull: 2026-10-10 | Startup Sequence step 2b checks the live Tasks DB for rows created after this date, every load. Update this line every time step 2b runs, regardless of whether anything new was found. Nothing new found this pull (clean since 2026-10-06's check). -->
+<!-- Last Audit: 2026-10-22 | Monthly Hub Audit (HUB.md) fires from Startup Sequence step 7 when this is >30 days old. Update this line after each audit. 5 findings this pass: terra-api-fe 8 commits ahead of its Bitbucket mirror (and an odd 4th "all" remote pushing to both GitHub+Bitbucket, separate from the plain origin/bitbucket pair — likely why origin-only pushes drifted); terra-api-fe's stale "Everything above is UNCOMMITTED" claim (tree is clean at 4874f91); Agent Operating Constraints (NEVER execute build/test/run) sits past HUB.md's own 80-line read cap, the same v1.7 failure mode the hub already documents; terra-hq-site section was stale (THQ-004 long since closed, substantial unrecorded work from 2026-10-17/19 — now fixed in this same pass); terra-api's HUB_STATE text doesn't cite a comparable SHA to its current a4590a5, can't fully verify drift there. -->
+<!-- Last Notion Task Pull: 2026-10-22 | Startup Sequence step 2b checks the live Tasks DB for rows created after this date, every load. Update this line every time step 2b runs, regardless of whether anything new was found. 13 new rows since 2026-10-10, only 1 Terra-domain ("Breakout session — name the Terra Agriculture public brand," already tracked on Agriculture's own Next Action list) — the other 12 are personal/finance (NACA, credit repair, job search, bank account closings), out of this hub's scope. -->
 <!-- New project? Copy the template from HUB_GUIDE.md → HUB_STATE Section Template. -->
 
 ## Terra API                                        <!-- prefix: TAPI -->
@@ -425,13 +425,39 @@
   **2 images remain genuinely missing, not a path bug** — `resortConcept.html`'s two
   `Gemini_Generated_Image_*` files don't exist anywhere in the repo; need new assets, not a
   code fix.
-- **Active Task:** None open as of this sync. THQ-004 (terra_africa_strategy.html FARM RENDERS
-  tab) status unconfirmed since 2026-08-13 — carried forward from the prior stale entry, verify
-  before trusting; may already be committed/pushed or may still be sitting local-only.
-- **Next Step:** Verify THQ-004's actual commit state (the prior note said "committed locally,
-  not yet pushed" as of 2026-08-13 — nearly two months stale, don't trust without checking
-  `git log`). Replace the 2 missing `resortConcept.html` Gemini images (new assets needed, not
-  code). Revisit Jenkins/Ha'bem temp links once real domains exist for either.
+- **Active Task:** None open. **THQ-004 CLOSED, 2026-10-17/18** — confirmed via `git log`, not
+  trust-without-checking: `terra_africa_strategy.html`'s Farm Renders tab shipped a Security
+  Perimeter section (14 renders, `32552a6`), a Full Ecosystem/hypothetical-completion section (8
+  renders, `e527441`), and a Parcel A pond water-source update (`fdd22a3`) — all pushed to
+  `origin/main`, nothing local-only. The prior "unconfirmed since 2026-08-13" framing was stale.
+- **2026-10-18/19: full-site cross-link audit + fixes, 3 commits (`39e5778`, `fc4bf29`, plus the
+  Nkap/Apparel decision-sync commit `cb5504e`).** Background-agent audit found cross-page
+  references (Ha'bem/PIOS/Terra API/Nkap mentioned by name but not linked across
+  `terra_africa_strategy.html`, `roms_gtm_strategy.html`, `pios_strategy.html`,
+  `terra_ventures.html`, `terra_nkap.html`) and same-page anchor gaps (every page except
+  `index.html` lacked `id` attributes on section headers, so "see X above" text had no real
+  target). Fixed: added `id="pilot-status"`/`id="land-water-ops"` anchors + linked the
+  Security-Perimeter-section callout's two "see above" references; linked first substantive
+  Ha'bem/PIOS/Terra API/Nkap mention per section across 6 files; fixed a real bug in
+  `terra_initiative.html` where Nkap entity notes said "see callout below" but the actual detail
+  lives on `terra_ventures.html` (now links directly + the real callout got `id="nkap-callout"`);
+  linked the private GitHub repo (same self-facing-link precedent as the gated `api.terra-hq.com`
+  links elsewhere on that page); fixed the only unlinked card in `terra_initiative.html`'s Tech
+  org-chart drill-down (`TERRA ASSEMBLY` was a plain `<div>`, now links to `terra_tech.html`'s
+  Fabrication Lab tab, matching the other 3 linked cards in that row).
+- **Separately, Nkap/Apparel decisions synced Notion↔site, 2026-10-18 (`cb5504e`).** Nkap: coin
+  name confirmed final (not a placeholder); Diamond AND Sapphire tiers now show round-only on
+  `terra_nkap.html` (oval variants retired from display, kept in `Assets/coins/`, not deleted) —
+  matches a Notion decision originally scoped to Diamond only, extended same-day to Sapphire for
+  consistency. Apparel: first drop decided as a mixed-pillar, light-garment (t-shirts/dress
+  shirts) 5–25-piece test batch (not the full 55-piece run); social-brand positioning decided as
+  a recruitment+audience-building mix, not a single goal — both now reflected in
+  `terra_apparel.html`'s callout instead of listed as open next actions.
+- **Next Step:** None pressing on terra-hq-site itself. Still open from before: replace the 2
+  missing `resortConcept.html` Gemini images (new assets needed, not code); revisit Jenkins/Ha'bem
+  temp links once real domains exist for either; `terra_nkap.html` still has a pre-existing div
+  imbalance (267 open/268 close, confirmed via `git stash` to predate this session's edits, not
+  visibly breaking the page) — not fixed, flagged as a known minor issue if anyone goes looking.
 - **Blockers:** None
 - **Context:** Full page inventory and page-by-page detail live in `terra-hq-site/CLAUDE.md` —
   this section intentionally stays a pointer rather than re-duplicating page-by-page content
