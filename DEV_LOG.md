@@ -1,5 +1,21 @@
 # claude-skills Dev Log
 
+## 2026-10-22 — HUB.md v2.2: deduplicated Agent Operating Constraints
+
+### What changed and why
+Monthly Hub Audit (fired from a `load hub` session, 39 days overdue) flagged that HUB.md's
+Agent Operating Constraints section (EXECUTION ROLE BOUNDARY block) sat past Linear Fetch
+Mode's 80-line read cap — the exact v1.7 failure mode the hub already documents (a rule living
+only past line 80 gets silently skipped by a compliant read, which is how it kept getting
+broken on 2026-08-02). On inspection the section turned out to be pure restatement of Prime
+Directives 1–2, which already live inside the cap at the top of the file — so the fix wasn't to
+relocate the block (which would just move the bloat problem), it was to deduplicate it. Replaced
+the full EXECUTION ROLE BOUNDARY block + 7-step workflow walkthrough with a one-line pointer back
+to the Prime Directives plus a condensed one-line summary of the workflow rhythm, keeping only
+the "Other operating constraints" content that doesn't duplicate anything above the cap
+(multi-remote push discipline, backup-tag policy, write-verification rule, sandbox-tool
+distinction). Freshness bumped 2026-10-03→2026-10-22, v2.1→v2.2.
+
 ## 2026-10-22 — notion-space-audit: full-workspace crawl mode, Page Registry, page markers
 
 ### What changed and why

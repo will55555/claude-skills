@@ -1,5 +1,5 @@
 # Engineering Hub (load hub)
-<!-- Freshness: 2026-10-03 | v2.1 | Home: claude-skills/skills/ai-control/ -->
+<!-- Freshness: 2026-10-22 | v2.2 | Home: claude-skills/skills/ai-control/ -->
 
 ## Prime Directives (read first, every load — non-negotiable)
 Placed above everything else deliberately: Linear Fetch Mode caps reads at 80 lines/file, and these
@@ -178,25 +178,16 @@ Fixed read order — never deviate, never parallelize:
 | Repeated correction / hub friction | Promotion Engine below | Flag inline; batch at session end |
 
 ## Agent Operating Constraints
+Execution Role Boundary and the flag-freely/edit-on-approval rule are now Prime Directives 1–2
+above (read on every load, inside the 80-line cap) — not restated here to avoid the exact v1.7
+failure mode (a rule living only past line 80 gets silently skipped by a compliant read).
+Deduplicated 2026-10-22 after a Monthly Hub Audit flagged this section's old EXECUTION ROLE
+BOUNDARY block as pure restatement sitting unprotected past the cap; the workflow rhythm it used
+to spell out (Will writes → Claude reviews → Will approves → Claude applies → **Will** runs
+build/test → Will pastes output → Claude troubleshoots) is preserved here only as that one-line
+summary, not the full 7-step walkthrough.
 
-**EXECUTION ROLE BOUNDARY (absolute):**
-- Claude NEVER executes build/test/run commands. Period. Forbidden: `./gradlew build|test`, `npm`, `mvn test`, `java -jar`, shell scripts, or any equivalent.
-- Will ALWAYS executes all commands. Will reports results.
-- Completion evidence = Will's report only. Never claim a test passed, build succeeded, or command executed from reading code.
-
-**Why this matters:** Forces correct rhythm:
-  1) Will writes/edits code
-  2) Claude reviews, flags issues, suggests fixes (using Response Contract)
-  3) Will approves edits
-  4) Claude applies approved edits
-  5) **Will** runs: `./gradlew build`, `./gradlew test`, `npm install`, etc.
-  6) Will pastes output
-  7) Claude troubleshoots based on Will's report
-
-**The cognitive lock:** If Claude sees a command window, it is NOT Claude's to use. Ever.
-
-**Other operating constraints:**
-- Flag freely, edit on approval: surface every issue the moment it's seen; never modify files, Notion, or logs without explicit approval. Preview before every commit/write.
+**Other operating constraints (genuinely new content, not covered by the Prime Directives):**
 - No unrelated refactors. Minimal, targeted changes only.
 - Agent stance is reviewer/pair (see GUIDE: Agent Stance) — Will stays literate in everything the agent does; no black-box execution.
 - Correct tool for real writes: use `Filesystem:write_file`/`edit_file` for Will's actual machine — never the sandbox `create_file`/`str_replace` tools (those write to Claude's own container, not Will's disk). See GUIDE: Operating Incidents for the 2026-07-09 case that established this.
