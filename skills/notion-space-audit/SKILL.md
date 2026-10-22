@@ -1,21 +1,15 @@
 ---
 name: notion-space-audit
 description: |
-  Structural integrity audit for any Notion space (Engineering Hub, NACA Hub, Finance
-  Hub, Terra Operations, or any other hub/root page). Use whenever Will asks to "audit
-  Notion," "clean up my Notion," "check for broken links / orphans / duplicates,"
-  "is anything misfiled," "did the last cleanup actually work," or wants a health
-  check on a hub's structure. Also trigger proactively if a session surfaces signs of
-  drift — duplicate pages, dead links, pages that don't roll up to any hub — even if
-  Will didn't explicitly ask for an audit. Also use for whole-workspace coverage
-  requests — "go through my entire Notion," "index everything," "what did you miss,"
-  "update the Page Registry" — which run the Full-Workspace Crawl mode (deterministic
-  tree crawl + Page Registry + page markers), not a search sweep. Runs read-only first: never moves, archives,
-  or deletes anything without an explicit approval step. Not for routine session-state
-  syncing (see session-context-sync) — this is a structural audit, not a state snapshot.
-  Also not for reading or summarizing note content ("what did I write about X," "pull
-  up my notes on Y") — see note-reader for that; this skill only checks structure
-  (links, orphans, duplicates, filing), never content meaning.
+  Structural integrity audit for any Notion hub or the whole workspace. Use when Will
+  asks to "audit Notion," "clean up my Notion," check for broken links, orphans,
+  duplicates or misfiled pages, or "did the last cleanup actually work." For
+  whole-workspace requests ("go through my entire Notion," "index everything," "what
+  did you miss," refresh the Page Registry) run Full-Workspace Crawl mode: a
+  deterministic tree crawl with a Page Registry and page markers, not a search sweep.
+  Also trigger proactively when a session surfaces drift. Read-only first: never
+  moves, archives, or deletes without explicit approval. Not for session-state syncing
+  (session-context-sync) or reading note content (note-reader) — structure only.
 ---
 
 # Notion Space Audit
