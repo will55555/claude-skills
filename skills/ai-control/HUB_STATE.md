@@ -266,6 +266,22 @@
 - **Chain:** mobile audit → guest-facing Ha'bem domain → Location (room/table) entity via §8 migration → per-room/table QR codes → app store readiness.
 - **Blockers:** QR printing blocked on (1) guest-facing domain (not terra-hq.com — stealth), (2) no room/table concept in backend.
 - **Context:** QRs will encode a redirect path (`/r/{property}/{room}`) so targets can change without reprints. Store publisher identity is trigger-gated → entity that owns Ha'bem, not personal name. Likely store path: Capacitor + native push. Full notes: Obsidian `Projects/ROMS/13 - Habem Mobile-First, QR & Store Readiness`.
+  Box: `oms-server` / `i-04f3abfb579f2bd1d` (us-east-1), public IP `100.60.7.24`, root EBS 20GB
+  (resized from 6.8GB 2026-10-03); SSM and EC2 Instance Connect both confirmed working (Instance
+  Connect is the fallback if SSM dies). Internal dashboard temp link:
+  `http://100.60.7.24/internal/dashboard` (raw IP, no Ha'bem domain yet).
+- **Reference Links:** Notion ADRs `roms-adr-001`–`005` (Notion names not yet renamed) · design
+  ref `oms/assets/oms-expansion-sketch.md` · Obsidian `Projects/ROMS/12 - Habem Expansion & Brand
+  Design` (brand/data-model reference).
+- **Carried forward (open, outside the mobile chain):** (1) no migration file for the manual prod
+  `user_role_check` `INTERNAL` addition — a from-scratch DB rebuild loses it; (2) confirm a clean,
+  fully automated green Jenkins deploy since the builder-prune fix + EBS resize (last deploy
+  needed manual SSM/Instance Connect help); (3) amend ROMS ADR-005 + terra-api-adr-010 with the
+  final migration outcome; (4) terminate old us-east-2 instance; (5) disable SonarCloud Automatic
+  Analysis for OMS; (6) OMS-018 favicon/touch-icon (blocked on a real source image); (7) brand/
+  product decisions: wordmark palette, domain + OAPI (Cameroon/CEMAC) trademark check, Grocery
+  fulfillment model, pin `CatalogItem` price to a currency, replace placeholder 8% Nkap discount
+  rate; Spa/Tours/Housekeeping pages once `Booking`/`ServiceRequest` entities exist.
 
 ## PIOS                                             <!-- prefix: PIOS -->
 - **Reference Links:** Notion ADRs `pios-adr-011`–`015` — URLs not recorded, add when confirmed.
