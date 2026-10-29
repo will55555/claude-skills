@@ -1,5 +1,5 @@
 # Engineering Hub State
-<!-- Freshness: 2026-10-10 (rev 72) | v1.3 | Snapshots only — overwritten in place. History lives in DEV_LOGs. -->
+<!-- Freshness: 2026-10-28 (rev 73) | v1.3 | Snapshots only — overwritten in place. History lives in DEV_LOGs. -->
 <!-- Last Audit: 2026-10-22 | Monthly Hub Audit (HUB.md) fires from Startup Sequence step 7 when this is >30 days old. Update this line after each audit. 5 findings this pass, 1 resolved same day: terra-api-fe's Bitbucket mirror was 8 commits behind — Will ran `git push bitbucket` directly, re-verified 0/0 divergence, RESOLVED. Still open: the odd 4th "all" remote pushing to both GitHub+Bitbucket, separate from the plain origin/bitbucket pair, is still there and is likely why origin-only pushes keep drifting — worth remembering to push `all` (or both remotes) going forward, not a one-time fix; terra-api-fe's stale "Everything above is UNCOMMITTED" claim (tree is clean at 4874f91); ~~Agent Operating Constraints (NEVER execute build/test/run) sits past HUB.md's own 80-line read cap~~ — RESOLVED same day: the section was pure restatement of Prime Directives 1–2 (already inside the cap), deduplicated to a pointer + the genuinely new content (multi-remote push discipline, backup policy, write-verification rules), HUB.md v2.1→v2.2; terra-api's HUB_STATE text doesn't cite a comparable SHA to its current a4590a5, can't fully verify drift there. -->
 <!-- Last Notion Task Pull: 2026-10-22 | Startup Sequence step 2b checks the live Tasks DB for rows created after this date, every load. Update this line every time step 2b runs, regardless of whether anything new was found. 13 new rows since 2026-10-10, only 1 Terra-domain ("Breakout session — name the Terra Agriculture public brand," already tracked on Agriculture's own Next Action list) — the other 12 are personal/finance (NACA, credit repair, job search, bank account closings), out of this hub's scope. -->
 <!-- New project? Copy the template from HUB_GUIDE.md → HUB_STATE Section Template. -->
@@ -259,84 +259,13 @@
   `useEcosystemHealth.js`, `visualizer.css`, `Dashboard.js`, `dashboard.css`, plus the
   regenerated `package-lock.json`). Will's call whether/when to commit.
 
-## OMS repo, product name Ha'bem (OMS)        <!-- prefix: OMS (was ROMS, renamed 2026-10-03) -->
-- **Naming — fully completed 2026-10-03, supersedes the 2026-08-10 partial rename below.**
-  Two separate migrations existed and are now BOTH done: (1) the 2026-08-10 structural
-  rename (repo/package/doc naming, ROMS→"Ha'bem (OMS)" in prose) — was already done; (2) the
-  actual code-level `id`/`name`/`serviceId` value rename (internal codenames `id: 'roms'`,
-  `name: 'ROMS'`, Java `SERVICE_ID = "roms"`, Jenkins credential/image names) — executed this
-  session across oms, terra-api-fe, and terra-api. Confirmed zero functional "roms"/"ROMS"
-  strings remain anywhere in these repos outside genuine historical/dated comments and two
-  frozen, unreferenced `design-reference/*.html` mockups in terra-api-fe (left untouched,
-  dead files). `oms/assets/roms-expansion-sketch.md` renamed to `oms-expansion-sketch.md`
-  (`git mv`, 11 citing files + TASKS.md updated to match).
-- **Reference Links:** Notion ADRs `roms-adr-001`–`005` (Notion page names not yet renamed to
-  match — flag if this causes confusion). Repo: `terra-initiative-home/oms/` (gitignored there,
-  nested sibling). Design ref: `oms/assets/oms-expansion-sketch.md` (renamed 2026-10-03, was
-  `roms-expansion-sketch.md`) · Obsidian `Projects/ROMS/12 - Habem Expansion & Brand Design`
-  (Obsidian note title/path not yet renamed to match — same flag). **ROMS ADR-005 and
-  terra-api-adr-010 still need a follow-up amendment** (stale "found stopped, recoverable in
-  place" text, superseded by actual migration) — carried forward, still not done.
-- **Status:** Live in prod, single property. **Internal admin dashboard shipped, deployed, and
-  live-verified 2026-10-03–04** — `OMS-fe/src/internal/OmsDashboard.js` + 11 tabs under
-  `src/internal/oms/` (GTM strategy content + an Architecture Notes tab from
-  `oms-expansion-sketch.md`), left-sidebar antd `Tabs` layout (switched from cramped top tabs
-  after live review), gated at `/internal/dashboard` with `requiredRole="INTERNAL"`. Pushed and
-  deployed (`3339af7`…`8f14b37`). Verifying the dashboard actually worked surfaced and fixed 4
-  real bugs in sequence: (1) `INTERNAL` didn't exist in the backend `Role` enum OR the live
-  Postgres `user_role_check` constraint — fixed via code + a one-off manual SQL statement
-  against prod (**no migration file captures the constraint change** — flagged gap, if prod DB
-  is ever recreated from scratch `INTERNAL` will be missing again); (2) `ProtectedRoute`
-  false-redirected role-gated routes on page refresh (pre-existing `user=null` race before the
-  profile fetch resolves, affects `/admin/*` too, not just this route) — fixed (`5b17b37`);
-  (3) the dashboard rendered inside the customer storefront's navbar — fixed, moved outside
-  `AppLayout` (`99f21af`); (4) visiting `/internal/dashboard` logged-out sent users to the
-  customer `/login` page, which hardcoded `navigate('/menu')` and never returned them to the
-  internal page — fixed by adding a genuinely separate `/internal/login` page + dark-themed,
-  no storefront chrome, always lands on `/internal/dashboard` (`399887d`, 2026-10-06).
-  terra-hq-site's `terra_tech.html`/`terra_initiative.html` cards point at
-  `http://100.60.7.24/internal/dashboard` (temp raw IP + HTTP, no Ha'bem domain purchased yet —
-  see Claude memory `habem-domain-pending`).
-- **Disk-full deploy failure — root-caused TWICE, both fixed (Jenkinsfile + EBS resize).**
-  First pass (2026-10-03): build cache (7.4GB, untouched 8 weeks, invisible to
-  `docker image prune`) was the real culprit behind a prior image-prune-only fix not working —
-  added `docker builder prune -af` alongside existing image prunes (`aa9e019`, mirrored in
-  terra-api's Jenkinsfile `6b1e072`). **Recurred the same session** — disk filled again mid-
-  deploy and SSM itself became unreachable ("Plugin with name Standard_Stream not found").
-  Root-caused to the box's root EBS volume being genuinely undersized (6.8GB) for
-  Postgres+Kafka+Redis+2 app images, not just accumulated junk. SSH key was lost, Serial
-  Console had no password set — recovered access via **EC2 Instance Connect** (confirmed
-  working on this box, useful fallback if SSM ever fails again), cleaned 17 orphaned Docker
-  volumes, resized the volume to 20GB via EC2 console + in-OS `growpart`/`resize2fs` — confirmed
-  durable (13GB free after a full stack rebuild).
-- **OMS-015 (Redis health-check race) re-verified 2026-10-03, downgraded to resolved-in-
-  practice.** The `spring.data.redis.*` rename fix (commit `3034458`) was actually already
-  committed and live on `main`, contrary to that task's own stale "held locally" text.
-  Independently re-confirmed stable across this session's multiple full-stack rebuilds — Redis
-  came up healthy every time, zero connection errors. Original timing-race theory never
-  formally proven, not worth further investigation time given zero recurrence since.
-- **Active Task:** None blocking prod beyond the above. 2026-08-13 login-casing bug (fixed,
-  `8c7d7e0`, deployed) — carried forward from before, still accurate.
-- **Next Step:** Confirm the Jenkins deploy pipeline goes fully green end-to-end with the
-  builder-prune fix + EBS resize in place (last manual deploy succeeded via SSM/Instance
-  Connect intervention, not a clean automated run). Also carried forward, still open: decide
-  final Ha'bem wordmark palette; verify domain + OAPI (Cameroon/CEMAC) trademark availability
-  before brand commit (Will said 2026-10-03 he'll buy a Ha'bem domain "at some point" — no firm
-  date); decide Grocery category's real fulfillment model; pin `CatalogItem` price to a
-  currency on the backend; replace placeholder 8% Nkap discount rate once Terra Chain
-  settlement design is real; build Spa/Tours/Housekeeping category pages once
-  `Booking`/`ServiceRequest` entities exist; disable SonarCloud Automatic Analysis for the OMS
-  project (name not yet updated in SonarCloud itself); amend ADR-005 with final migration
-  outcome; terminate/delete old us-east-2 instance once confident; write a real migration file
-  for the `user_role_check` constraint's `INTERNAL` addition (currently only a manual SQL
-  statement in session history, no migration tooling exists in this repo yet — real gap).
-  OMS-018 (favicon/touch-icon cropping, blocked on a real source image).
-- **Blockers:** None technical.
-- **Context:** Spring Boot + React, single EC2 instance (us-east-1, `oms-server` /
-  `i-04f3abfb579f2bd1d`, public IP `100.60.7.24`, root EBS volume resized 6.8GB→20GB
-  2026-10-03). Data model extension is non-breaking (5-step migration path drafted, not run).
-  Full brand/data-model reference: Obsidian note 12 in `Projects/ROMS/`. Both SSM and EC2
-  Instance Connect confirmed working access paths on this box.
+## Ha'bem (OMS)                                      <!-- prefix: OMS (was ROMS, renamed 2026-10-03) -->
+- **Status:** Shipped — Enhancements Queued. Mobile-first + store-readiness rules adopted 2026-09-28.
+- **Active Task:** Mobile audit (absorbs parked Phase F UX pass).
+- **Next Step:** Fix phone layout: sidebar → ☰ drawer under tablet width, icon-only header actions under ~480px, single-column grid; then verify menu data loads over a real domain.
+- **Chain:** mobile audit → guest-facing Ha'bem domain → Location (room/table) entity via §8 migration → per-room/table QR codes → app store readiness.
+- **Blockers:** QR printing blocked on (1) guest-facing domain (not terra-hq.com — stealth), (2) no room/table concept in backend.
+- **Context:** QRs will encode a redirect path (`/r/{property}/{room}`) so targets can change without reprints. Store publisher identity is trigger-gated → entity that owns Ha'bem, not personal name. Likely store path: Capacitor + native push. Full notes: Obsidian `Projects/ROMS/13 - Habem Mobile-First, QR & Store Readiness`.
 
 ## PIOS                                             <!-- prefix: PIOS -->
 - **Reference Links:** Notion ADRs `pios-adr-011`–`015` — URLs not recorded, add when confirmed.
