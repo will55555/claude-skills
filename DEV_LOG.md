@@ -1,5 +1,23 @@
 # claude-skills Dev Log
 
+## 2026-10-28 — HUB_STATE rev 73: Ha'bem mobile/QR/store chain, terra-hq-site Notion→HQ migration
+
+### What changed and why
+Two HUB_STATE section snapshots overwritten in place, freshness 2026-10-10 (rev 72) → 2026-10-28
+(rev 73). **Ha'bem (OMS):** section rewritten around the mobile-first + store-readiness chain
+adopted 2026-09-28 (mobile audit → guest-facing domain → Location entity via §8 migration →
+per-room/table QRs → app store readiness), with QR printing blocked on the domain + missing
+room/table concept. The first overwrite dropped still-open items with no other home in the hub
+(the `user_role_check` `INTERNAL` migration gap, the unconfirmed clean Jenkins deploy, ADR
+amendments, us-east-2 teardown, brand decisions) plus refs and machine details — restored as a
+"Carried forward" bullet the same day (`9d010a1`). Lesson: an overwrite patch that's shorter than
+the section it replaces should be diffed for dropped open items before commit, not after.
+**terra-hq-site:** Active Task is now the Notion → HQ migration (started 2026-10-17); new blocker —
+terra-hq.com is public (Cloudflare Access was abandoned), so migrated content naming Snorkel/NACA
+and family funding is publicly readable, and sensitive Ops DBs stay unmigrated until a gated home
+exists. Notion's Ha'bem project page Next Action synced to match (stamp, phone-layout step, the
+two missing open items).
+
 ## 2026-10-22 — HUB.md v2.2: deduplicated Agent Operating Constraints
 
 ### What changed and why

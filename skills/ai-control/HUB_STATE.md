@@ -372,7 +372,17 @@
   **2 images remain genuinely missing, not a path bug** — `resortConcept.html`'s two
   `Gemini_Generated_Image_*` files don't exist anywhere in the repo; need new assets, not a
   code fix.
-- **Active Task:** None open. **THQ-004 CLOSED, 2026-10-17/18** — confirmed via `git log`, not
+- **Active Task: Notion → HQ migration (started 2026-10-17).** Settled Notion content moves to its
+  HQ home, which becomes the live place to update it; Notion source gets a dated "🚀 Live on
+  Terra HQ" freeze callout (stamped 2026-10-28 on Terra Inc hub, Finance Quick Stats, Terra
+  Entities, Compliance Calendar, Terra Agriculture, Terra Apparel). Done so far: REGISTER tab on
+  `terra_initiative.html` (status, quick stats, entity register, compliance calendar) + holdco
+  stale-fact fixes (Rung 2 pending, Rung 1 checklist, Mercury→Chase, WY report Terra Inc only);
+  AGRICULTURE tab on `terra_africa_strategy.html`; Brand Governance on `terra_apparel.html`;
+  Finance≠Ventures callout on `terra_ventures.html`; orphan `terra_africa.html` merged in as a
+  Convergence tab + `_redirects`; `#tab` deep links. Tasks DB stays in Notion permanently.
+  Protocol: future HQ data layer = own service, append-only revisions, per-home read feeds.
+- **Earlier: THQ-004 CLOSED, 2026-10-17/18** — confirmed via `git log`, not
   trust-without-checking: `terra_africa_strategy.html`'s Farm Renders tab shipped a Security
   Perimeter section (14 renders, `32552a6`), a Full Ecosystem/hypothetical-completion section (8
   renders, `e527441`), and a Parcel A pond water-source update (`fdd22a3`) — all pushed to
@@ -400,12 +410,17 @@
   shirts) 5–25-piece test batch (not the full 55-piece run); social-brand positioning decided as
   a recruitment+audience-building mix, not a single goal — both now reflected in
   `terra_apparel.html`'s callout instead of listed as open next actions.
-- **Next Step:** None pressing on terra-hq-site itself. Still open from before: replace the 2
-  missing `resortConcept.html` Gemini images (new assets needed, not code); revisit Jenkins/Ha'bem
-  temp links once real domains exist for either; `terra_nkap.html` still has a pre-existing div
-  imbalance (267 open/268 close, confirmed via `git stash` to predate this session's edits, not
-  visibly breaking the page) — not fixed, flagged as a known minor issue if anyone goes looking.
-- **Blockers:** None
+- **Next Step:** (1) Decide genericize-vs-gate for sensitive migrated content (see Blockers).
+  (2) Migrate the non-sensitive remainder: Tech product status, Ha'bem resort tracker, a Terra
+  Finance page taking the PIOS tabs off `terra_ventures.html`. (3) Mark SEC-001 resolved on the
+  Register. (4) Move embedded images out of `resortConcept.html` (4.1 MB, mobile). Still open
+  from before: 2 missing `resortConcept.html` Gemini images; Jenkins/Ha'bem temp links;
+  `terra_nkap.html` pre-existing div imbalance (267/268, not visibly breaking).
+- **Blockers:** **terra-hq.com is public** — Cloudflare Access was abandoned (JWT gating covers
+  only `api.terra-hq.com/internal`). The migration assumed a gate: Register names Snorkel/NACA
+  and the Agriculture tab mentions family funding, all publicly readable now. Ops DBs (Contacts,
+  Hires, OMS CRM) + Business Banking stay unmigrated until a gated home exists. Pilot home and
+  HQ data stack (D1/Workers vs Postgres) undecided.
 - **Context:** Full page inventory and page-by-page detail live in `terra-hq-site/CLAUDE.md` —
   this section intentionally stays a pointer rather than re-duplicating page-by-page content
   that already drifted once before (see the Monthly Hub Audit item 3 pattern: duplicated detail
