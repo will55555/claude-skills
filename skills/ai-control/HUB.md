@@ -1,5 +1,5 @@
 # Engineering Hub (load hub)
-<!-- Freshness: 2026-10-22 | v2.2 | Home: claude-skills/skills/ai-control/ -->
+<!-- Freshness: 2026-10-31 | v2.3 | Home: claude-skills/skills/ai-control/ -->
 
 ## Prime Directives (read first, every load — non-negotiable)
 Placed above everything else deliberately: Linear Fetch Mode caps reads at 80 lines/file, and these
@@ -273,8 +273,9 @@ summary, not the full 7-step walkthrough.
   | terra-hq-site | `C:\Users\solan\OneDrive\Desktop\SDE\terra-api-home\terra-hq-site\` | CORRECTED 2026-08-07 — now a sibling inside `terra-api-home\`, same container rename as terra-api/terra-jenkins above; prior bare-`SDE\` path was stale. |
   | terra-hq-site (machine: test) | `C:\Users\test\Desktop\Programing\terra-initiative-home\terra-hq-site\` | CORRECTED 2026-08-23 — prior standalone-clone path (`Programing\terra-hq-site\`) was stale; it's a nested-repo subdirectory of `terra-initiative-home\` like the others, confirmed via direct check this session (`main` @ `origin/main`, clean). |
   | ROMS (restaurant-order-management-system) | `C:\Users\solan\OneDrive\Desktop\SDE\terra-api-home\restaurant-order-management-system\` | CORRECTED 2026-08-07 — now a sibling inside `terra-api-home\`, same container rename as the rows above; prior bare-`SDE\` path was stale. Folder is NOT named "roms". Gitignored in `terra-api-home/.gitignore` as of 2026-08-07 (was untracked before). |
-  | pios | no repo exists yet | n/a — add when PIOS moves to code |
-  | Obsidian vault | `C:\Users\solan\iCloudDrive\iCloud~md~obsidian\iCloud\Obsidian Vault\` | Reachable; sync skill owns writes |
+  | pios | `C:\Users\solan\OneDrive\Desktop\SDE\pios\` | Added 2026-10-31. Local only, no remote yet. Sits directly under `SDE\`, not inside `terra-initiative-home\`. |
+  | pios-algo | `C:\Users\solan\OneDrive\Desktop\SDE\pios-algo\` | Added 2026-10-31. Local only, no remote yet. Tenant repo `will-strategies` is its sibling and never merges into it. |
+  | Obsidian vault | `C:\Users\solan\My Drive (willtjob@gmail.com)\Obsidian Vault\` | CORRECTED 2026-10-31 (was the iCloud path); matches `OBSIDIAN_VAULT` in settings. Sync skill owns writes |
   | Obsidian vault (machine: test) | `C:\Users\test\Desktop\iCloudDrive\Obsidian Vault\` | Confirmed reachable 2026-07-22; sync skill owns writes |
   | Hub (canonical) | `claude-skills/skills/ai-control/` | Local in Code; GitHub raw elsewhere |
 

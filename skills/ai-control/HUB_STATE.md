@@ -1,7 +1,7 @@
 # Engineering Hub State
-<!-- Freshness: 2026-10-28 (rev 73) | v1.3 | Snapshots only — overwritten in place. History lives in DEV_LOGs. -->
+<!-- Freshness: 2026-10-31 (rev 74) | v1.3 | Snapshots only — overwritten in place. History lives in DEV_LOGs. -->
 <!-- Last Audit: 2026-10-22 | Monthly Hub Audit (HUB.md) fires from Startup Sequence step 7 when this is >30 days old. Update this line after each audit. 5 findings this pass, 1 resolved same day: terra-api-fe's Bitbucket mirror was 8 commits behind — Will ran `git push bitbucket` directly, re-verified 0/0 divergence, RESOLVED. Still open: the odd 4th "all" remote pushing to both GitHub+Bitbucket, separate from the plain origin/bitbucket pair, is still there and is likely why origin-only pushes keep drifting — worth remembering to push `all` (or both remotes) going forward, not a one-time fix; terra-api-fe's stale "Everything above is UNCOMMITTED" claim (tree is clean at 4874f91); ~~Agent Operating Constraints (NEVER execute build/test/run) sits past HUB.md's own 80-line read cap~~ — RESOLVED same day: the section was pure restatement of Prime Directives 1–2 (already inside the cap), deduplicated to a pointer + the genuinely new content (multi-remote push discipline, backup policy, write-verification rules), HUB.md v2.1→v2.2; terra-api's HUB_STATE text doesn't cite a comparable SHA to its current a4590a5, can't fully verify drift there. -->
-<!-- Last Notion Task Pull: 2026-10-22 | Startup Sequence step 2b checks the live Tasks DB for rows created after this date, every load. Update this line every time step 2b runs, regardless of whether anything new was found. 13 new rows since 2026-10-10, only 1 Terra-domain ("Breakout session — name the Terra Agriculture public brand," already tracked on Agriculture's own Next Action list) — the other 12 are personal/finance (NACA, credit repair, job search, bank account closings), out of this hub's scope. -->
+<!-- Last Notion Task Pull: 2026-10-31 | Startup Sequence step 2b checks the live Tasks DB for rows created after this date, every load. Update this line every time step 2b runs, regardless of whether anything new was found. 81 new rows since 2026-10-22 (9 already Done/superseded, 72 open), mix of Terra-domain and personal/finance; a 10-title spot check against ACTION_PLAN/ALL_TASKS.md found none tracked there — needs a `reconcile tasks` pass. -->
 <!-- New project? Copy the template from HUB_GUIDE.md → HUB_STATE Section Template. -->
 
 ## Terra API                                        <!-- prefix: TAPI -->
@@ -284,80 +284,57 @@
   rate; Spa/Tours/Housekeeping pages once `Booking`/`ServiceRequest` entities exist.
 
 ## PIOS                                             <!-- prefix: PIOS -->
-- **Reference Links:** Notion ADRs `pios-adr-011`–`015` — URLs not recorded, add when confirmed.
-  Strategy page: `terra-hq-site/pios_strategy.html` (architecture, event model, capital
-  governance).
-- **Status:** CORRECTED 2026-08-07, REVISED 2026-08-08 after checking PIOS's own Notion project
-  page (not just the ADR index). **ADR-013 (event schema versioning, upcasting at the repository
-  layer) is Accepted and resolved**, not gating — verified via the ADR's own text ("flagged as the
-  most critical unresolved design decision before coding could begin; now resolved"). ADRs 011,
-  012, 014 also all Accepted. ADR-015 (Consumer Capital Layer) is design-level-accepted only,
-  correctly deferred until PIOS MVP + Terra API's WebSocket relay both exist. **However — the
-  2026-08-07 correction was incomplete: PIOS has a SEPARATE, real, still-standing blocker that has
-  nothing to do with ADRs.** Per PIOS's own project page (last synced 2026-05-30, itself possibly
-  stale but the gate condition should be re-verified with Will, not assumed cleared): a
-  **learning-stack prerequisite gate** — CS50P + Karpathy Zero to Hero (Python) → Angular → DSA —
-  is required before any PIOS coding begins, and as of that page's last sync had **not been
-  started**. Design phase (no PIOS code exists yet) is accurate for BOTH reasons: no code has
-  started, and the learning gate was still open as of the last real check.
-- **Re-confirmed 2026-10-06 (Will):** learning-stack gate still NOT started — asked directly,
-  this is still the one real blocker, nothing else. Also clarified a separate source of
-  confusion: Notion's `Current Phase` property reads `"Blocked — Needs Decision"`, which sounds
-  like a distinct open design question, but it isn't — it's a fixed-option Notion select field
-  (no closer wording available, can't free-edit it) describing this exact same learning-stack
-  gate. Corrected the PIOS Notion page's own Blockers section with an explicit note so this
-  doesn't get re-asked as if it were a new/different blocker.
-- **Active Task:** None — PIOS coding cannot start until the learning-stack gate clears (or Will
-  explicitly decides to waive/reorder it), independent of the ADR sequence being fully resolved.
-- **Next Step:** Confirm with Will whether the learning-stack gate (CS50P/Karpathy → Angular → DSA)
-  has progressed since the 2026-10-06 re-check. If cleared, PIOS is ready to start on the
-  event-sourced write path (ADR-011/012/013). If not, it remains genuinely blocked, not just
-  deprioritized.
-- **Blockers:** Learning-stack prerequisite (Python/CS50P+Karpathy → Angular → DSA), NOT any ADR —
-  status of that gate unconfirmed as of this correction, needs a direct check, not inference.
-- **Context:** Event-sourced. FastAPI/Python reserved. Rules-engine-gated AI signals. Two Notion
-  pages exist for the same ADR-013 decision (an early 2026-05-12 draft under a superseded
-  "Investment System App" page, and the formal 2026-07-13 `pios-adr-013` filed under PIOS itself) —
-  both Accepted, same decision, not a real conflict — worth eventually archiving the older
-  duplicate but not urgent.
-- **2026-10-30 (Algo Trading planning chat):** PIOS's algo layer is now planned as a Terra-owned,
-  multi-tenant, bring-your-own-strategy platform with Will as tenant #1 — see the `pios-algo`
-  section below. Decision E6 there: pios-algo counts as the **Python practice track** of the
-  learning gate (Karpathy stays the ML track) — re-check how that interacts with this gate before
-  treating it as cleared.
+- **Reference Links:** Repo `SDE\pios` (local, no remote). ADRs 001-020 in `pios/docs/adr` (Notion is
+  the source for 001-019; the ADR-019 copy omits personal values). Notion page
+  `36f89370d4978140a5a9d14f76ddaefd`. Doc 24, Finance strategy → PIOS map:
+  `3fc89370d497814180aada37d64ff686`. Travel open item: `3da89370d4978198ab71cef2ad7aa37c`. 6-layer
+  schema summary: Obsidian `Knowledge/Projects/PIOS/02-event-sourcing-schema.md`. Strategy page:
+  `terra-hq-site/pios_strategy.html`.
+- **Status:** Scaffolded 2026-10-31 (`050ecc5`): one package per schema layer, repository interface
+  with SQLite and Postgres stubs, modular empty migrations, CI (GitHub Actions + dormant Jenkinsfile
+  on one `scripts/check.sh`). Will ran the checks on Python 3.15.2: 25 tests, ruff, mypy strict all
+  green. **Scaffold only: no event types, projectors, rules engine, routes or tables** (ADR-020).
+  Finance strategies stay in the Notion Finance space with their values; PIOS gets templates only
+  (ADR-016, doc 24).
+- **Active Task:** None. PIOS-001 done; feature work waits for the gate.
+- **Next Step:** PIOS-008, write the travel layer ADR (next free number, 021) and add its doc 24 row.
+  Design work, so the gate doesn't block it. PIOS-005 (pios-algo joins by `git subtree` at `pios/algo`)
+  comes later and doesn't hold up algo steps 3-9.
+- **Blockers:** Learning-stack prerequisite (CS50P + Karpathy → Angular → DSA), kept on purpose by Will
+  2026-10-31. Last recorded as not started 2026-10-06. pios-algo counts as the Python practice track
+  (E6) but PIOS itself isn't let through. Notion's `Current Phase` "Blocked — Needs Decision" is this
+  same gate, not a separate design question. Remote undecided: the Terra GitHub org doesn't exist yet.
+- **Context:** ADR-020 (Accepted 2026-10-31): PIOS owns its envelope, algo events cross through a
+  repo-layer translator (designed, not built), and PIOS never imports `pios_algo`. No DDL for
+  `pios_schema_v1.0.0` exists anywhere found, so tables arrive with their features (PIOS-002). ADRs
+  016, 017, 019 are still Proposed; ADR-015 stays deferred until after MVP + Terra API's WebSocket
+  relay. An older duplicate ADR-013 page sits under the superseded "Investment System App" page:
+  worth archiving, not urgent.
 
 ## pios-algo                                        <!-- prefix: ALGO -->
-- **Reference Links:** Claude Project "Algo Trading" — `claude/algo-trading-state.md` (quick-load),
-  `claude/pios-algo-planning-notes.md` (§E decisions E1–E12, §G at-home checklist),
-  `claude/pios-algo-architecture.md` v0.4, `claude/adr-pios-algo-001-broker-adapters-language.md`,
-  `claude/adr-pios-algo-002-personal-vs-terra-boundary.md` v3, `claude/aws-cost-cut-plan.md`.
-  Notion build page "Algorithmic Trading Layer — Webull" (3a989370-d497-81a6-90db-fb0abf02af5b).
-- **Status:** Planning complete for phase 1; **no code yet**. Live trading today runs through
-  Claude scheduled tasks + the Webull connector (MOM-01 v1.1 Core ≈ $100; VOL-01 $25 stocks from
-  2026-11-02 + $25 crypto). Paper from 2026-11-02: MR-02, JMP-01, ERN-01, MOM-02, SPY-NA.
-- **Decisions 2026-10-30 (Will):**
-  - E1: runs in Will's **personal** AWS account (tags + budgets + own IAM role); AWS Organization
-    deferred to Terra Rung 2. New free-plan AWS account ruled out (existing customers ineligible).
-  - E2/E12: two repos — `pios-algo` (platform, Terra GitHub org) and `will-strategies` (Will's
-    private repo for MOM-01/VOL-01/etc.).
-  - E10: Robinhood Core 55 harvest = rules propose, Will executes (no Robinhood execution adapter).
-  - E11 hosting: serverless layer (EventBridge + Lambda watchdog / exits-only fallback /
-    downloader, DynamoDB, S3) + engine on one Spot t4g instance, both may trade real money,
-    ≈ $8–10/mo; on-demand only behind a profit gate.
-  - E12 (ADR-002 v3, final accept pending): Terra owns the platform; tenants own strategies,
-    money, keys, P&L; per-tenant KMS key custody; perpetual personal-use licence for Will;
-    platform bounds with tenant rules inside; operator can't see tenants' plays.
-- **Active Task:** None until Will is at the laptop.
-- **Next Step:** At-home checklist §G — run the AWS audit scripts (Notion task
-  40989370-d497-8186-be58-c67d50b2171c) → cleanup + budgets; Webull paperTrade keys + checks
-  (whitelisted IP, key scopes, delegated access, individual vs institutional terms); Advanced
-  Quotes price; create both repos; Terraform skeleton.
-- **Blockers:** Final accept of ADR-002 v3 + bounds; ADR-001 (Proposed); profit-gate numbers;
-  api.webull.com blocked from the cloud workspace; Investopedia/Reddit links unreviewed
-  (`claude/links-to-review.md`).
-- **Context:** Python everywhere in pios-algo (ADR-001); Java/Spring for Terra API/PIOS integration;
-  no C++. Event envelope carries `tenant_id`; 10/30 JSONL events import with an upcast. Terra's
-  terra-jenkins + Terra API boxes in the personal AWS account to be tagged `owner=terra`.
+- **Reference Links:** Repo `SDE\pios-algo` (local, no remote). Project docs in its `docs/` folder,
+  index `docs/README.md`: state snapshot, architecture v0.6, planning notes (decisions E1-E15). Tenant
+  repo `SDE\will-strategies`. Notion build page `3a989370-d497-81a6-90db-fb0abf02af5b`. Doctrine page
+  `37089370-d497-8130-936b-c5cb7de79dbf` is never edited. Merge rules: `docs/adr/ADR-003-merge-ready-brick.md`.
+- **Status:** In build. Step 1 committed in SDE (`2af7a93`). Step 2 built in the cloud workspace,
+  delivered as bundles and **not pulled**. Live trading still runs through Claude scheduled tasks + the
+  Webull connector: MOM-01 v1.1 (Core) and VOL-01 at L2 with in-app confirmation; paper set at L0.
+  ADR-001, ADR-002 v3 (with A6 bounds), ADR-003 all Accepted. E13 limits, profit gate, small-account
+  tier (E15) settled.
+- **Active Task:** Step 2 hand-over, then step 3 (Webull adapter on paperTrade keys).
+- **Next Step:** The algo chat settles which step 2 commit is right, reissues bundles if needed, and
+  Will pulls. Then before step 3: nullable `correlation_id`/`causation_id` on the envelope (events are
+  immutable, so earlier ones can't be backfilled), hard failure on unknown versions at read (ADR-013),
+  and Python targets (engine 3.15, Lambdas 3.14, `requires-python >=3.14`).
+- **Blockers:** Bundles hold `a0d4005`/`df5c951`, docs say `9ba2c2e`/`01d5013`. `docs/algo-trading-state.md`
+  has the Webull account number and balances and `docs/` is untracked: keep it out of commits, or it
+  reaches the platform repo and PIOS. Waiting on Will: paperTrade keys + scope check, Advanced Quotes
+  price, AWS audit outputs, root MFA, Terra GitHub org + remotes, MOM-01 approval +
+  `expected_signals_per_week`, VOL-01 monthly loss cap.
+- **Context:** Terra-owned platform, Will = tenant #1; Python in pios-algo, Java for Terra API/PIOS
+  integration (ADR-001). Runs in Will's personal AWS account, ≈ $8-10/mo (E1, E11); Terra's boxes there
+  to be tagged `owner=terra`. Code may merge into PIOS, the engine and watchdog never share its process
+  (ADR-003, PIOS ADR-020). The linked laptop shell that chat uses runs Python 3.10.
 
 ## terra-hq-site                                    <!-- prefix: THQ -->
 - **Reference Links:** Local specs (verify freshness before trusting detail — this section had

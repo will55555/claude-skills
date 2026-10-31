@@ -1,5 +1,19 @@
 # claude-skills Dev Log
 
+## 2026-10-31 — HUB_STATE rev 74, HUB.md v2.3: PIOS scaffold, pios-algo snapshot, vault path
+
+### What changed and why
+**HUB_STATE:** PIOS section rewritten now that the repo exists (`SDE\pios`, scaffold only, gate kept on
+purpose). `pios-algo` section rewritten from that repo's `docs/` folder: it still said "no code yet" and
+listed ADR-001 and ADR-002 as pending after steps 1-2 were built and both accepted. Old open items were
+diffed against the new text per the 10-28 lesson; the gate wording and the duplicate ADR-013 note carry
+over. `Last Notion Task Pull` stamped 10-31 (81 new rows since 10-22, not yet reconciled).
+**HUB.md Machine Paths:** added `pios` (was "no repo exists yet") and `pios-algo`. Obsidian row moved to
+the My Drive path, matching `OBSIDIAN_VAULT` in settings; Will confirmed the iCloud path is wrong.
+**Still stale, not touched:** the `solan` rows for terra-api, terra-jenkins, terra-hq-site and ROMS still
+say `terra-api-home`, and the session-context-sync vault registry doesn't match the vault's `Knowledge/`
+layout.
+
 ## 2026-10-28 — HUB_STATE rev 73: Ha'bem mobile/QR/store chain, terra-hq-site Notion→HQ migration
 
 ### What changed and why
