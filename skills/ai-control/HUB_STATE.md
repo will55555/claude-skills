@@ -1,5 +1,5 @@
 # Engineering Hub State
-<!-- Freshness: 2026-10-31 (rev 76) | v1.3 | Snapshots only — overwritten in place. History lives in DEV_LOGs. -->
+<!-- Freshness: 2026-10-31 (rev 77) | v1.3 | Snapshots only — overwritten in place. History lives in DEV_LOGs. -->
 <!-- Last Audit: 2026-10-22 | Monthly Hub Audit (HUB.md) fires from Startup Sequence step 7 when this is >30 days old. Update this line after each audit. 5 findings this pass, 1 resolved same day: terra-api-fe's Bitbucket mirror was 8 commits behind — Will ran `git push bitbucket` directly, re-verified 0/0 divergence, RESOLVED. Still open: the odd 4th "all" remote pushing to both GitHub+Bitbucket, separate from the plain origin/bitbucket pair, is still there and is likely why origin-only pushes keep drifting — worth remembering to push `all` (or both remotes) going forward, not a one-time fix; terra-api-fe's stale "Everything above is UNCOMMITTED" claim (tree is clean at 4874f91); ~~Agent Operating Constraints (NEVER execute build/test/run) sits past HUB.md's own 80-line read cap~~ — RESOLVED same day: the section was pure restatement of Prime Directives 1–2 (already inside the cap), deduplicated to a pointer + the genuinely new content (multi-remote push discipline, backup policy, write-verification rules), HUB.md v2.1→v2.2; terra-api's HUB_STATE text doesn't cite a comparable SHA to its current a4590a5, can't fully verify drift there. -->
 <!-- Last Notion Task Pull: 2026-10-31 | Startup Sequence step 2b checks the live Tasks DB for rows created after this date, every load. Update this line every time step 2b runs, regardless of whether anything new was found. 81 new rows since 2026-10-22 (9 already Done/superseded, 72 open), mix of Terra-domain and personal/finance; Terra rows now listed in ACTION_PLAN/ALL_TASKS.md, not individually verified; a full `reconcile all tasks` pass is still separate. -->
 <!-- New project? Copy the template from HUB_GUIDE.md → HUB_STATE Section Template. -->
@@ -228,10 +228,7 @@
   branding slots pending Will's own designs (nav logo, browser favicon) — see terra-api-fe/
   TASKS.md. TFE-502/503 (401 redirect UX, 10/12 modules untested) remain untouched, still open
   from prior sessions.
-- **Blockers:** ~~Everything above is UNCOMMITTED~~ — **STALE, corrected 2026-10-22**: working
-  tree is clean at `4874f91`, confirmed via direct `git status`/`git log` during the Monthly Hub
-  Audit. Whatever was uncommitted when this note was first written has since landed; this is a
-  dated historical note, not current state. Still true: mobile/narrow-viewport rendering for this
+- **Blockers:** Working tree clean at `4874f91` (checked 2026-10-31). Still true: mobile/narrow-viewport rendering for this
   new page has NOT been visually verified — no browser
   automation tool was available; claims are based on a careful CSS read against the HTML
   source's own breakpoints, not an actual screenshot. See DEV_LOG's "Known Limitations" for
@@ -254,10 +251,6 @@
   (run from `terra-api-home/`):
   `docker compose --env-file docker.env -p terra-api-home -f terra-api/docker-compose.yml -f
   terra-api/docker-compose.dev.yml up -d --build`
-  **2026-08-04: 8 files uncommitted on `solan`** (all of TFE-401's rework + the dashboard
-  restyle — `terraScene.js`, `domainConfig.js`, `healthColors.js`, `EcosystemVisualizer.js`,
-  `useEcosystemHealth.js`, `visualizer.css`, `Dashboard.js`, `dashboard.css`, plus the
-  regenerated `package-lock.json`). Will's call whether/when to commit.
 
 ## Ha'bem (OMS)                                      <!-- prefix: OMS (was ROMS, renamed 2026-10-03) -->
 - **Status:** Shipped — Enhancements Queued. Mobile-first + store-readiness rules adopted 2026-09-28.
@@ -296,8 +289,8 @@
   ruff, mypy strict all green. **Scaffold only: no event types, projectors, rules engine, routes or
   tables** (ADR-020). Finance strategies stay in the Notion Finance space with their values; PIOS gets
   templates only (ADR-016, doc 24).
-- **Active Task:** None. PIOS-001 done; feature work waits for the gate.
-- **Next Step:** PIOS-008, write the travel layer ADR (next free number, 021) and add its doc 24 row.
+- **Active Task:** None. **Paused by Will 2026-10-31.** PIOS-001 done; feature work waits for the gate.
+- **Next Step:** On resuming: PIOS-008, write the travel layer ADR (next free number, 021) and add its doc 24 row.
   Design work, so the gate doesn't block it. PIOS-005 (pios-algo joins by `git subtree` at `pios/algo`)
   comes later and doesn't hold up algo steps 3-9.
 - **Blockers:** Learning-stack prerequisite (CS50P + Karpathy → Angular → DSA), kept on purpose by Will
@@ -324,7 +317,7 @@
   `core`, `events`, `tenancy` (`will-strategies` has no mypy). Python 3.14 itself hasn't been run. Claude
   Code owns the build; bundles retired. Live trading stays in Cowork scheduled tasks: MOM-01 v1.1 and
   VOL-01 at L2 with in-app confirmation, paper set at L0.
-- **Active Task:** None until the keys exist. Step 3 is next (Webull adapter on paperTrade keys).
+- **Active Task:** None. **Build paused by Will 2026-10-31**; live scheduled trading continues. Step 3 is next on resuming (Webull adapter on paperTrade keys).
 - **Next Step:** Will generates the paperTrade keys and checks scopes, then step 3. Keys go in the password
   manager only.
 - **Blockers:** Waiting on Will: paperTrade keys + scope check, Advanced Quotes price, AWS audit outputs,
@@ -337,6 +330,22 @@
   while no event database exists; after that, changes need a version bump and upcast (ADR-013). Runs in Will's
   personal AWS account, ≈ $8-10/mo (E1, E11). Engine and watchdog never share PIOS's process (ADR-003, PIOS
   ADR-020).
+
+## Terra Agriculture                                <!-- no repo, no prefix yet — planning, Terra Africa -->
+- **Reference Links:** Notion `38189370d497816daa98ce7dc961b099` (phase and research pages stay live there;
+  Phase 0 `3bb89370d49781599304f6cf1943481b` is the fence source). Operational summary is maintained on
+  `terra-hq-site/terra_africa_strategy.html` → Agriculture and Farm Renders tabs.
+- **Status:** Planning, no operations or capital yet. Likely Terra's first live real-world service. Site and
+  Notion compared 2026-10-31 and aligned: Phase 0 design, Parcel B numbers (planning 235 × 180 m, ~830 m),
+  order 0 → 1 → then 2/3/5 in parallel. Pilot rollup with the re-costed fence: ~$7,900-$16,600, planning-stage.
+- **Active Task:** Phase 0 prep. The dry-season window runs mid-Nov → mid-Mar; first rains ~Mar 2027.
+- **Next Step:** Land title formalization (lead blocker), then GPS corner walk + altitude (altitude decides the
+  post species), IRAD questions, ~330 grafted citrus order, 5 local quotes, boundary eucalyptus count.
+- **Blockers:** Land title before capital goes into permanent structures. Local operator is open, in parallel.
+  Public brand name undecided. All figures stay planning-stage until Cameroon ground truth replaces them.
+- **Context:** Tasks live in the Notion Tasks DB, listed in `ACTION_PLAN/ALL_TASKS.md`. Open decision: 12
+  orchard / Phase 2-6 renders still show the old fence; 12 unused `Gemini_Generated_Image_*` files in
+  `Assets/agriculture` may be replacements, not checked. Future full-stack domain service, no code yet.
 
 ## terra-hq-site                                    <!-- prefix: THQ -->
 - **Reference Links:** Local specs (verify freshness before trusting detail — this section had
@@ -460,7 +469,8 @@
 - **2026-10-31:** `ALL_TASKS.md` moved to `ACTION_PLAN/`. The home repo's GitHub name is now
   `terra-initiative-home` (Bitbucket's is still `terra-api-home`). `pios`, `pios-algo` and
   `will-strategies` now live in the home folder, gitignored, no remotes. Bitbucket blocks this machine's
-  Git Credential Manager version on 2026-11-30 (Notion task).
+  Git Credential Manager version (2.6.1, bundled with Git 2.51.2) on 2026-11-30 (Notion task). terra-api, terra-api-fe
+  and terra-jenkins Bitbucket mirrors were 0/0 with their branches on 2026-10-31.
 - **Terra Finance vs. Terra Ventures — confirmed distinct, 2026-10-06 (re-checked Notion directly
   after Will asked "was Terra Finance retired?").** They are NOT the same entity and neither
   supersedes the other: **Terra Finance** = live, active — PIOS, trading, capital governance
@@ -524,8 +534,7 @@
   `cube1`/`cube2` assignment is live code, but the parent extension tube's matching fix is
   literally commented out (`// tube.userData.cube1 = cube;`), so the bug THQ-003 was opened for
   still reproduces on the parent tube specifically. TASKS.md updated to describe this precisely;
-  **the file edit itself is uncommitted on `terra-hq-site`** — Will's call whether/when to commit
-  a docs-only change.
+  committed since; `terra-hq-site`'s tracked files are clean as of 2026-10-31.
 - **EC2 right-sizing back to `t3.micro` (noted 2026-07-29, TAPI) — now `TAPI-021`, scope
   corrected 2026-08-03:** Resized `t3.micro`→`t3.small` (~$7.50→$15/mo) to stop repeated OOM
   freezes, explicitly as a stabilizer — Will's call is to engineer the footprint back down later.

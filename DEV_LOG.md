@@ -1,5 +1,21 @@
 # claude-skills Dev Log
 
+## 2026-10-31 — HUB_STATE rev 77: Terra Agriculture section, PIOS paused, more drift
+
+### What changed and why
+Added a **Terra Agriculture** section: it had no hub presence at all, so nothing pointed a session at the
+Notion/HQ split. Site and Notion compared and aligned the same day (`terra-hq-site/devlog.md`). PIOS and the
+pios-algo build marked paused by Will; live scheduled trading continues. Removed terra-api-fe's stale
+uncommitted-files notes (tree clean at `4874f91`) and the THQ-003 uncommitted note.
+
+**Found while checking drift:** the two vault copies mirror each other, so a note written to one appears in the
+other. `spot-engine-serverless-watchdog.md` and `byo-strategy-platform-boundary.md` aren't in either copy or in a
+Drive title search: the 10-30 note that they were written appears wrong or they were lost; the Notion task now
+says find or recreate. Git Credential Manager is 2.6.1 (`credential.helper=manager`), which is what Bitbucket's
+warning concerns; Bitwarden isn't wired into git here.
+
+**Left open:** test-machine paths; Bitbucket's home repo rename needs Will in its web UI; rest-of-site genericize.
+
 ## 2026-10-31 — HUB_STATE rev 76, HUB.md v2.4: repos moved into the home folder, drift pass
 
 ### What changed and why
