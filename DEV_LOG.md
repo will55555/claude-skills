@@ -1,5 +1,13 @@
 # claude-skills Dev Log
 
+## 2026-10-31 — HUB_STATE rev 79: production is stopped, hub said healthy
+
+### What changed and why
+Pulling facts for an AWS brief (read-only, `will-cli`) showed all three us-east-1 boxes stopped by root since
+2026-10-06, and the one "unattached" EBS volume is terra-api-server's only disk, detached 2026-10-29. HUB_STATE still
+said "prod healthy", and the 10-22 Monthly Audit didn't catch it because item 1 compares claims with git, not with
+running infrastructure. Suggested hub improvement, not applied: add a live-endpoint check to the audit.
+
 ## 2026-10-31 — HUB_STATE rev 77: Terra Agriculture section, PIOS paused, more drift
 
 ### What changed and why
