@@ -1,5 +1,5 @@
 # Engineering Hub State
-<!-- Freshness: 2026-10-31 (rev 77) | v1.3 | Snapshots only — overwritten in place. History lives in DEV_LOGs. -->
+<!-- Freshness: 2026-10-31 (rev 78) | v1.3 | Snapshots only — overwritten in place. History lives in DEV_LOGs. -->
 <!-- Last Audit: 2026-10-22 | Monthly Hub Audit (HUB.md) fires from Startup Sequence step 7 when this is >30 days old. Update this line after each audit. 5 findings this pass, 1 resolved same day: terra-api-fe's Bitbucket mirror was 8 commits behind — Will ran `git push bitbucket` directly, re-verified 0/0 divergence, RESOLVED. Still open: the odd 4th "all" remote pushing to both GitHub+Bitbucket, separate from the plain origin/bitbucket pair, is still there and is likely why origin-only pushes keep drifting — worth remembering to push `all` (or both remotes) going forward, not a one-time fix; terra-api-fe's stale "Everything above is UNCOMMITTED" claim (tree is clean at 4874f91); ~~Agent Operating Constraints (NEVER execute build/test/run) sits past HUB.md's own 80-line read cap~~ — RESOLVED same day: the section was pure restatement of Prime Directives 1–2 (already inside the cap), deduplicated to a pointer + the genuinely new content (multi-remote push discipline, backup policy, write-verification rules), HUB.md v2.1→v2.2; terra-api's HUB_STATE text doesn't cite a comparable SHA to its current a4590a5, can't fully verify drift there. -->
 <!-- Last Notion Task Pull: 2026-10-31 | Startup Sequence step 2b checks the live Tasks DB for rows created after this date, every load. Update this line every time step 2b runs, regardless of whether anything new was found. 81 new rows since 2026-10-22 (9 already Done/superseded, 72 open), mix of Terra-domain and personal/finance; Terra rows now listed in ACTION_PLAN/ALL_TASKS.md, not individually verified; a full `reconcile all tasks` pass is still separate. -->
 <!-- New project? Copy the template from HUB_GUIDE.md → HUB_STATE Section Template. -->
@@ -343,9 +343,10 @@
   post species), IRAD questions, ~330 grafted citrus order, 5 local quotes, boundary eucalyptus count.
 - **Blockers:** Land title before capital goes into permanent structures. Local operator is open, in parallel.
   Public brand name undecided. All figures stay planning-stage until Cameroon ground truth replaces them.
-- **Context:** Tasks live in the Notion Tasks DB, listed in `ACTION_PLAN/ALL_TASKS.md`. Open decision: 12
-  orchard / Phase 2-6 renders still show the old fence; 12 unused `Gemini_Generated_Image_*` files in
-  `Assets/agriculture` may be replacements, not checked. Future full-stack domain service, no code yet.
+- **Context:** Tasks live in the Notion Tasks DB, listed in `ACTION_PLAN/ALL_TASKS.md`. Old-fence renders
+  stay as they are (Will, 2026-10-31); 12 unused `Gemini_Generated_Image_*` files in
+  `Assets/agriculture` are unused. Africa, including this line, is family-owned and outside US tax scope. Future
+  full-stack domain service, no code yet.
 
 ## terra-hq-site                                    <!-- prefix: THQ -->
 - **Reference Links:** Local specs (verify freshness before trusting detail — this section had
@@ -437,7 +438,7 @@
   a recruitment+audience-building mix, not a single goal — both now reflected in
   `terra_apparel.html`'s callout instead of listed as open next actions.
 - **2026-10-31:** Agriculture Phase 0 gate and Phase 1 apiary renders shipped (`e5df489`), verified live. An unused 30.5 MiB WhatsApp video stays untracked: over Cloudflare's 25 MiB limit.
-- **Next Step:** (1) Finish genericizing sensitive migrated content (decided 2026-10-30: generic now, gate later; `hq_genericize.py`, see Blockers).
+- **Next Step:** (1) Generic wording done 2026-10-31 (`0c1d915`, `72ba2ca`): client and financing names and a named relative are off the live pages; a gated home is still later. Git history keeps the old text.
   (2) Migrate the non-sensitive remainder: Tech product status, Ha'bem resort tracker, a Terra
   Finance page taking the PIOS tabs off `terra_ventures.html`. (3) Mark SEC-001 resolved on the
   Register. (4) Move embedded images out of `resortConcept.html` (4.1 MB, mobile). Still open
@@ -445,7 +446,7 @@
   `terra_nkap.html` pre-existing div imbalance (267/268, not visibly breaking).
 - **Blockers:** **terra-hq.com is public** — Cloudflare Access was abandoned (JWT gating covers
   only `api.terra-hq.com/internal`). The migration assumed a gate: Register names Snorkel/NACA
-  and the Agriculture tab mentions family funding, all publicly readable now. Ops DBs (Contacts,
+  and Africa family-owned wording stays by Will's choice (2026-10-31). Ops DBs (Contacts,
   Hires, OMS CRM) + Business Banking stay unmigrated until a gated home exists. Pilot home and
   HQ data stack (D1/Workers vs Postgres) undecided.
 - **Context:** Full page inventory and page-by-page detail live in `terra-hq-site/CLAUDE.md` —
