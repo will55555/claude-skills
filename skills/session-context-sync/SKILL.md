@@ -294,17 +294,17 @@ If neither resolves, ask Will and remind them to run `setup.py`.
 
 | Project / Topic | Vault path |
 |---|---|
-| ROMS | `Projects/ROMS/` |
-| PIOS | `Projects/PIOS/` |
-| Terra Inc | `Projects/Terra/` |
-| Architecture / System Design | `Software Development/System Design/` |
-| Languages / CS fundamentals | `Software Development/1-Languages/` |
-| Full-stack patterns | `Software Development/2-Full-Stack Integration/` |
-| DevOps / infra | `Software Development/DevsOp/` |
-| Testing | `Software Development/Testing/` |
-| Trading concepts | `Trading/` |
-| Business / Terra strategy | `Business/` |
-| AutoCAD | `AutoCAD/` |
+| ROMS | `Knowledge/Projects/ROMS/` |
+| PIOS | `Knowledge/Projects/PIOS/` |
+| Terra Inc | `Knowledge/Projects/Terra/` |
+| Architecture / System Design | `Knowledge/Software Development/System Design/` |
+| Languages / CS fundamentals | `Knowledge/Software Development/1-Languages/` |
+| Full-stack patterns | `Knowledge/Software Development/2-Full-Stack Integration/` |
+| DevOps / infra | `Knowledge/Software Development/DevsOps/` |
+| Testing | `Knowledge/Software Development/Testing/` |
+| Trading concepts | `Knowledge/Trading/` |
+| Business / Terra strategy | `Knowledge/Business/` |
+| AutoCAD | `Knowledge/AutoCAD/` |
 
 ### Note format
 

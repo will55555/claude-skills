@@ -1,7 +1,7 @@
 # Engineering Hub State
-<!-- Freshness: 2026-10-31 (rev 74) | v1.3 | Snapshots only — overwritten in place. History lives in DEV_LOGs. -->
+<!-- Freshness: 2026-10-31 (rev 76) | v1.3 | Snapshots only — overwritten in place. History lives in DEV_LOGs. -->
 <!-- Last Audit: 2026-10-22 | Monthly Hub Audit (HUB.md) fires from Startup Sequence step 7 when this is >30 days old. Update this line after each audit. 5 findings this pass, 1 resolved same day: terra-api-fe's Bitbucket mirror was 8 commits behind — Will ran `git push bitbucket` directly, re-verified 0/0 divergence, RESOLVED. Still open: the odd 4th "all" remote pushing to both GitHub+Bitbucket, separate from the plain origin/bitbucket pair, is still there and is likely why origin-only pushes keep drifting — worth remembering to push `all` (or both remotes) going forward, not a one-time fix; terra-api-fe's stale "Everything above is UNCOMMITTED" claim (tree is clean at 4874f91); ~~Agent Operating Constraints (NEVER execute build/test/run) sits past HUB.md's own 80-line read cap~~ — RESOLVED same day: the section was pure restatement of Prime Directives 1–2 (already inside the cap), deduplicated to a pointer + the genuinely new content (multi-remote push discipline, backup policy, write-verification rules), HUB.md v2.1→v2.2; terra-api's HUB_STATE text doesn't cite a comparable SHA to its current a4590a5, can't fully verify drift there. -->
-<!-- Last Notion Task Pull: 2026-10-31 | Startup Sequence step 2b checks the live Tasks DB for rows created after this date, every load. Update this line every time step 2b runs, regardless of whether anything new was found. 81 new rows since 2026-10-22 (9 already Done/superseded, 72 open), mix of Terra-domain and personal/finance; a 10-title spot check against ACTION_PLAN/ALL_TASKS.md found none tracked there — needs a `reconcile tasks` pass. -->
+<!-- Last Notion Task Pull: 2026-10-31 | Startup Sequence step 2b checks the live Tasks DB for rows created after this date, every load. Update this line every time step 2b runs, regardless of whether anything new was found. 81 new rows since 2026-10-22 (9 already Done/superseded, 72 open), mix of Terra-domain and personal/finance; Terra rows now listed in ACTION_PLAN/ALL_TASKS.md, not individually verified; a full `reconcile all tasks` pass is still separate. -->
 <!-- New project? Copy the template from HUB_GUIDE.md → HUB_STATE Section Template. -->
 
 ## Terra API                                        <!-- prefix: TAPI -->
@@ -105,7 +105,7 @@
   the real `infra_jenkins_home` data and completed a fresh `master` pipeline green through
   production deploy; deploy target uses prod's private VPC IP `172.31.21.172`; prod SSH permits the
   Jenkins security group via `sgr-05b94280fb11d357d`. Old local Jenkins confirmed already off.
-- **Next Step:** Scope TAPI-021 (EC2 right-size). Remaining sequence: → TAPI-021 (EC2 right-size) →
+- **Next Step:** Run the AWS audit scripts (Notion rows from 2026-10-30), then scope TAPI-021 (EC2 right-size) from the output. Remaining sequence: → TAPI-021 (EC2 right-size) →
   TAPI-023 (OS patching) → TAPI-022 (domains+TLS — one real endpoint now live via
   `api.terra-hq.com`, per above; NOT a full close, most of the ecosystem is still raw IP:port,
   including ROMS's own address) → ADR-013 (customer identity/login, blocked on frontend + design
@@ -284,18 +284,18 @@
   rate; Spa/Tours/Housekeeping pages once `Booking`/`ServiceRequest` entities exist.
 
 ## PIOS                                             <!-- prefix: PIOS -->
-- **Reference Links:** Repo `SDE\pios` (local, no remote). ADRs 001-020 in `pios/docs/adr` (Notion is
-  the source for 001-019; the ADR-019 copy omits personal values). Notion page
+- **Reference Links:** Repo `terra-initiative-home\pios` (local, no remote). ADRs 001-020 in
+  `pios/docs/adr` (Notion is the source for 001-019; the ADR-019 copy omits personal values). Notion page
   `36f89370d4978140a5a9d14f76ddaefd`. Doc 24, Finance strategy → PIOS map:
   `3fc89370d497814180aada37d64ff686`. Travel open item: `3da89370d4978198ab71cef2ad7aa37c`. 6-layer
   schema summary: Obsidian `Knowledge/Projects/PIOS/02-event-sourcing-schema.md`. Strategy page:
   `terra-hq-site/pios_strategy.html`.
-- **Status:** Scaffolded 2026-10-31 (`050ecc5`): one package per schema layer, repository interface
+- **Status:** Scaffolded 2026-10-31 (`9cc314a`): one package per schema layer, repository interface
   with SQLite and Postgres stubs, modular empty migrations, CI (GitHub Actions + dormant Jenkinsfile
-  on one `scripts/check.sh`). Will ran the checks on Python 3.15.2: 25 tests, ruff, mypy strict all
-  green. **Scaffold only: no event types, projectors, rules engine, routes or tables** (ADR-020).
-  Finance strategies stay in the Notion Finance space with their values; PIOS gets templates only
-  (ADR-016, doc 24).
+  on one `scripts/check.sh`). Will reran the checks from the new location on Python 3.15.2: 25 tests,
+  ruff, mypy strict all green. **Scaffold only: no event types, projectors, rules engine, routes or
+  tables** (ADR-020). Finance strategies stay in the Notion Finance space with their values; PIOS gets
+  templates only (ADR-016, doc 24).
 - **Active Task:** None. PIOS-001 done; feature work waits for the gate.
 - **Next Step:** PIOS-008, write the travel layer ADR (next free number, 021) and add its doc 24 row.
   Design work, so the gate doesn't block it. PIOS-005 (pios-algo joins by `git subtree` at `pios/algo`)
@@ -303,7 +303,8 @@
 - **Blockers:** Learning-stack prerequisite (CS50P + Karpathy → Angular → DSA), kept on purpose by Will
   2026-10-31. Last recorded as not started 2026-10-06. pios-algo counts as the Python practice track
   (E6) but PIOS itself isn't let through. Notion's `Current Phase` "Blocked — Needs Decision" is this
-  same gate, not a separate design question. Remote undecided: the Terra GitHub org doesn't exist yet.
+  same gate, not a separate design question. No remotes set up, by choice, for `pios`, `pios-algo` or
+  `will-strategies`: the Terra GitHub org doesn't exist yet.
 - **Context:** ADR-020 (Accepted 2026-10-31): PIOS owns its envelope, algo events cross through a
   repo-layer translator (designed, not built), and PIOS never imports `pios_algo`. No DDL for
   `pios_schema_v1.0.0` exists anywhere found, so tables arrive with their features (PIOS-002). ADRs
@@ -312,29 +313,30 @@
   worth archiving, not urgent.
 
 ## pios-algo                                        <!-- prefix: ALGO -->
-- **Reference Links:** Repo `SDE\pios-algo` (local, no remote). Project docs in its `docs/` folder,
-  index `docs/README.md`: state snapshot, architecture v0.6, planning notes (decisions E1-E15). Tenant
-  repo `SDE\will-strategies`. Notion build page `3a989370-d497-81a6-90db-fb0abf02af5b`. Doctrine page
-  `37089370-d497-8130-936b-c5cb7de79dbf` is never edited. Merge rules: `docs/adr/ADR-003-merge-ready-brick.md`.
-- **Status:** In build. Step 1 committed in SDE (`2af7a93`). Step 2 built in the cloud workspace,
-  delivered as bundles and **not pulled**. Live trading still runs through Claude scheduled tasks + the
-  Webull connector: MOM-01 v1.1 (Core) and VOL-01 at L2 with in-app confirmation; paper set at L0.
-  ADR-001, ADR-002 v3 (with A6 bounds), ADR-003 all Accepted. E13 limits, profit gate, small-account
-  tier (E15) settled.
-- **Active Task:** Step 2 hand-over, then step 3 (Webull adapter on paperTrade keys).
-- **Next Step:** The algo chat settles which step 2 commit is right, reissues bundles if needed, and
-  Will pulls. Then before step 3: nullable `correlation_id`/`causation_id` on the envelope (events are
-  immutable, so earlier ones can't be backfilled), hard failure on unknown versions at read (ADR-013),
-  and Python targets (engine 3.15, Lambdas 3.14, `requires-python >=3.14`).
-- **Blockers:** Bundles hold `a0d4005`/`df5c951`, docs say `9ba2c2e`/`01d5013`. `docs/algo-trading-state.md`
-  has the Webull account number and balances and `docs/` is untracked: keep it out of commits, or it
-  reaches the platform repo and PIOS. Waiting on Will: paperTrade keys + scope check, Advanced Quotes
-  price, AWS audit outputs, root MFA, Terra GitHub org + remotes, MOM-01 approval +
-  `expected_signals_per_week`, VOL-01 monthly loss cap.
-- **Context:** Terra-owned platform, Will = tenant #1; Python in pios-algo, Java for Terra API/PIOS
-  integration (ADR-001). Runs in Will's personal AWS account, ≈ $8-10/mo (E1, E11); Terra's boxes there
-  to be tagged `owner=terra`. Code may merge into PIOS, the engine and watchdog never share its process
-  (ADR-003, PIOS ADR-020). The linked laptop shell that chat uses runs Python 3.10.
+- **Reference Links:** Repo `terra-initiative-home\pios-algo` (local, no remote). Design docs in its
+  `docs/`; private state and planning notes in `terra-initiative-home\will-strategies\docs` (index
+  `README.md`, decisions E1-E15). Notion build page `3a989370-d497-81a6-90db-fb0abf02af5b`. Doctrine page
+  `37089370-d497-8130-936b-c5cb7de79dbf` is never edited. Merge rules:
+  `docs/adr/ADR-003-merge-ready-brick.md`. Obsidian: `Knowledge/Projects/PIOS/07-pios-algo-build-state.md`.
+- **Status:** In build. Steps 1-2 and pre-step-3 done and committed (`pios-algo` `a83ab5f`+,
+  `will-strategies` `c1fc3b7`+): chain IDs, unknown versions refused on read and append, `tzdata`, Python
+  targets, `StrEnum`. Will ran the checks on Python 3.15.2: 81 + 9 tests, ruff clean, mypy strict clean on
+  `core`, `events`, `tenancy` (`will-strategies` has no mypy). Python 3.14 itself hasn't been run. Claude
+  Code owns the build; bundles retired. Live trading stays in Cowork scheduled tasks: MOM-01 v1.1 and
+  VOL-01 at L2 with in-app confirmation, paper set at L0.
+- **Active Task:** None until the keys exist. Step 3 is next (Webull adapter on paperTrade keys).
+- **Next Step:** Will generates the paperTrade keys and checks scopes, then step 3. Keys go in the password
+  manager only.
+- **Blockers:** Waiting on Will: paperTrade keys + scope check, Advanced Quotes price, AWS audit outputs,
+  root MFA, MOM-01 `expected_signals_per_week` then approval (the rate is in `param_hash`), VOL-01 monthly
+  loss cap, Trading Log CRX #2 row. `pios-algo` and `will-strategies` stay local for now, like `pios`.
+  `will-strategies/docs` has the account number committed locally (`5c563a1`): decide before it ever gets a
+  remote.
+- **Context:** Terra-owned platform, Will = tenant #1; `will-strategies` is Will's own, adjacent to PIOS but
+  never merged into it. Python in pios-algo, Java for Terra API/PIOS integration (ADR-001). Envelope stays v1
+  while no event database exists; after that, changes need a version bump and upcast (ADR-013). Runs in Will's
+  personal AWS account, ≈ $8-10/mo (E1, E11). Engine and watchdog never share PIOS's process (ADR-003, PIOS
+  ADR-020).
 
 ## terra-hq-site                                    <!-- prefix: THQ -->
 - **Reference Links:** Local specs (verify freshness before trusting detail — this section had
@@ -425,7 +427,8 @@
   shirts) 5–25-piece test batch (not the full 55-piece run); social-brand positioning decided as
   a recruitment+audience-building mix, not a single goal — both now reflected in
   `terra_apparel.html`'s callout instead of listed as open next actions.
-- **Next Step:** (1) Decide genericize-vs-gate for sensitive migrated content (see Blockers).
+- **2026-10-31:** Agriculture Phase 0 gate and Phase 1 apiary renders shipped (`e5df489`), verified live. An unused 30.5 MiB WhatsApp video stays untracked: over Cloudflare's 25 MiB limit.
+- **Next Step:** (1) Finish genericizing sensitive migrated content (decided 2026-10-30: generic now, gate later; `hq_genericize.py`, see Blockers).
   (2) Migrate the non-sensitive remainder: Tech product status, Ha'bem resort tracker, a Terra
   Finance page taking the PIOS tabs off `terra_ventures.html`. (3) Mark SEC-001 resolved on the
   Register. (4) Move embedded images out of `resortConcept.html` (4.1 MB, mobile). Still open
@@ -454,6 +457,10 @@
 - **Context:** Java default. Arrays → Strings → Linked Lists → Trees → Graphs → DP.
 
 ## Cross-Project Notes                              <!-- no prefix — ecosystem-wide, not project-scoped -->
+- **2026-10-31:** `ALL_TASKS.md` moved to `ACTION_PLAN/`. The home repo's GitHub name is now
+  `terra-initiative-home` (Bitbucket's is still `terra-api-home`). `pios`, `pios-algo` and
+  `will-strategies` now live in the home folder, gitignored, no remotes. Bitbucket blocks this machine's
+  Git Credential Manager version on 2026-11-30 (Notion task).
 - **Terra Finance vs. Terra Ventures — confirmed distinct, 2026-10-06 (re-checked Notion directly
   after Will asked "was Terra Finance retired?").** They are NOT the same entity and neither
   supersedes the other: **Terra Finance** = live, active — PIOS, trading, capital governance
@@ -582,15 +589,13 @@
   Change history: claude-skills ROOT `DEV_LOG.md` (one shared log — ai-control does NOT get a
   nested one, per the Hub Update Gate). Git is sole source of truth here; Notion is an
   informational dupe only, never authoritative on conflict.
-- **Status:** Active — hub v1.1 complete, pointers placed, both open decisions resolved
-- **Active Task:** SKILLS-006 — dogfood: run `load hub tapi` in a fresh Claude Code session
-- **Next Step:** Open a real Claude Code session in terra-api, confirm the CLAUDE.md pointer
-  auto-activates the hub, verify orientation line, log any friction
+- **Status:** Active — hub v2.4; `load hub` and `sync` both exercised in Claude Code 2026-10-31.
+- **Active Task:** SKILLS-006 — dogfood the CLAUDE.md pointer's auto-activation (not re-checked here; this
+  session used the explicit `load hub` trigger).
+- **Next Step:** Open a fresh Claude Code session in a repo with the pointer and confirm it activates.
 - **Blockers:** None
-- **Context:** Hub v1.1 committed and pushed 2026-07-09 (first round); second round of fixes
-  (CLAUDE.md pointers, `sync skills`→`sync hub` rename, session-context-sync excluded from
-  Notion flow, TAPI/ADR-003 correction) applied on disk, not yet committed. Git = sole source of
-  truth for ai-control; Notion = informational dupe only.
+- **Context:** Rewritten 2026-10-31: the old text still said hub v1.1 with uncommitted fixes. Git =
+  sole source of truth for ai-control; Notion = informational dupe only.
 
 ## Yahoo Mail MCP Server                            <!-- prefix: YMCP -->
 - **Reference Links:** Repo `willtchouente/yahoo-mail-mcp-server` (fork of

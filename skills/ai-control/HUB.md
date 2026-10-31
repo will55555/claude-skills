@@ -1,5 +1,5 @@
 # Engineering Hub (load hub)
-<!-- Freshness: 2026-10-31 | v2.3 | Home: claude-skills/skills/ai-control/ -->
+<!-- Freshness: 2026-10-31 | v2.4 | Home: claude-skills/skills/ai-control/ -->
 
 ## Prime Directives (read first, every load — non-negotiable)
 Placed above everything else deliberately: Linear Fetch Mode caps reads at 80 lines/file, and these
@@ -263,18 +263,20 @@ summary, not the full 7-step walkthrough.
   | Machine/context | Path | Caveat |
   |---|---|---|
   | claude-skills repo | `C:\Users\solan\OneDrive\Desktop\SDE\claude-skills\` | Confirmed reachable 2026-07-09 — edit in place |
-  | terra-api | `C:\Users\solan\OneDrive\Desktop\SDE\terra-api-home\terra-api\` (single-nested) | CORRECTED 2026-08-07 — prior path (`SDE\terra-api\terra-api\`, double-nested) was stale; the outer container was renamed `terra-api\` → `terra-api-home\` at some point and never updated here. Re-verified via `git log -1` while folding Jenkins/SonarQube session notes into DEV_LOG. |
+  | terra-api | `C:\Users\solan\OneDrive\Desktop\SDE\terra-initiative-home\terra-api\` | CORRECTED 2026-10-31, re-verified on disk (container renamed from `terra-api-home` 2026-08-20). |
   | terra-api (machine: test) | `C:\Users\test\Desktop\Programing\terra-initiative-home\terra-api\` | CORRECTED 2026-08-23 — prior `New folder\terra-api\` path was stale; the test-machine container was renamed/consolidated to `terra-initiative-home\` (2026-08-20 rename, see Cross-Project Notes) and terra-api lives as a gitignored nested-repo subdirectory there, not a sibling under a separately-named container. Verified via direct `ls`/`git remote -v` this session. |
   | terra-api-fe (machine: test) | `C:\Users\test\Desktop\Programing\terra-initiative-home\terra-api-fe\` | CORRECTED 2026-08-23 — same container consolidation as terra-api above; own GitHub remote (`will55555/terra-api-fe`) + Bitbucket mirror (`terra-inc-dev/terra-api-fe`) confirmed live via `git remote -v`. |
-  | "terra-initiative-home" container pattern (machine: test) | `C:\Users\test\Desktop\Programing\terra-initiative-home\` | CORRECTED 2026-08-23 — supersedes the old "New folder" container row entirely (that path no longer exists/is not used). This is a real git repo in its own right (origin `will55555/terra-api-home` — repo not yet renamed on GitHub to match, see ALL_TASKS.md follow-up), with terra-api/terra-api-fe/terra-hq-site/terra-jenkins as gitignored nested-repo subdirectories (not submodules — see its own `.gitignore` comment), not siblings under a separate container folder. |
-  | terra-jenkins | `C:\Users\solan\OneDrive\Desktop\SDE\terra-api-home\terra-jenkins\` (sibling to terra-api repo) | CORRECTED 2026-08-07 — container renamed `terra-api\` → `terra-api-home\`, same fix as the terra-api row above. Extracted from nested `terra-api/terra-jenkins/` 2026-07-21; own GitHub+Bitbucket remotes (`will55555/terra-jenkins`, `terra-inc-dev/terra-jenkins`); currently on `sonarqube-quality-gate` branch (not `master`) per 2026-08-07 verification. |
+  | "terra-initiative-home" container pattern (machine: test) | `C:\Users\test\Desktop\Programing\terra-initiative-home\` | CORRECTED 2026-08-23 — supersedes the old "New folder" container row entirely (that path no longer exists/is not used). This is a real git repo in its own right (origin `will55555/terra-initiative-home`, renamed on GitHub; Bitbucket is still `terra-api-home`), with terra-api/terra-api-fe/terra-hq-site/terra-jenkins as gitignored nested-repo subdirectories (not submodules — see its own `.gitignore` comment), not siblings under a separate container folder. |
+  | terra-jenkins | `C:\Users\solan\OneDrive\Desktop\SDE\terra-initiative-home\terra-jenkins\` | CORRECTED 2026-10-31, re-verified on disk. Own GitHub + Bitbucket remotes; on `master`. |
   | terra-jenkins (machine: test) | `C:\Users\test\Desktop\Programing\terra-initiative-home\terra-jenkins\` | CORRECTED 2026-08-23 — same container consolidation as terra-api/terra-api-fe above; confirmed on `master` @ `origin/master`, clean, via direct check this session. |
   | claude-skills (machine: test) | `C:\Users\test\Desktop\Programing\claude-skills\` | Confirmed reachable 2026-07-10 |
-  | terra-hq-site | `C:\Users\solan\OneDrive\Desktop\SDE\terra-api-home\terra-hq-site\` | CORRECTED 2026-08-07 — now a sibling inside `terra-api-home\`, same container rename as terra-api/terra-jenkins above; prior bare-`SDE\` path was stale. |
+  | terra-hq-site | `C:\Users\solan\OneDrive\Desktop\SDE\terra-initiative-home\terra-hq-site\` | CORRECTED 2026-10-31, re-verified on disk. Pushing to `main` deploys publicly. |
   | terra-hq-site (machine: test) | `C:\Users\test\Desktop\Programing\terra-initiative-home\terra-hq-site\` | CORRECTED 2026-08-23 — prior standalone-clone path (`Programing\terra-hq-site\`) was stale; it's a nested-repo subdirectory of `terra-initiative-home\` like the others, confirmed via direct check this session (`main` @ `origin/main`, clean). |
-  | ROMS (restaurant-order-management-system) | `C:\Users\solan\OneDrive\Desktop\SDE\terra-api-home\restaurant-order-management-system\` | CORRECTED 2026-08-07 — now a sibling inside `terra-api-home\`, same container rename as the rows above; prior bare-`SDE\` path was stale. Folder is NOT named "roms". Gitignored in `terra-api-home/.gitignore` as of 2026-08-07 (was untracked before). |
-  | pios | `C:\Users\solan\OneDrive\Desktop\SDE\pios\` | Added 2026-10-31. Local only, no remote yet. Sits directly under `SDE\`, not inside `terra-initiative-home\`. |
-  | pios-algo | `C:\Users\solan\OneDrive\Desktop\SDE\pios-algo\` | Added 2026-10-31. Local only, no remote yet. Tenant repo `will-strategies` is its sibling and never merges into it. |
+  | ROMS (restaurant-order-management-system) | `C:\Users\solan\OneDrive\Desktop\SDE\restaurant-order-management-system\` | CORRECTED 2026-10-31: no git repo found there. Live code is the `oms` repo below. |
+  | oms (Ha'bem) | `C:\Users\solan\OneDrive\Desktop\SDE\terra-initiative-home\oms\` | Added 2026-10-31. Remote `will55555/oms`. |
+  | pios | `C:\Users\solan\OneDrive\Desktop\SDE\terra-initiative-home\pios\` | Moved 2026-10-31, gitignored by the home repo. Local only, no remote by choice. |
+  | pios-algo | `C:\Users\solan\OneDrive\Desktop\SDE\terra-initiative-home\pios-algo\` | Moved 2026-10-31, gitignored by the home repo. Local only, no remote by choice. |
+  | will-strategies | `C:\Users\solan\OneDrive\Desktop\SDE\terra-initiative-home\will-strategies\` | Added 2026-10-31, gitignored by the home repo. Local only for now; `docs/` holds the account number. Never merges into PIOS. |
   | Obsidian vault | `C:\Users\solan\My Drive (willtjob@gmail.com)\Obsidian Vault\` | CORRECTED 2026-10-31 (was the iCloud path); matches `OBSIDIAN_VAULT` in settings. Sync skill owns writes |
   | Obsidian vault (machine: test) | `C:\Users\test\Desktop\iCloudDrive\Obsidian Vault\` | Confirmed reachable 2026-07-22; sync skill owns writes |
   | Hub (canonical) | `claude-skills/skills/ai-control/` | Local in Code; GitHub raw elsewhere |
@@ -319,7 +321,7 @@ or dev logs — everything here lands in git. Work-at-home HUB_STATE sections ho
 - Scope: files under `skills/ai-control/` (`HUB.md`, `HUB_STATE.md`, `HUB_GUIDE.md`, `TASKS.md`
   if added there) in the claude-skills repo, PLUS the active project's repo and its related
   sibling repos as listed in that project's HUB_STATE Machine Paths. For Terra API that is
-  `terra-api-home` + `terra-api` / `terra-api-fe` / `terra-jenkins`. NOT other skills in the
+  `terra-initiative-home` + `terra-api` / `terra-api-fe` / `terra-jenkins`. NOT other skills in the
   claude-skills repo, and not ambient repos that merely happen to sit under the same parent
   folder — in-scope means named in HUB_STATE, nothing looser.
 - **Phase boundary (added 2026-07-27, by explicit request).** The read half and the write half

@@ -1,5 +1,32 @@
 # claude-skills Dev Log
 
+## 2026-10-31 — HUB_STATE rev 76, HUB.md v2.4: repos moved into the home folder, drift pass
+
+### What changed and why
+Will moved `pios`, `pios-algo` and `will-strategies` into `terra-initiative-home`, all gitignored there, and
+all three stay local with no remotes for now. `will-strategies` is Will's own and adjacent to PIOS, so it's
+treated like the pios repos for remotes without being merged into them. Commits another session made
+(`71c232c`, rev 75) are folded in; the sections now reflect `a83ab5f` and the 3.15 results.
+
+**Drift fixed, because Will asked:**
+- HUB.md Machine Paths: the `solan` rows for terra-api, terra-jenkins and terra-hq-site still said
+  `terra-api-home`. ROMS pointed there too, but the folder is `SDE\restaurant-order-management-system`
+  with no git repo. Added missing `oms` and `will-strategies` rows. Home repo's `origin` now uses GitHub's
+  new `terra-initiative-home` name.
+- session-context-sync vault registry: paths lacked the vault's `Knowledge/` prefix and `DevsOp` was a typo.
+- HUB_STATE: claude-skills section (said hub v1.1), terra-hq-site Next Step (genericize-vs-gate was decided
+  2026-10-30), Terra API Next Step (now names the AWS audit rows that overlap TAPI-021).
+- `ACTION_PLAN/ALL_TASKS.md`: added the Terra rows created since 10-22. Listed, not each verified: that's still
+  a `reconcile all tasks` pass.
+- Terra-home `SETUP.md` still cloned `terra-api-home`.
+- Notion: closed Jenkins cutover (TAPI-019 Done; no webhook exists on the GitHub App), terra-hq-site push, the
+  move, pre-step-3.
+- Memory: `multi-repo-sibling-sync` said the home folder isn't a repo; `terra-api-tapi019-scope` said cutover
+  was pending; vault and ALL_TASKS paths.
+
+**Left open:** test-machine Machine Paths rows can't be checked from this machine. The `all` remote on
+terra-api-fe stays as is. Bitbucket's repo is still named `terra-api-home`.
+
 ## 2026-10-31 — HUB_STATE rev 74, HUB.md v2.3: PIOS scaffold, pios-algo snapshot, vault path
 
 ### What changed and why
