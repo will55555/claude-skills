@@ -320,6 +320,44 @@
   "Investment System App" page, and the formal 2026-07-13 `pios-adr-013` filed under PIOS itself) —
   both Accepted, same decision, not a real conflict — worth eventually archiving the older
   duplicate but not urgent.
+- **2026-10-30 (Algo Trading planning chat):** PIOS's algo layer is now planned as a Terra-owned,
+  multi-tenant, bring-your-own-strategy platform with Will as tenant #1 — see the `pios-algo`
+  section below. Decision E6 there: pios-algo counts as the **Python practice track** of the
+  learning gate (Karpathy stays the ML track) — re-check how that interacts with this gate before
+  treating it as cleared.
+
+## pios-algo                                        <!-- prefix: ALGO -->
+- **Reference Links:** Claude Project "Algo Trading" — `claude/algo-trading-state.md` (quick-load),
+  `claude/pios-algo-planning-notes.md` (§E decisions E1–E12, §G at-home checklist),
+  `claude/pios-algo-architecture.md` v0.4, `claude/adr-pios-algo-001-broker-adapters-language.md`,
+  `claude/adr-pios-algo-002-personal-vs-terra-boundary.md` v3, `claude/aws-cost-cut-plan.md`.
+  Notion build page "Algorithmic Trading Layer — Webull" (3a989370-d497-81a6-90db-fb0abf02af5b).
+- **Status:** Planning complete for phase 1; **no code yet**. Live trading today runs through
+  Claude scheduled tasks + the Webull connector (MOM-01 v1.1 Core ≈ $100; VOL-01 $25 stocks from
+  2026-11-02 + $25 crypto). Paper from 2026-11-02: MR-02, JMP-01, ERN-01, MOM-02, SPY-NA.
+- **Decisions 2026-10-30 (Will):**
+  - E1: runs in Will's **personal** AWS account (tags + budgets + own IAM role); AWS Organization
+    deferred to Terra Rung 2. New free-plan AWS account ruled out (existing customers ineligible).
+  - E2/E12: two repos — `pios-algo` (platform, Terra GitHub org) and `will-strategies` (Will's
+    private repo for MOM-01/VOL-01/etc.).
+  - E10: Robinhood Core 55 harvest = rules propose, Will executes (no Robinhood execution adapter).
+  - E11 hosting: serverless layer (EventBridge + Lambda watchdog / exits-only fallback /
+    downloader, DynamoDB, S3) + engine on one Spot t4g instance, both may trade real money,
+    ≈ $8–10/mo; on-demand only behind a profit gate.
+  - E12 (ADR-002 v3, final accept pending): Terra owns the platform; tenants own strategies,
+    money, keys, P&L; per-tenant KMS key custody; perpetual personal-use licence for Will;
+    platform bounds with tenant rules inside; operator can't see tenants' plays.
+- **Active Task:** None until Will is at the laptop.
+- **Next Step:** At-home checklist §G — run the AWS audit scripts (Notion task
+  40989370-d497-8186-be58-c67d50b2171c) → cleanup + budgets; Webull paperTrade keys + checks
+  (whitelisted IP, key scopes, delegated access, individual vs institutional terms); Advanced
+  Quotes price; create both repos; Terraform skeleton.
+- **Blockers:** Final accept of ADR-002 v3 + bounds; ADR-001 (Proposed); profit-gate numbers;
+  api.webull.com blocked from the cloud workspace; Investopedia/Reddit links unreviewed
+  (`claude/links-to-review.md`).
+- **Context:** Python everywhere in pios-algo (ADR-001); Java/Spring for Terra API/PIOS integration;
+  no C++. Event envelope carries `tenant_id`; 10/30 JSONL events import with an upcast. Terra's
+  terra-jenkins + Terra API boxes in the personal AWS account to be tagged `owner=terra`.
 
 ## terra-hq-site                                    <!-- prefix: THQ -->
 - **Reference Links:** Local specs (verify freshness before trusting detail — this section had
