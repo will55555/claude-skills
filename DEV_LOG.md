@@ -1,5 +1,12 @@
 # claude-skills Dev Log
 
+## 2026-10-31 — HUB_STATE rev 80: AWS pause recorded correctly
+
+### What changed and why
+Rev 79 described stopped production as a possible problem; Will confirmed it's a deliberate cost pause, then terminated
+the servers and released the IPs. The audit ran, so TAPI-021 now has real data. Git Credential Manager is done. Security
+follow-ups moved to Notion because this repo is public, so details about exposure don't belong in it.
+
 ## 2026-10-31 — HUB_STATE rev 79: production is stopped, hub said healthy
 
 ### What changed and why

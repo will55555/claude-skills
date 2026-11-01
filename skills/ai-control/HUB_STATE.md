@@ -1,5 +1,5 @@
 # Engineering Hub State
-<!-- Freshness: 2026-10-31 (rev 79) | v1.3 | Snapshots only — overwritten in place. History lives in DEV_LOGs. -->
+<!-- Freshness: 2026-10-31 (rev 80) | v1.3 | Snapshots only — overwritten in place. History lives in DEV_LOGs. -->
 <!-- Last Audit: 2026-10-22 | Monthly Hub Audit (HUB.md) fires from Startup Sequence step 7 when this is >30 days old. Update this line after each audit. 5 findings this pass, 1 resolved same day: terra-api-fe's Bitbucket mirror was 8 commits behind — Will ran `git push bitbucket` directly, re-verified 0/0 divergence, RESOLVED. Still open: the odd 4th "all" remote pushing to both GitHub+Bitbucket, separate from the plain origin/bitbucket pair, is still there and is likely why origin-only pushes keep drifting — worth remembering to push `all` (or both remotes) going forward, not a one-time fix; terra-api-fe's stale "Everything above is UNCOMMITTED" claim (tree is clean at 4874f91); ~~Agent Operating Constraints (NEVER execute build/test/run) sits past HUB.md's own 80-line read cap~~ — RESOLVED same day: the section was pure restatement of Prime Directives 1–2 (already inside the cap), deduplicated to a pointer + the genuinely new content (multi-remote push discipline, backup policy, write-verification rules), HUB.md v2.1→v2.2; terra-api's HUB_STATE text doesn't cite a comparable SHA to its current a4590a5, can't fully verify drift there. -->
 <!-- Last Notion Task Pull: 2026-10-31 | Startup Sequence step 2b checks the live Tasks DB for rows created after this date, every load. Update this line every time step 2b runs, regardless of whether anything new was found. 81 new rows since 2026-10-22 (9 already Done/superseded, 72 open), mix of Terra-domain and personal/finance; Terra rows now listed in ACTION_PLAN/ALL_TASKS.md, not individually verified; a full `reconcile all tasks` pass is still separate. -->
 <!-- New project? Copy the template from HUB_GUIDE.md → HUB_STATE Section Template. -->
@@ -24,11 +24,10 @@
   9-cube public ecosystem view, terra-api-fe is scoped to the authenticated customer's own
   entitled products; same `ecosystem-health` endpoint, different filtering. Phase 5 is the shared
   Three.js reference implementation, captured in terra-api-adr-009).
-- **Status:** **PROD STOPPED (checked via AWS 2026-10-31):** root stopped `terra-api-server`, `oms-server` and
-  `terra-jenkins` 2026-10-06 20:47 ET; `api.terra-hq.com` and Jenkins time out. Root also detached
-  `terra-api-server`'s only volume (`vol-0095d9b52a1d3ffaa`) 2026-10-29 19:18 ET, after snapshot
-  `snap-022af6a744bfe2724`; it now reads as "unattached". Newest Postgres dump in S3: 2026-10-06 03:00 UTC. No AWS
-  Backup plan exists, despite the backup policy. Earlier text below describes the system when running. **TAPI-020 (SonarQube quality gate) fully closed 2026-08-07:**
+- **Status:** **AWS PAUSED ON PURPOSE (Will, 2026-10-31):** all servers terminated and Elastic IPs released to stop the
+  bill; ~$5.53/mo left. Snapshots from 2026-10-29 are the restore source; OMS and Jenkins have no other full copy.
+  Restore: `terra-initiative-home/EC2_RESUME_CHECKLIST.md`. A full running month cost ~$85. Decided: Terra API returns
+  first; Jenkins on demand; OMS stays off until it has a customer. Earlier text below describes the running system. **TAPI-020 (SonarQube quality gate) fully closed 2026-08-07:**
   `jacoco` plugin added, `sonar-token` Jenkins credential created, SonarCloud Automatic Analysis
   disabled (was conflicting with CI-based analysis), GitHub webhook wired — full pipeline green on
   every push to `master`. **Jenkins given public IP access 2026-08-07** (Elastic IP `3.211.62.86` +
@@ -109,7 +108,7 @@
   the real `infra_jenkins_home` data and completed a fresh `master` pipeline green through
   production deploy; deploy target uses prod's private VPC IP `172.31.21.172`; prod SSH permits the
   Jenkins security group via `sgr-05b94280fb11d357d`. Old local Jenkins confirmed already off.
-- **Next Step:** Run the AWS audit scripts (Notion rows from 2026-10-30), then scope TAPI-021 (EC2 right-size) from the output. Remaining sequence: → TAPI-021 (EC2 right-size) →
+- **Next Step:** On resuming: restore per the checklist, then run `on_box_snapshot.sh` to size TAPI-021 from real memory data. Remaining sequence: → TAPI-021 (EC2 right-size) →
   TAPI-023 (OS patching) → TAPI-022 (domains+TLS — one real endpoint now live via
   `api.terra-hq.com`, per above; NOT a full close, most of the ecosystem is still raw IP:port,
   including ROMS's own address) → ADR-013 (customer identity/login, blocked on frontend + design
@@ -257,7 +256,7 @@
   terra-api/docker-compose.dev.yml up -d --build`
 
 ## Ha'bem (OMS)                                      <!-- prefix: OMS (was ROMS, renamed 2026-10-03) -->
-- **Status:** Shipped — Enhancements Queued. **`oms-server` stopped since 2026-10-06** (see Terra API), so the temp links are down. Mobile-first + store-readiness rules adopted 2026-09-28.
+- **Status:** Shipped — Enhancements Queued. **Paused until it has a customer** (Will, 2026-10-31), so the temp links are down; give it a domain before it returns. Mobile-first + store-readiness rules adopted 2026-09-28.
 - **Active Task:** Mobile audit (absorbs parked Phase F UX pass).
 - **Next Step:** Fix phone layout: sidebar → ☰ drawer under tablet width, icon-only header actions under ~480px, single-column grid; then verify menu data loads over a real domain.
 - **Chain:** mobile audit → guest-facing Ha'bem domain → Location (room/table) entity via §8 migration → per-room/table QR codes → app store readiness.
@@ -324,8 +323,7 @@
 - **Active Task:** None. **Build paused by Will 2026-10-31**; live scheduled trading continues. Step 3 is next on resuming (Webull adapter on paperTrade keys).
 - **Next Step:** Will generates the paperTrade keys and checks scopes, then step 3. Keys go in the password
   manager only.
-- **Blockers:** Waiting on Will: paperTrade keys + scope check, Advanced Quotes price, AWS audit outputs,
-  root MFA, MOM-01 `expected_signals_per_week` then approval (the rate is in `param_hash`), VOL-01 monthly
+- **Blockers:** Waiting on Will: paperTrade keys + scope check, Advanced Quotes price, MOM-01 `expected_signals_per_week` then approval (the rate is in `param_hash`), VOL-01 monthly
   loss cap, Trading Log CRX #2 row. `pios-algo` and `will-strategies` stay local for now, like `pios`.
   `will-strategies/docs` has the account number committed locally (`5c563a1`): decide before it ever gets a
   remote.
@@ -473,11 +471,11 @@
 ## Cross-Project Notes                              <!-- no prefix — ecosystem-wide, not project-scoped -->
 - **2026-10-31:** `ALL_TASKS.md` moved to `ACTION_PLAN/`. The home repo's GitHub name is now
   `terra-initiative-home` (Bitbucket's is still `terra-api-home`). `pios`, `pios-algo` and
-  `will-strategies` now live in the home folder, gitignored, no remotes. Bitbucket blocks this machine's
-  Git Credential Manager version (2.6.1, bundled with Git 2.51.2) on 2026-11-30 (Notion task). terra-api, terra-api-fe
-  and terra-jenkins Bitbucket mirrors were 0/0 with their branches on 2026-10-31. Git is now 2.56.0 but GCM only 2.9.1;
-  needs 3.0.0+ (`winget install --id Git.GCM -e`). `test` machine is behind this one (Will): pull there; pios repos have
-  no remotes. Credential CSVs sit in the laptop's Drive-synced `Programing` folder, unopened: SEC-001 isn't closed.
+  `will-strategies` now live in the home folder, gitignored, no remotes. Bitbucket blocks
+  older Git Credential Manager versions on 2026-11-30. terra-api, terra-api-fe
+  and terra-jenkins Bitbucket mirrors were 0/0 with their branches on 2026-10-31. Git is 2.56.0 and git uses GCM 3.0.1
+  (done). `test` machine is behind this one (Will): pull there; pios repos have no remotes. Open security follow-ups are
+  tracked in Notion. Repo tools and commands: `terra-initiative-home/README.md`, including `secret_guard.sh`.
 - **Terra Finance vs. Terra Ventures — confirmed distinct, 2026-10-06 (re-checked Notion directly
   after Will asked "was Terra Finance retired?").** They are NOT the same entity and neither
   supersedes the other: **Terra Finance** = live, active — PIOS, trading, capital governance
