@@ -1,5 +1,5 @@
 # Engineering Hub State
-<!-- Freshness: 2026-10-31 (rev 80) | v1.3 | Snapshots only — overwritten in place. History lives in DEV_LOGs. -->
+<!-- Freshness: 2026-10-31 (rev 81) | v1.3 | Snapshots only — overwritten in place. History lives in DEV_LOGs. -->
 <!-- Last Audit: 2026-10-22 | Monthly Hub Audit (HUB.md) fires from Startup Sequence step 7 when this is >30 days old. Update this line after each audit. 5 findings this pass, 1 resolved same day: terra-api-fe's Bitbucket mirror was 8 commits behind — Will ran `git push bitbucket` directly, re-verified 0/0 divergence, RESOLVED. Still open: the odd 4th "all" remote pushing to both GitHub+Bitbucket, separate from the plain origin/bitbucket pair, is still there and is likely why origin-only pushes keep drifting — worth remembering to push `all` (or both remotes) going forward, not a one-time fix; terra-api-fe's stale "Everything above is UNCOMMITTED" claim (tree is clean at 4874f91); ~~Agent Operating Constraints (NEVER execute build/test/run) sits past HUB.md's own 80-line read cap~~ — RESOLVED same day: the section was pure restatement of Prime Directives 1–2 (already inside the cap), deduplicated to a pointer + the genuinely new content (multi-remote push discipline, backup policy, write-verification rules), HUB.md v2.1→v2.2; terra-api's HUB_STATE text doesn't cite a comparable SHA to its current a4590a5, can't fully verify drift there. -->
 <!-- Last Notion Task Pull: 2026-10-31 | Startup Sequence step 2b checks the live Tasks DB for rows created after this date, every load. Update this line every time step 2b runs, regardless of whether anything new was found. 81 new rows since 2026-10-22 (9 already Done/superseded, 72 open), mix of Terra-domain and personal/finance; Terra rows now listed in ACTION_PLAN/ALL_TASKS.md, not individually verified; a full `reconcile all tasks` pass is still separate. -->
 <!-- New project? Copy the template from HUB_GUIDE.md → HUB_STATE Section Template. -->
@@ -475,7 +475,8 @@
   older Git Credential Manager versions on 2026-11-30. terra-api, terra-api-fe
   and terra-jenkins Bitbucket mirrors were 0/0 with their branches on 2026-10-31. Git is 2.56.0 and git uses GCM 3.0.1
   (done). `test` machine is behind this one (Will): pull there; pios repos have no remotes. Open security follow-ups are
-  tracked in Notion. Repo tools and commands: `terra-initiative-home/README.md`, including `secret_guard.sh`.
+  tracked in Notion. Repo tools are in `terra-initiative-home/scripts/`; commands in its README. A
+  global pre-commit hook lives in `terra-initiative-home/git-hooks/`: don't move it. Obsidian: `Knowledge/Software Development/DevsOps/`.
 - **Terra Finance vs. Terra Ventures — confirmed distinct, 2026-10-06 (re-checked Notion directly
   after Will asked "was Terra Finance retired?").** They are NOT the same entity and neither
   supersedes the other: **Terra Finance** = live, active — PIOS, trading, capital governance

@@ -1,5 +1,11 @@
 # claude-skills Dev Log
 
+## 2026-10-31 — HUB_STATE rev 81: repo tools moved to `scripts/`
+
+### What changed and why
+Pointers only: AWS and secret-scan scripts moved to `terra-initiative-home/scripts/`, and a global pre-commit hook was
+added. Two Obsidian notes written under `Knowledge/Software Development/DevsOps/`. PIOS and pios-algo remain paused.
+
 ## 2026-10-31 — HUB_STATE rev 80: AWS pause recorded correctly
 
 ### What changed and why
