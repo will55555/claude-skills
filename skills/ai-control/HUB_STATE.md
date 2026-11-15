@@ -1,5 +1,5 @@
 # Engineering Hub State
-<!-- Freshness: 2026-11-15 (rev 85) | v1.3 | Snapshots only — overwritten in place. History lives in DEV_LOGs. -->
+<!-- Freshness: 2026-11-15 (rev 86) | v1.3 | Snapshots only — overwritten in place. History lives in DEV_LOGs. -->
 <!-- Last Audit: 2026-10-22 | Monthly Hub Audit (HUB.md) fires from Startup Sequence step 7 when this is >30 days old. Update this line after each audit. 5 findings this pass, 1 resolved same day: terra-api-fe's Bitbucket mirror was 8 commits behind — Will ran `git push bitbucket` directly, re-verified 0/0 divergence, RESOLVED. Still open: the odd 4th "all" remote pushing to both GitHub+Bitbucket, separate from the plain origin/bitbucket pair, is still there and is likely why origin-only pushes keep drifting — worth remembering to push `all` (or both remotes) going forward, not a one-time fix; terra-api-fe's stale "Everything above is UNCOMMITTED" claim (tree is clean at 4874f91); ~~Agent Operating Constraints (NEVER execute build/test/run) sits past HUB.md's own 80-line read cap~~ — RESOLVED same day: the section was pure restatement of Prime Directives 1–2 (already inside the cap), deduplicated to a pointer + the genuinely new content (multi-remote push discipline, backup policy, write-verification rules), HUB.md v2.1→v2.2; terra-api's HUB_STATE text doesn't cite a comparable SHA to its current a4590a5, can't fully verify drift there. -->
 <!-- Last Notion Task Pull: 2026-10-31 | Startup Sequence step 2b checks the live Tasks DB for rows created after this date, every load. Update this line every time step 2b runs, regardless of whether anything new was found. 81 new rows since 2026-10-22 (9 already Done/superseded, 72 open), mix of Terra-domain and personal/finance; Terra rows now listed in ACTION_PLAN/ALL_TASKS.md, not individually verified; a full `reconcile all tasks` pass is still separate. -->
 <!-- New project? Copy the template from HUB_GUIDE.md → HUB_STATE Section Template. -->
@@ -280,8 +280,8 @@
   rate; Spa/Tours/Housekeeping pages once `Booking`/`ServiceRequest` entities exist.
 
 ## PIOS                                             <!-- prefix: PIOS -->
-- **Reference Links:** Repo `terra-initiative-home\pios` (Bitbucket `terra-inc-dev/pios`). UI repo
-  `terra-initiative-home\pios-fe` (remote `terra-inc-dev/pios-fe` not created yet). ADRs 001-020 + index (021
+- **Reference Links:** Repo `terra-initiative-home\pios` (GitHub `will55555/pios`; old Bitbucket kept as `bitbucket`). UI repo
+  `terra-initiative-home\pios-fe` (remote `will55555/pios-fe` not created yet). ADRs 001-020 + index (021
   reserved, 022) in `pios/docs/adr`; Notion is the source for 001-019 and 022. Notion page
   `36f89370d4978140a5a9d14f76ddaefd`; doc 24 `3fc89370d497814180aada37d64ff686`; travel item
   `3da89370d4978198ab71cef2ad7aa37c`. Obsidian `Knowledge/Projects/PIOS/` (02 schema, 18 bootstrap/C++ build).
@@ -294,12 +294,12 @@
 - **Next Step:** PIOS-008 (travel ADR-021 + doc 24 row), which the gate doesn't block. 11-14/15 work pushed
   (`2923fd2`, subtree pull included).
 - **Blockers:** Learning gate (CS50P + Karpathy → Angular → DSA), kept on purpose; it blocks feature code
-  only. CI is GitHub Actions on a Bitbucket repo, so it can't run (decision open, Tasks DB).
+  only. CI on GitHub Actions: pios live, pios-algo workflow added (Linux + Windows), first green runs pending.
 - **Context:** PIOS owns its envelope; algo events cross a translator (designed, not built), PIOS never
   imports `pios_algo`. No DDL for `pios_schema_v1.0.0` exists (PIOS-002). ADRs 016, 017, 019 still Proposed.
 
 ## pios-algo                                        <!-- prefix: ALGO -->
-- **Reference Links:** Repo `terra-initiative-home\pios-algo` (Bitbucket `terra-inc-dev/pios-algo`, also at
+- **Reference Links:** Repo `terra-initiative-home\pios-algo` (GitHub `will55555/pios-algo`, also at
   `pios/algo`). Canonical architecture: Notion Baseline `40c89370d49781d7ac0dd8f959a7cb65` (ADR map §14);
   handoff `41189370d49781858c3fc60fd2b842fa`; build page `3a989370-d497-81a6-90db-fb0abf02af5b`; doctrine
   `37089370-d497-8130-936b-c5cb7de79dbf` (never edited). Private notes: `will-strategies\docs`. Obsidian 07, 18.
@@ -309,8 +309,8 @@
   VS Code check task. Will ran it: 385 passed, ruff + mypy clean. Pushed `8f76394`, in pios at `2923fd2`.
   Live orders frozen since 11-02.
 - **Active Task:** Strategy improvement and the data to prove it (Will, 11-15). Will drives; Claude co-pilots.
-- **Next Step:** CI decision (Bitbucket Pipelines + uv lockfile), then the MOM-01 walk-forward on the
-  2021-11→2023-12 development split.
+- **Next Step:** First green Actions run, then the MOM-01 data decision (5-min history source: Webull only
+  serves 180 days of intraday bars), then the walk-forward on the 2021-11→2023-12 development split.
 - **Blockers:** None hard. Open: CI + lockfile, sanitizer/fuzz/C++ unit tests, paperTrade keys + scopes,
   MOM-01/VOL-01 params. Account-number cleanup finished 2026-11-15 (`5c563a1` gone locally too).
 - **Context:** Terra-owned platform, Will = tenant #1; `will-strategies` stays Will's own and never joins.
