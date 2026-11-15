@@ -1,5 +1,5 @@
 # Engineering Hub State
-<!-- Freshness: 2026-10-31 (rev 82) | v1.3 | Snapshots only — overwritten in place. History lives in DEV_LOGs. -->
+<!-- Freshness: 2026-11-15 (rev 84) | v1.3 | Snapshots only — overwritten in place. History lives in DEV_LOGs. -->
 <!-- Last Audit: 2026-10-22 | Monthly Hub Audit (HUB.md) fires from Startup Sequence step 7 when this is >30 days old. Update this line after each audit. 5 findings this pass, 1 resolved same day: terra-api-fe's Bitbucket mirror was 8 commits behind — Will ran `git push bitbucket` directly, re-verified 0/0 divergence, RESOLVED. Still open: the odd 4th "all" remote pushing to both GitHub+Bitbucket, separate from the plain origin/bitbucket pair, is still there and is likely why origin-only pushes keep drifting — worth remembering to push `all` (or both remotes) going forward, not a one-time fix; terra-api-fe's stale "Everything above is UNCOMMITTED" claim (tree is clean at 4874f91); ~~Agent Operating Constraints (NEVER execute build/test/run) sits past HUB.md's own 80-line read cap~~ — RESOLVED same day: the section was pure restatement of Prime Directives 1–2 (already inside the cap), deduplicated to a pointer + the genuinely new content (multi-remote push discipline, backup policy, write-verification rules), HUB.md v2.1→v2.2; terra-api's HUB_STATE text doesn't cite a comparable SHA to its current a4590a5, can't fully verify drift there. -->
 <!-- Last Notion Task Pull: 2026-10-31 | Startup Sequence step 2b checks the live Tasks DB for rows created after this date, every load. Update this line every time step 2b runs, regardless of whether anything new was found. 81 new rows since 2026-10-22 (9 already Done/superseded, 72 open), mix of Terra-domain and personal/finance; Terra rows now listed in ACTION_PLAN/ALL_TASKS.md, not individually verified; a full `reconcile all tasks` pass is still separate. -->
 <!-- New project? Copy the template from HUB_GUIDE.md → HUB_STATE Section Template. -->
@@ -280,58 +280,41 @@
   rate; Spa/Tours/Housekeeping pages once `Booking`/`ServiceRequest` entities exist.
 
 ## PIOS                                             <!-- prefix: PIOS -->
-- **Reference Links:** Repo `terra-initiative-home\pios` (local, no remote). ADRs 001-020 in
-  `pios/docs/adr` (Notion is the source for 001-019; the ADR-019 copy omits personal values). Notion page
-  `36f89370d4978140a5a9d14f76ddaefd`. Doc 24, Finance strategy → PIOS map:
-  `3fc89370d497814180aada37d64ff686`. Travel open item: `3da89370d4978198ab71cef2ad7aa37c`. 6-layer
-  schema summary: Obsidian `Knowledge/Projects/PIOS/02-event-sourcing-schema.md`. Strategy page:
-  `terra-hq-site/pios_strategy.html`.
-- **Status:** Scaffolded 2026-10-31 (`9cc314a`): one package per schema layer, repository interface
-  with SQLite and Postgres stubs, modular empty migrations, CI (GitHub Actions + dormant Jenkinsfile
-  on one `scripts/check.sh`). Will reran the checks from the new location on Python 3.15.2: 25 tests,
-  ruff, mypy strict all green. **Scaffold only: no event types, projectors, rules engine, routes or
-  tables** (ADR-020). Finance strategies stay in the Notion Finance space with their values; PIOS gets
-  templates only (ADR-016, doc 24).
-- **Active Task:** None. **Paused by Will 2026-10-31.** PIOS-001 done; feature work waits for the gate.
-- **Next Step:** On resuming: PIOS-008, write the travel layer ADR (next free number, 021) and add its doc 24 row.
-  Design work, so the gate doesn't block it. PIOS-005 (pios-algo joins by `git subtree` at `pios/algo`)
-  comes later and doesn't hold up algo steps 3-9.
-- **Blockers:** Learning-stack prerequisite (CS50P + Karpathy → Angular → DSA), kept on purpose by Will
-  2026-10-31. Last recorded as not started 2026-10-06. pios-algo counts as the Python practice track
-  (E6) but PIOS itself isn't let through. Notion's `Current Phase` "Blocked — Needs Decision" is this
-  same gate, not a separate design question. No remotes set up, by choice, for `pios`, `pios-algo` or
-  `will-strategies`: the Terra GitHub org doesn't exist yet.
-- **Context:** ADR-020 (Accepted 2026-10-31): PIOS owns its envelope, algo events cross through a
-  repo-layer translator (designed, not built), and PIOS never imports `pios_algo`. No DDL for
-  `pios_schema_v1.0.0` exists anywhere found, so tables arrive with their features (PIOS-002). ADRs
-  016, 017, 019 are still Proposed; ADR-015 stays deferred until after MVP + Terra API's WebSocket
-  relay. An older duplicate ADR-013 page sits under the superseded "Investment System App" page:
-  worth archiving, not urgent.
+- **Reference Links:** Repo `terra-initiative-home\pios` (Bitbucket `terra-inc-dev/pios`). UI repo
+  `terra-initiative-home\pios-fe` (remote `terra-inc-dev/pios-fe` not created yet). ADRs 001-020 + index (021
+  reserved, 022) in `pios/docs/adr`; Notion is the source for 001-019 and 022. Notion page
+  `36f89370d4978140a5a9d14f76ddaefd`; doc 24 `3fc89370d497814180aada37d64ff686`; travel item
+  `3da89370d4978198ab71cef2ad7aa37c`. Obsidian `Knowledge/Projects/PIOS/` (02 schema, 18 bootstrap/C++ build).
+- **Status:** Scaffold only (ADR-020), Python checks green since 10-31. pios-algo imported at `pios/algo`
+  (`d11d951`, 11-05; Consolidation §9 gate + cutover open, standalone pios-algo stays canonical). ADR-022:
+  modular-monolith Core + independent algo service, PIOS authorizes, algo executes. Multi-language by design
+  (ALGO-009 amendment 11-14): language table in `pios/README.md`, `scripts/task.sh <core|algo|compute>`,
+  `contracts/`. All UI in PIOS (ALGO-019), source in separate `pios-fe` (terra-api-fe pattern, Will 11-15).
+- **Active Task:** None. Will drives from 11-15 (sets up, builds, runs, commits); Claude is co-pilot.
+- **Next Step:** Will commits the 11-14/15 changes, then `git subtree pull --prefix=pios/algo pios-algo main`
+  after pios-algo is pushed. Then PIOS-008 (travel ADR-021 + doc 24 row), which the gate doesn't block.
+- **Blockers:** Learning gate (CS50P + Karpathy → Angular → DSA), kept on purpose; it blocks feature code
+  only. CI is GitHub Actions on a Bitbucket repo, so it can't run (decision open, Tasks DB).
+- **Context:** PIOS owns its envelope; algo events cross a translator (designed, not built), PIOS never
+  imports `pios_algo`. No DDL for `pios_schema_v1.0.0` exists (PIOS-002). ADRs 016, 017, 019 still Proposed.
 
 ## pios-algo                                        <!-- prefix: ALGO -->
-- **Reference Links:** Repo `terra-initiative-home\pios-algo` (local, no remote). Design docs in its
-  `docs/`; private state and planning notes in `terra-initiative-home\will-strategies\docs` (index
-  `README.md`, decisions E1-E15). Notion build page `3a989370-d497-81a6-90db-fb0abf02af5b`. Doctrine page
-  `37089370-d497-8130-936b-c5cb7de79dbf` is never edited. Merge rules:
-  `docs/adr/ADR-003-merge-ready-brick.md`. Obsidian: `Knowledge/Projects/PIOS/07-pios-algo-build-state.md`.
-- **Status:** In build. Steps 1-2 and pre-step-3 done and committed (`pios-algo` `a83ab5f`+,
-  `will-strategies` `c1fc3b7`+): chain IDs, unknown versions refused on read and append, `tzdata`, Python
-  targets, `StrEnum`. Will ran the checks on Python 3.15.2: 81 + 9 tests, ruff clean, mypy strict clean on
-  `core`, `events`, `tenancy` (`will-strategies` has no mypy). Python 3.14 itself hasn't been run. Claude
-  Code owns the build; bundles retired. Live trading stays in Cowork scheduled tasks: MOM-01 v1.1 and
-  VOL-01 at L2 with in-app confirmation, paper set at L0.
-- **Active Task:** None. **Build paused by Will 2026-10-31**; live scheduled trading continues. Step 3 is next on resuming (Webull adapter on paperTrade keys).
-- **Next Step:** Will generates the paperTrade keys and checks scopes, then step 3. Keys go in the password
-  manager only.
-- **Blockers:** Waiting on Will: paperTrade keys + scope check, Advanced Quotes price, MOM-01 `expected_signals_per_week` then approval (the rate is in `param_hash`), VOL-01 monthly
-  loss cap, Trading Log CRX #2 row. `pios-algo` and `will-strategies` stay local for now, like `pios`.
-  `will-strategies/docs` has the account number committed locally (`5c563a1`): decide before it ever gets a
-  remote.
-- **Context:** Terra-owned platform, Will = tenant #1; `will-strategies` is Will's own, adjacent to PIOS but
-  never merged into it. Python in pios-algo, Java for Terra API/PIOS integration (ADR-001). Envelope stays v1
-  while no event database exists; after that, changes need a version bump and upcast (ADR-013). Runs in Will's
-  personal AWS account, ≈ $8-10/mo (E1, E11). Engine and watchdog never share PIOS's process (ADR-003, PIOS
-  ADR-020).
+- **Reference Links:** Repo `terra-initiative-home\pios-algo` (Bitbucket `terra-inc-dev/pios-algo`, also at
+  `pios/algo`). Canonical architecture: Notion Baseline `40c89370d49781d7ac0dd8f959a7cb65` (ADR map §14);
+  handoff `41189370d49781858c3fc60fd2b842fa`; build page `3a989370-d497-81a6-90db-fb0abf02af5b`; doctrine
+  `37089370-d497-8130-936b-c5cb7de79dbf` (never edited). Private notes: `will-strategies\docs`. Obsidian 07, 18.
+- **Status:** In build. ALGO-004–019 accepted, 009 amended 11-14 (C++ computes, Python decides). 11-15: VWAP,
+  ATR, opening range ported to C++ (`compute/`, pybind11 `pios_algo_compute`, scikit-build-core), exact
+  parity with Python (FMA off, Neumaier sum), lazy fail-closed import; `scripts/bootstrap.ps1`/`.sh` +
+  VS Code check task. Will ran it: 385 passed, ruff + mypy clean. Uncommitted. Live orders frozen since 11-02.
+- **Active Task:** Strategy improvement and the data to prove it (Will, 11-15). Will drives; Claude co-pilots.
+- **Next Step:** Will commits and pushes pios-algo first (it feeds the pios subtree pull), then drops the
+  will-strategies stash and runs reflog expire + gc.
+- **Blockers:** will-strategies `refs/stash` still holds the pre-redaction commit (main + remote clean since
+  11-13). Open: CI + lockfile, sanitizer/fuzz/C++ unit tests, paperTrade keys + scopes, MOM-01/VOL-01 params.
+- **Context:** Terra-owned platform, Will = tenant #1; `will-strategies` stays Will's own and never joins.
+  ⚠️ `.gitignore` ignores `docs/` (`b907f2d`). Envelope v1 until an event DB exists (ADR-013). Personal AWS,
+  servers paused since 10-31.
 
 ## Terra Agriculture                                <!-- no repo, no prefix yet — planning, Terra Africa -->
 - **Reference Links:** Notion `38189370d497816daa98ce7dc961b099` (phase and research pages stay live there;
