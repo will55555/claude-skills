@@ -1,5 +1,5 @@
 # Engineering Hub State
-<!-- Freshness: 2026-11-15 (rev 84) | v1.3 | Snapshots only — overwritten in place. History lives in DEV_LOGs. -->
+<!-- Freshness: 2026-11-15 (rev 85) | v1.3 | Snapshots only — overwritten in place. History lives in DEV_LOGs. -->
 <!-- Last Audit: 2026-10-22 | Monthly Hub Audit (HUB.md) fires from Startup Sequence step 7 when this is >30 days old. Update this line after each audit. 5 findings this pass, 1 resolved same day: terra-api-fe's Bitbucket mirror was 8 commits behind — Will ran `git push bitbucket` directly, re-verified 0/0 divergence, RESOLVED. Still open: the odd 4th "all" remote pushing to both GitHub+Bitbucket, separate from the plain origin/bitbucket pair, is still there and is likely why origin-only pushes keep drifting — worth remembering to push `all` (or both remotes) going forward, not a one-time fix; terra-api-fe's stale "Everything above is UNCOMMITTED" claim (tree is clean at 4874f91); ~~Agent Operating Constraints (NEVER execute build/test/run) sits past HUB.md's own 80-line read cap~~ — RESOLVED same day: the section was pure restatement of Prime Directives 1–2 (already inside the cap), deduplicated to a pointer + the genuinely new content (multi-remote push discipline, backup policy, write-verification rules), HUB.md v2.1→v2.2; terra-api's HUB_STATE text doesn't cite a comparable SHA to its current a4590a5, can't fully verify drift there. -->
 <!-- Last Notion Task Pull: 2026-10-31 | Startup Sequence step 2b checks the live Tasks DB for rows created after this date, every load. Update this line every time step 2b runs, regardless of whether anything new was found. 81 new rows since 2026-10-22 (9 already Done/superseded, 72 open), mix of Terra-domain and personal/finance; Terra rows now listed in ACTION_PLAN/ALL_TASKS.md, not individually verified; a full `reconcile all tasks` pass is still separate. -->
 <!-- New project? Copy the template from HUB_GUIDE.md → HUB_STATE Section Template. -->
@@ -291,8 +291,8 @@
   (ALGO-009 amendment 11-14): language table in `pios/README.md`, `scripts/task.sh <core|algo|compute>`,
   `contracts/`. All UI in PIOS (ALGO-019), source in separate `pios-fe` (terra-api-fe pattern, Will 11-15).
 - **Active Task:** None. Will drives from 11-15 (sets up, builds, runs, commits); Claude is co-pilot.
-- **Next Step:** Will commits the 11-14/15 changes, then `git subtree pull --prefix=pios/algo pios-algo main`
-  after pios-algo is pushed. Then PIOS-008 (travel ADR-021 + doc 24 row), which the gate doesn't block.
+- **Next Step:** PIOS-008 (travel ADR-021 + doc 24 row), which the gate doesn't block. 11-14/15 work pushed
+  (`2923fd2`, subtree pull included).
 - **Blockers:** Learning gate (CS50P + Karpathy → Angular → DSA), kept on purpose; it blocks feature code
   only. CI is GitHub Actions on a Bitbucket repo, so it can't run (decision open, Tasks DB).
 - **Context:** PIOS owns its envelope; algo events cross a translator (designed, not built), PIOS never
@@ -306,12 +306,13 @@
 - **Status:** In build. ALGO-004–019 accepted, 009 amended 11-14 (C++ computes, Python decides). 11-15: VWAP,
   ATR, opening range ported to C++ (`compute/`, pybind11 `pios_algo_compute`, scikit-build-core), exact
   parity with Python (FMA off, Neumaier sum), lazy fail-closed import; `scripts/bootstrap.ps1`/`.sh` +
-  VS Code check task. Will ran it: 385 passed, ruff + mypy clean. Uncommitted. Live orders frozen since 11-02.
+  VS Code check task. Will ran it: 385 passed, ruff + mypy clean. Pushed `8f76394`, in pios at `2923fd2`.
+  Live orders frozen since 11-02.
 - **Active Task:** Strategy improvement and the data to prove it (Will, 11-15). Will drives; Claude co-pilots.
-- **Next Step:** Will commits and pushes pios-algo first (it feeds the pios subtree pull), then drops the
-  will-strategies stash and runs reflog expire + gc.
-- **Blockers:** will-strategies `refs/stash` still holds the pre-redaction commit (main + remote clean since
-  11-13). Open: CI + lockfile, sanitizer/fuzz/C++ unit tests, paperTrade keys + scopes, MOM-01/VOL-01 params.
+- **Next Step:** CI decision (Bitbucket Pipelines + uv lockfile), then the MOM-01 walk-forward on the
+  2021-11→2023-12 development split.
+- **Blockers:** None hard. Open: CI + lockfile, sanitizer/fuzz/C++ unit tests, paperTrade keys + scopes,
+  MOM-01/VOL-01 params. Account-number cleanup finished 2026-11-15 (`5c563a1` gone locally too).
 - **Context:** Terra-owned platform, Will = tenant #1; `will-strategies` stays Will's own and never joins.
   ⚠️ `.gitignore` ignores `docs/` (`b907f2d`). Envelope v1 until an event DB exists (ADR-013). Personal AWS,
   servers paused since 10-31.
