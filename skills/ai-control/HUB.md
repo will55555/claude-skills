@@ -1,5 +1,5 @@
 # Engineering Hub (load hub)
-<!-- Freshness: 2026-10-31 | v2.4 | Home: claude-skills/skills/ai-control/ -->
+<!-- Freshness: 2026-11-19 | v2.4 | Home: claude-skills/skills/ai-control/ -->
 
 ## Prime Directives (read first, every load — non-negotiable)
 Placed above everything else deliberately: Linear Fetch Mode caps reads at 80 lines/file, and these
@@ -275,8 +275,8 @@ summary, not the full 7-step walkthrough.
   | ROMS (restaurant-order-management-system) | `C:\Users\solan\OneDrive\Desktop\SDE\restaurant-order-management-system\` | CORRECTED 2026-10-31: no git repo found there. Live code is the `oms` repo below. |
   | oms (Ha'bem) | `C:\Users\solan\OneDrive\Desktop\SDE\terra-initiative-home\oms\` | Added 2026-10-31. Remote `will55555/oms`. |
   | pios | `C:\Users\solan\OneDrive\Desktop\SDE\terra-initiative-home\pios\` | Moved 2026-10-31, gitignored by the home repo. Local only, no remote by choice. |
-  | pios-algo | `C:\Users\solan\OneDrive\Desktop\SDE\terra-initiative-home\pios-algo\` | Moved 2026-10-31, gitignored by the home repo. Local only, no remote by choice. |
-  | will-strategies | `C:\Users\solan\OneDrive\Desktop\SDE\terra-initiative-home\will-strategies\` | Added 2026-10-31, gitignored by the home repo. Local only for now; `docs/` holds the account number. Never merges into PIOS. |
+  | pios-algo | `C:\Users\solan\OneDrive\Desktop\SDE\terra-initiative-home\pios-algo\` | Moved 2026-10-31, gitignored by the home repo. Remotes: GitHub `will55555/pios-algo` + Bitbucket `terra-inc-dev/pios-algo` (verified 2026-11-19). |
+  | will-strategies | `C:\Users\solan\OneDrive\Desktop\SDE\terra-initiative-home\will-strategies\` | Added 2026-10-31, gitignored by the home repo. Private GitHub `willtchouente/will-strategies` (verified 2026-11-19); account numbers purged 11-15. Never merges into PIOS. |
   | Obsidian vault | `C:\Users\solan\My Drive (willtjob@gmail.com)\Obsidian Vault\` | CORRECTED 2026-10-31 (was the iCloud path); matches `OBSIDIAN_VAULT` in settings. Sync skill owns writes |
   | Obsidian vault (machine: test) | `C:\Users\test\Desktop\iCloudDrive\Obsidian Vault\` | Confirmed reachable 2026-07-22; sync skill owns writes |
   | Hub (canonical) | `claude-skills/skills/ai-control/` | Local in Code; GitHub raw elsewhere |

@@ -1,7 +1,7 @@
 # Engineering Hub State
-<!-- Freshness: 2026-11-19 (rev 88) | v1.3 | Snapshots only — overwritten in place. History lives in DEV_LOGs. -->
+<!-- Freshness: 2026-11-19 (rev 89) | v1.3 | Snapshots only — overwritten in place. History lives in DEV_LOGs. -->
 <!-- Last Audit: 2026-10-22 | Monthly Hub Audit (HUB.md) fires from Startup Sequence step 7 when this is >30 days old. Update this line after each audit. 5 findings this pass, 1 resolved same day: terra-api-fe's Bitbucket mirror was 8 commits behind — Will ran `git push bitbucket` directly, re-verified 0/0 divergence, RESOLVED. Still open: the odd 4th "all" remote pushing to both GitHub+Bitbucket, separate from the plain origin/bitbucket pair, is still there and is likely why origin-only pushes keep drifting — worth remembering to push `all` (or both remotes) going forward, not a one-time fix; terra-api-fe's stale "Everything above is UNCOMMITTED" claim (tree is clean at 4874f91); ~~Agent Operating Constraints (NEVER execute build/test/run) sits past HUB.md's own 80-line read cap~~ — RESOLVED same day: the section was pure restatement of Prime Directives 1–2 (already inside the cap), deduplicated to a pointer + the genuinely new content (multi-remote push discipline, backup policy, write-verification rules), HUB.md v2.1→v2.2; terra-api's HUB_STATE text doesn't cite a comparable SHA to its current a4590a5, can't fully verify drift there. -->
-<!-- Last Notion Task Pull: 2026-11-19 | Startup Sequence step 2b checks the live Tasks DB for rows created after this date, every load. Update this line every time step 2b runs, regardless of whether anything new was found. 45 new rows since 2026-10-31 (created 11-01 → 11-19), not yet in ACTION_PLAN/ALL_TASKS.md; Will approved a `reconcile tasks` pass at the next session-end sync (2026-11-19). -->
+<!-- Last Notion Task Pull: 2026-11-19 | Startup Sequence step 2b checks the live Tasks DB for rows created after this date, every load. Update this line every time step 2b runs, regardless of whether anything new was found. 2026-11-19: 49 rows created 11-01 → 11-20 reconciled into ACTION_PLAN/ALL_TASKS.md. -->
 <!-- New project? Copy the template from HUB_GUIDE.md → HUB_STATE Section Template. -->
 
 ## Terra API                                        <!-- prefix: TAPI -->
@@ -309,14 +309,16 @@
   VS Code check task. Will ran it: 385 passed, ruff + mypy clean. Pushed `8f76394`, in pios at `2923fd2`.
   Live orders frozen since 11-02.
 - **Active Task:** Forward paper for MOM-01 v1.2 (`e537073c`: Tier A+B, max 2 open, stop after 2 losses; $2k/$10k
-  books; 5-min checks + 10-min shadow). Free-data screen done 11-19 (no verdict, 10–16 trades); ORR-01 parked; MOM-02 drafted.
-- **Next Step:** Build the modular paper runner in will-strategies `will_strategies/paper/`, replay check first; then Will
-  dates PLAN §0 and runs `approve_spec`. First in the new chat: the 45-row Notion task reconcile.
-- **Blockers:** None hard. Open: CI + lockfile, sanitizer/fuzz/C++ unit tests, paperTrade keys + scopes, `bootstrap.ps1`
-  Push/Pop-Location fix, GitHub org question (Will, 11-19). No paid data for now (massive.com if that changes).
-- **Context:** Terra-owned platform, Will = tenant #1; `will-strategies` stays Will's own and never joins.
-  ⚠️ `.gitignore` ignores `docs/` (`b907f2d`). Envelope v1 until an event DB exists (ADR-013). Personal AWS,
-  servers paused since 10-31.
+  books; 5-min checks + 10-min shadow). Free-data screen done 11-19 (no verdict); ORR-01 parked. Drafts for Will's
+  review: MOM-03 (momentum windows; renamed from MOM-02, which is the 5-min ORB) and TLB-01 (trendline break, 1-hour).
+- **Next Step:** Fix `walkforward_mom01.py` deployed rules to read 2 pos / 2 losses from the spec (should reproduce
+  EXP-01 +0.390R) → build `will_strategies/paper/` (own fill/exit rewrite, JSONL logs, any bar interval, multi-day
+  holds) → replay check → Will dates PLAN §0 and runs `approve_spec`.
+- **Blockers:** None hard. Open: `uv.lock` (CI green), sanitizer/fuzz/C++ unit tests, paperTrade keys + scopes,
+  `bootstrap.ps1` Push/Pop, GitHub org question, event-DB brainstorm, repo ADRs → Notion. No paid data for now.
+- **Context:** Terra-owned platform, Will = tenant #1; `will-strategies` (private GitHub `willtchouente`) never joins.
+  pios-algo remotes: GitHub + Bitbucket. ⚠️ `.gitignore` ignores `docs/`. JSONL logs until an event DB exists
+  (database choice open). ADRs live in Notion. Personal AWS, servers paused since 10-31.
 
 ## Terra Agriculture                                <!-- no repo, no prefix yet — planning, Terra Africa -->
 - **Reference Links:** Notion `38189370d497816daa98ce7dc961b099` (phase and research pages stay live there;
@@ -459,7 +461,7 @@
   `will-strategies` now live in the home folder, gitignored, no remotes. Bitbucket blocks
   older Git Credential Manager versions on 2026-11-30. terra-api, terra-api-fe
   and terra-jenkins Bitbucket mirrors were 0/0 with their branches on 2026-10-31. Git is 2.56.0 and git uses GCM 3.0.1
-  (done). `test` machine is behind this one (Will): pull there; pios repos have no remotes. Open security follow-ups are
+  (done). `test` machine is behind this one (Will): pull there. pios-algo: GitHub + Bitbucket; will-strategies: private GitHub. Open security follow-ups are
   tracked in Notion. Repo tools are in `terra-initiative-home/scripts/`; commands in its README. A
   global pre-commit hook lives in `terra-initiative-home/git-hooks/`: don't move it. Obsidian: `Knowledge/Software Development/DevsOps/`.
 - **Terra Finance vs. Terra Ventures — confirmed distinct, 2026-10-06 (re-checked Notion directly

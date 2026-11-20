@@ -1,5 +1,14 @@
 # claude-skills Dev Log
 
+## 2026-11-19 — HUB_STATE rev 89 + HUB.md Machine Paths: pios-algo session sync
+
+### What changed and why
+pios-algo section overwritten: the next step is now the harness position-rule fix, then the modular paper runner. The
+momentum-windows draft is MOM-03 (MOM-02 was taken), and TLB-01 is a new draft. The "CI + lockfile" blocker is now
+just the lockfile, since CI is green. Machine Paths and Cross-Project Notes said pios-algo and will-strategies had no
+remotes. Both do (checked with `git remote -v`), so those rows are corrected. The 49 Notion tasks created
+11-01 → 11-20 were reconciled into `terra-initiative-home/ACTION_PLAN/ALL_TASKS.md`.
+
 ## 2026-10-31 — HUB_STATE rev 81: repo tools moved to `scripts/`
 
 ### What changed and why
