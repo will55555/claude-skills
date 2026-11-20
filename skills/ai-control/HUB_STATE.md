@@ -1,7 +1,7 @@
 # Engineering Hub State
-<!-- Freshness: 2026-11-16 (rev 87) | v1.3 | Snapshots only — overwritten in place. History lives in DEV_LOGs. -->
+<!-- Freshness: 2026-11-19 (rev 88) | v1.3 | Snapshots only — overwritten in place. History lives in DEV_LOGs. -->
 <!-- Last Audit: 2026-10-22 | Monthly Hub Audit (HUB.md) fires from Startup Sequence step 7 when this is >30 days old. Update this line after each audit. 5 findings this pass, 1 resolved same day: terra-api-fe's Bitbucket mirror was 8 commits behind — Will ran `git push bitbucket` directly, re-verified 0/0 divergence, RESOLVED. Still open: the odd 4th "all" remote pushing to both GitHub+Bitbucket, separate from the plain origin/bitbucket pair, is still there and is likely why origin-only pushes keep drifting — worth remembering to push `all` (or both remotes) going forward, not a one-time fix; terra-api-fe's stale "Everything above is UNCOMMITTED" claim (tree is clean at 4874f91); ~~Agent Operating Constraints (NEVER execute build/test/run) sits past HUB.md's own 80-line read cap~~ — RESOLVED same day: the section was pure restatement of Prime Directives 1–2 (already inside the cap), deduplicated to a pointer + the genuinely new content (multi-remote push discipline, backup policy, write-verification rules), HUB.md v2.1→v2.2; terra-api's HUB_STATE text doesn't cite a comparable SHA to its current a4590a5, can't fully verify drift there. -->
-<!-- Last Notion Task Pull: 2026-10-31 | Startup Sequence step 2b checks the live Tasks DB for rows created after this date, every load. Update this line every time step 2b runs, regardless of whether anything new was found. 81 new rows since 2026-10-22 (9 already Done/superseded, 72 open), mix of Terra-domain and personal/finance; Terra rows now listed in ACTION_PLAN/ALL_TASKS.md, not individually verified; a full `reconcile all tasks` pass is still separate. -->
+<!-- Last Notion Task Pull: 2026-11-19 | Startup Sequence step 2b checks the live Tasks DB for rows created after this date, every load. Update this line every time step 2b runs, regardless of whether anything new was found. 45 new rows since 2026-10-31 (created 11-01 → 11-19), not yet in ACTION_PLAN/ALL_TASKS.md; Will approved a `reconcile tasks` pass at the next session-end sync (2026-11-19). -->
 <!-- New project? Copy the template from HUB_GUIDE.md → HUB_STATE Section Template. -->
 
 ## Terra API                                        <!-- prefix: TAPI -->
@@ -308,12 +308,12 @@
   parity with Python (FMA off, Neumaier sum), lazy fail-closed import; `scripts/bootstrap.ps1`/`.sh` +
   VS Code check task. Will ran it: 385 passed, ruff + mypy clean. Pushed `8f76394`, in pios at `2923fd2`.
   Live orders frozen since 11-02.
-- **Active Task:** Learning streak + strategy improvement until an edge is proven (Will, 11-16). Build paused:
-  paperTrade keys and step 3 later. Will drives (IntelliJ now); Claude co-pilots. CI green on both repos.
-- **Next Step:** Move the MOM-01 walk-forward plan out of the session scratchpad; pick a 5-min data source
-  (Webull only serves 180 days of intraday bars), then the walk-forward on the 2021-11→2023-12 dev split.
-- **Blockers:** None hard. Open: CI + lockfile, sanitizer/fuzz/C++ unit tests, paperTrade keys + scopes,
-  MOM-01/VOL-01 params. Account-number cleanup finished 2026-11-15 (`5c563a1` gone locally too).
+- **Active Task:** Forward paper for MOM-01 v1.2 (`e537073c`: Tier A+B, max 2 open, stop after 2 losses; $2k/$10k
+  books; 5-min checks + 10-min shadow). Free-data screen done 11-19 (no verdict, 10–16 trades); ORR-01 parked; MOM-02 drafted.
+- **Next Step:** Build the modular paper runner in will-strategies `will_strategies/paper/`, replay check first; then Will
+  dates PLAN §0 and runs `approve_spec`. First in the new chat: the 45-row Notion task reconcile.
+- **Blockers:** None hard. Open: CI + lockfile, sanitizer/fuzz/C++ unit tests, paperTrade keys + scopes, `bootstrap.ps1`
+  Push/Pop-Location fix, GitHub org question (Will, 11-19). No paid data for now (massive.com if that changes).
 - **Context:** Terra-owned platform, Will = tenant #1; `will-strategies` stays Will's own and never joins.
   ⚠️ `.gitignore` ignores `docs/` (`b907f2d`). Envelope v1 until an event DB exists (ADR-013). Personal AWS,
   servers paused since 10-31.
