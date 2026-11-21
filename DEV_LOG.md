@@ -1,5 +1,18 @@
 # claude-skills Dev Log
 
+## 2026-11-21 — HUB_STATE rev 91: pios-algo platform move done; machine move; v2.6 slices on main
+- **HUB_STATE rev 91:** pios-algo section overwritten (slices 1-3 done: redaction, paper engine, data layer, bar store, deterministic IDs + event store through `57e9309`; forward paper starts Mon 11-23 on the old PC; Will's database switches and key reset as blockers). Cross-Project Notes: Will continues on the other computer; clone/pull pios-algo + claude-skills only, will-strategies stays on the old PC.
+- **HUB.md v2.6 wording:** agent slices run on main with no branches and Will commits (Will, 2026-11-21: "No, I don't want any branches"); the agent never commits or pushes.
+
+## 2026-11-20 (night) — HUB.md v2.6: agent-built slices exception; PIOS learning gate kept as review
+- **HUB.md:** Prime Directive 1 gets a second exception (Will, 2026-11-20): for projects Will names (PIOS, pios-algo), an agent may write code, run tests and lint and open a branch per slice, one task at a time from accepted ADRs and the task list, ending each slice with a review note. Will reviews and merges; the agent never merges, pushes to main, changes ADRs or doctrine, touches live-money paths or handles secrets; ambiguous or conflicting ADRs stop the slice. Kept inside the 80-line read window, under the rule it modifies.
+- **HUB_STATE (PIOS):** the learning gate no longer blocks feature code; it is kept as review of the agent's slices, and the learning track continues through those reviews.
+- Why: Will chose "skeletons first, then agent slices with review per slice" over pausing or a single final review of a large AI-built system.
+
+## 2026-11-20 — HUB.md v2.5: Prime Directive 1 exception for the daily paper task; HUB_STATE rev 90
+- **HUB.md:** Prime Directive 1 now names one narrow exception (Will, 2026-11-20): a scheduled will-strategies paper-trading task may run its pipeline unattended (capture, paper runner on approved frozen specs, logs, report). Never orders, code/spec/rule edits, approvals or commits. Interactive sessions are unchanged unless Will grants a one-day OK (he did for 2026-11-20). Kept inside the 80-line read window, next to the rule it modifies.
+- **HUB_STATE rev 90:** pios-algo section overwritten: paper runner replay-checked, baselines to 1994, three strategies approved for forward paper (MOM-01 v1.2, TLB-01 v0.3, VWX-01 v0.1), MOM-03 parked; next = daily paper pipeline.
+
 ## 2026-11-19 — HUB_STATE rev 89 + HUB.md Machine Paths: pios-algo session sync
 
 ### What changed and why

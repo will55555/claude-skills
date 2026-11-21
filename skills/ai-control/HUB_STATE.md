@@ -1,5 +1,5 @@
 # Engineering Hub State
-<!-- Freshness: 2026-11-19 (rev 89) | v1.3 | Snapshots only — overwritten in place. History lives in DEV_LOGs. -->
+<!-- Freshness: 2026-11-21 (rev 91) | v1.3 | Snapshots only — overwritten in place. History lives in DEV_LOGs. -->
 <!-- Last Audit: 2026-10-22 | Monthly Hub Audit (HUB.md) fires from Startup Sequence step 7 when this is >30 days old. Update this line after each audit. 5 findings this pass, 1 resolved same day: terra-api-fe's Bitbucket mirror was 8 commits behind — Will ran `git push bitbucket` directly, re-verified 0/0 divergence, RESOLVED. Still open: the odd 4th "all" remote pushing to both GitHub+Bitbucket, separate from the plain origin/bitbucket pair, is still there and is likely why origin-only pushes keep drifting — worth remembering to push `all` (or both remotes) going forward, not a one-time fix; terra-api-fe's stale "Everything above is UNCOMMITTED" claim (tree is clean at 4874f91); ~~Agent Operating Constraints (NEVER execute build/test/run) sits past HUB.md's own 80-line read cap~~ — RESOLVED same day: the section was pure restatement of Prime Directives 1–2 (already inside the cap), deduplicated to a pointer + the genuinely new content (multi-remote push discipline, backup policy, write-verification rules), HUB.md v2.1→v2.2; terra-api's HUB_STATE text doesn't cite a comparable SHA to its current a4590a5, can't fully verify drift there. -->
 <!-- Last Notion Task Pull: 2026-11-19 | Startup Sequence step 2b checks the live Tasks DB for rows created after this date, every load. Update this line every time step 2b runs, regardless of whether anything new was found. 2026-11-19: 49 rows created 11-01 → 11-20 reconciled into ACTION_PLAN/ALL_TASKS.md. -->
 <!-- New project? Copy the template from HUB_GUIDE.md → HUB_STATE Section Template. -->
@@ -293,32 +293,32 @@
 - **Active Task:** None. Will drives from 11-15 (sets up, builds, runs, commits); Claude is co-pilot.
 - **Next Step:** PIOS-008 (travel ADR-021 + doc 24 row), which the gate doesn't block. 11-14/15 work pushed
   (`2923fd2`, subtree pull included).
-- **Blockers:** Learning gate (CS50P + Karpathy → Angular → DSA), kept on purpose; it blocks feature code
-  only. CI on GitHub Actions: pios live, pios-algo workflow added (Linux + Windows), first green runs pending.
+- **Blockers:** Learning gate kept as review (Will, 2026-11-20): feature code is built in agent slices that
+  Will reviews before merging (HUB.md PD1 exception), and the learning track (CS50P + Karpathy → Angular →
+  DSA) continues through those reviews. CI on GitHub Actions: pios live, pios-algo workflow added (Linux + Windows), first green runs pending.
 - **Context:** PIOS owns its envelope; algo events cross a translator (designed, not built), PIOS never
   imports `pios_algo`. No DDL for `pios_schema_v1.0.0` exists (PIOS-002). ADRs 016, 017, 019 still Proposed.
 
 ## pios-algo                                        <!-- prefix: ALGO -->
-- **Reference Links:** Repo `terra-initiative-home\pios-algo` (GitHub `will55555/pios-algo`, also at
-  `pios/algo`). Canonical architecture: Notion Baseline `40c89370d49781d7ac0dd8f959a7cb65` (ADR map §14);
-  handoff `41189370d49781858c3fc60fd2b842fa`; build page `3a989370-d497-81a6-90db-fb0abf02af5b`; doctrine
-  `37089370-d497-8130-936b-c5cb7de79dbf` (never edited). Private notes: `will-strategies\docs`. Obsidian 07, 18.
-- **Status:** In build. ALGO-004–019 accepted, 009 amended 11-14 (C++ computes, Python decides). 11-15: VWAP,
-  ATR, opening range ported to C++ (`compute/`, pybind11 `pios_algo_compute`, scikit-build-core), exact
-  parity with Python (FMA off, Neumaier sum), lazy fail-closed import; `scripts/bootstrap.ps1`/`.sh` +
-  VS Code check task. Will ran it: 385 passed, ruff + mypy clean. Pushed `8f76394`, in pios at `2923fd2`.
-  Live orders frozen since 11-02.
-- **Active Task:** Forward paper for MOM-01 v1.2 (`e537073c`: Tier A+B, max 2 open, stop after 2 losses; $2k/$10k
-  books; 5-min checks + 10-min shadow). Free-data screen done 11-19 (no verdict); ORR-01 parked. Drafts for Will's
-  review: MOM-03 (momentum windows; renamed from MOM-02, which is the 5-min ORB) and TLB-01 (trendline break, 1-hour).
-- **Next Step:** Fix `walkforward_mom01.py` deployed rules to read 2 pos / 2 losses from the spec (should reproduce
-  EXP-01 +0.390R) → build `will_strategies/paper/` (own fill/exit rewrite, JSONL logs, any bar interval, multi-day
-  holds) → replay check → Will dates PLAN §0 and runs `approve_spec`.
-- **Blockers:** None hard. Open: `uv.lock` (CI green), sanitizer/fuzz/C++ unit tests, paperTrade keys + scopes,
-  `bootstrap.ps1` Push/Pop, GitHub org question, event-DB brainstorm, repo ADRs → Notion. No paid data for now.
-- **Context:** Terra-owned platform, Will = tenant #1; `will-strategies` (private GitHub `willtchouente`) never joins.
-  pios-algo remotes: GitHub + Bitbucket. ⚠️ `.gitignore` ignores `docs/`. JSONL logs until an event DB exists
-  (database choice open). ADRs live in Notion. Personal AWS, servers paused since 10-31.
+- **Reference Links:** Repo `terra-initiative-home\pios-algo` (GitHub renamed `will55555/PIOS-ALGO`, old URL redirects;
+  Bitbucket `terra-inc-dev/pios-algo`; also at `pios/algo`). Notion Baseline `40c89370d49781d7ac0dd8f959a7cb65`
+  (ADR map §14); handoff `41189370d49781858c3fc60fd2b842fa`; build page `3a989370-d497-81a6-90db-fb0abf02af5b`;
+  doctrine `37089370-d497-8130-936b-c5cb7de79dbf` (never edited). Obsidian 07, 18, `deterministic-event-ids`.
+- **Status:** Platform move from will-strategies DONE 11-21 (ADR-002 A1), each slice proven unchanged (journals,
+  books, trades identical): `pios_algo.security` redaction (`b4db356`), `adapters/paper` engine (`c834afc`),
+  `pios_algo.data` forward layer + calendar + providers (`aa8eab3`; the package was gitignored by a bare `data/` rule
+  until 3b-1, fixed to `/data/`), bar store CSV|SQLite (3b-1), deterministic IDs + event store (`57e9309`). Live
+  orders frozen since 11-02.
+- **Active Task:** None. Forward paper (MOM-01 v1.2, TLB-01 v0.3, VWX-01 v0.1; $2k/$10k books + hybrid) starts
+  Mon 11-23: Windows task 16:35 + Claude extraction 17:15, on the OLD machine only.
+- **Next Step:** Webull paper connector, built WITH Will after Monday's option test (mirror hybrid $10k, never size
+  from the $1M, redaction on). Then intraday runner; mypy strict for `adapters/paper` + `data`.
+- **Blockers:** Will: `forward.json` switches before Mon 16:35 (`"store": "sqlite"` after
+  `scripts\forward_migrate_store.py`, `"event_store": true`) or stay CSV; reset Webull paper key (leaked log in
+  will-strategies history `ff70002`); Mon 09:30-16:00 ET run `webull_paper_option_test.py` in `.venv-webull`.
+- **Context:** Fresh clone has the whole platform; `will-strategies` + forward data exist ONLY on the old machine
+  (no backup) and never join pios-algo. Extras `[data]` yfinance, `[webull]` SDK (Python <3.15). Third-party
+  imports only in `data/providers/` (boundary test). Events: `data/events/tenants/will/events.db`.
 
 ## Terra Agriculture                                <!-- no repo, no prefix yet — planning, Terra Africa -->
 - **Reference Links:** Notion `38189370d497816daa98ce7dc961b099` (phase and research pages stay live there;
@@ -456,6 +456,9 @@
 - **Context:** Java default. Arrays → Strings → Linked Lists → Trees → Graphs → DP.
 
 ## Cross-Project Notes                              <!-- no prefix — ecosystem-wide, not project-scoped -->
+- **2026-11-21 (machine move):** Will continues on the other computer (8 GB RAM). There: clone/pull `pios-algo`
+  and `claude-skills` only. `will-strategies` and the forward-paper data stay on the old machine, which must be on
+  or asleep at 16:35 weekdays for the Windows task "will-strategies forward paper".
 - **2026-10-31:** `ALL_TASKS.md` moved to `ACTION_PLAN/`. The home repo's GitHub name is now
   `terra-initiative-home`, on Bitbucket too. `pios`, `pios-algo` and
   `will-strategies` now live in the home folder, gitignored, no remotes. Bitbucket blocks

@@ -1,5 +1,5 @@
 # Engineering Hub (load hub)
-<!-- Freshness: 2026-11-19 | v2.4 | Home: claude-skills/skills/ai-control/ -->
+<!-- Freshness: 2026-11-20 | v2.6 | Home: claude-skills/skills/ai-control/ -->
 
 ## Prime Directives (read first, every load — non-negotiable)
 Placed above everything else deliberately: Linear Fetch Mode caps reads at 80 lines/file, and these
@@ -9,6 +9,16 @@ overrides them.
 1. **Claude never runs build/test/run/deploy commands.** Will executes, Will pastes output, Claude
    troubleshoots. Completion evidence = Will's report ONLY — never "I ran it and it worked."
    (Full rule + rationale: Agent Operating Constraints.)
+   Exception (Will, 2026-11-20): a scheduled paper-trading task for will-strategies may run its pipeline
+   unattended each trading day (capture bars/option prices, run the paper runner on approved frozen specs,
+   write logs, update the report). It never places broker orders, edits code/specs/rules, approves specs,
+   or commits. Interactive sessions still follow the rule unless Will grants a one-day OK.
+   Exception (Will, 2026-11-20): agent-built slices. For projects Will names, an agent may write code, run
+   tests and lint on main (no branches, Will 2026-11-21), one task at a time from that project's accepted
+   ADRs and task list. Each slice ends with a review note (what it does, which ADR, what to check) and stops.
+   Will reviews and commits; the agent never commits, pushes, changes ADRs or doctrine, touches live-money
+   paths (broker connectors, risk limits, kill switches) or handles secrets. Ambiguous or conflicting ADRs
+   stop the slice and go to Will. Named projects: PIOS, pios-algo.
 2. **Flag freely, edit on approval.** Surface issues the moment they're seen; never write files,
    commits, Notion, or logs without explicit approval. Preview content BEFORE every write.
 3. **Read the spec before designing against it.** If a project has ADRs or task phases, open them
