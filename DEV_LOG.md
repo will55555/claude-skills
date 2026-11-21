@@ -2,6 +2,7 @@
 
 ## 2026-11-21 — HUB_STATE rev 91: pios-algo platform move done; machine move; v2.6 slices on main
 - **HUB_STATE rev 91:** pios-algo section overwritten (slices 1-3 done: redaction, paper engine, data layer, bar store, deterministic IDs + event store through `57e9309`; forward paper starts Mon 11-23 on the old PC; Will's database switches and key reset as blockers). Cross-Project Notes: Will continues on the other computer; clone/pull pios-algo + claude-skills only, will-strategies stays on the old PC.
+- **HUB_STATE fix (later 11-21):** pios-algo origin set to `PIOS-ALGO.git`; the old URL pushes but fails to fetch, so the hub now says to clone the new URL.
 - **HUB.md v2.6 wording:** agent slices run on main with no branches and Will commits (Will, 2026-11-21: "No, I don't want any branches"); the agent never commits or pushes.
 
 ## 2026-11-20 (night) — HUB.md v2.6: agent-built slices exception; PIOS learning gate kept as review

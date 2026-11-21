@@ -300,7 +300,7 @@
   imports `pios_algo`. No DDL for `pios_schema_v1.0.0` exists (PIOS-002). ADRs 016, 017, 019 still Proposed.
 
 ## pios-algo                                        <!-- prefix: ALGO -->
-- **Reference Links:** Repo `terra-initiative-home\pios-algo` (GitHub renamed `will55555/PIOS-ALGO`, old URL redirects;
+- **Reference Links:** Repo `terra-initiative-home\pios-algo` (GitHub `will55555/PIOS-ALGO`; clone that URL, the old `pios-algo.git` fails to fetch;
   Bitbucket `terra-inc-dev/pios-algo`; also at `pios/algo`). Notion Baseline `40c89370d49781d7ac0dd8f959a7cb65`
   (ADR map §14); handoff `41189370d49781858c3fc60fd2b842fa`; build page `3a989370-d497-81a6-90db-fb0abf02af5b`;
   doctrine `37089370-d497-8130-936b-c5cb7de79dbf` (never edited). Obsidian 07, 18, `deterministic-event-ids`.
