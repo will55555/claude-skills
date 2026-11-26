@@ -318,7 +318,7 @@
   applied) and will-strategies `webull_paper_option_test.py`.
 - **Blockers:** A6 v3.1: MOM-01 v1.3 + TLB-01 v0.4 drafted 11-26 (−20% sleeve kill switch), Will to approve with
   `approve_spec.py`. VWX-01 can't meet 1% risk at $10k (one 0DTE contract ≈ $150–570), so it stays paper-only on v0.1
-  (book size = Will's call). Uncommitted (Will): pios-algo merge + DEV_LOG, will-strategies (env names, kill switch, new specs).
+  (Will, 11-26: decided, no live path). Uncommitted (Will): pios-algo merge + DEV_LOG, will-strategies (env names, kill switch, new specs).
 - **Context:** Keys only per window: `PIOS_ALGO_WEBULL_PAPER_APP_KEY/SECRET`; optional pin
   `PIOS_ALGO_WEBULL_PAPER_CASH_ACCOUNT_ID` = the API `account_id` of INDIVIDUAL_CASH (not the web `account_number`);
   without it `start()` binds INDIVIDUAL_CASH. Market-data keys are `PIOS_ALGO_WEBULL_DATA_APP_KEY/SECRET`. Crypto paper book = Notion task, blocked on a spec beating ~2.2% round-trip cost.
