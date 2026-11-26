@@ -309,18 +309,19 @@
   11-23 log stopped after option bars, later runs replay the whole period so nothing was lost). VWX-01 $10k −6.86% after 3
   sessions (7 trades); the rest flat. Webull adapter found on Bitbucket `feature/webull-adapter` (11-06, 14 behind,
   stocks-only, hand-signed, no SDK); read-only paper check PASSED 11-25 (Individual Cash). Live orders frozen since 11-02.
-- **Active Task:** Webull connector, built WITH Will: merge `feature/webull-adapter` onto main per the DEV_LOG merge list
-  (13 items + account-kind provisions: CASH only in v1, sizing always from the book, never the $1M).
-- **Next Step:** Fri 11-27 09:30–13:00 ET (early close): Will runs the stock round trip from `pios-algo-webull`
-  (`--place-test-order SPY 1.00 --confirm`, finder-bypass command) + `webull_paper_option_test.py`. Then slice 1
-  (port + lifecycle) on main.
-- **Blockers:** Will's calls: branch `core/risk.py` A6 v3.1 (tenant.json + VOL-01 bounds), engine choice (branch
-  `runner/` for intraday), merge order. Uncommitted (Will): pios-algo DEV_LOG, will-strategies option-test fix,
-  home `.gitignore` + `SETUP.md`.
-- **Context:** Worktree `terra-initiative-home\pios-algo-webull` (detached `0c888a0`, gitignored); remove after the
-  merge. scikit-build's editable finder overrides PYTHONPATH, so use the finder bypass. Keys only per window:
-  `PIOS_ALGO_WEBULL_PAPER_APP_KEY/SECRET` + `_ACCOUNT_ID` = the API `account_id` of INDIVIDUAL_CASH (not the web
-  `account_number`). Crypto paper book = Notion task, blocked on a spec beating ~2.2% round-trip cost.
+  11-26: branch merged onto main (uncommitted) with fixes 1–5, A6 v3.1 and the intraday `runner/`; 610 tests pass
+  (Will). Worktree removed. Bitbucket branches kept for history. Merge record: pios-algo DEV_LOG 2026-11-26.
+- **Active Task:** Webull connector, items 7–10 after Friday's order tests (`NOT_FOUND_CODES`, order parser +
+  `STATUS_MAP`, position parser, single-leg options). CASH only in v1, sizing always from the book, never the $1M.
+- **Next Step:** Fri 11-27 09:30–13:00 ET (early close), from pios-algo main in its own `.venv`: Will runs
+  `scripts/webull_paper_check.py --place-test-order SPY 1.00 --confirm`, `--fill-test` (patch drafted 11-26, not
+  applied) and will-strategies `webull_paper_option_test.py`.
+- **Blockers:** A6 v3.1: MOM-01 v1.3 + TLB-01 v0.4 drafted 11-26 (−20% sleeve kill switch), Will to approve with
+  `approve_spec.py`. VWX-01 can't meet 1% risk at $10k (one 0DTE contract ≈ $150–570), so it stays paper-only on v0.1
+  (book size = Will's call). Uncommitted (Will): pios-algo merge + DEV_LOG, will-strategies (env names, kill switch, new specs).
+- **Context:** Keys only per window: `PIOS_ALGO_WEBULL_PAPER_APP_KEY/SECRET`; optional pin
+  `PIOS_ALGO_WEBULL_PAPER_CASH_ACCOUNT_ID` = the API `account_id` of INDIVIDUAL_CASH (not the web `account_number`);
+  without it `start()` binds INDIVIDUAL_CASH. Market-data keys are `PIOS_ALGO_WEBULL_DATA_APP_KEY/SECRET`. Crypto paper book = Notion task, blocked on a spec beating ~2.2% round-trip cost.
   `will-strategies` + forward data exist ONLY on the old machine (no backup).
 
 ## Terra Agriculture                                <!-- no repo, no prefix yet — planning, Terra Africa -->
