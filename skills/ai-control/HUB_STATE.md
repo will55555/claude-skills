@@ -1,7 +1,7 @@
 # Engineering Hub State
-<!-- Freshness: 2026-11-21 (rev 91) | v1.3 | Snapshots only — overwritten in place. History lives in DEV_LOGs. -->
-<!-- Last Audit: 2026-10-22 | Monthly Hub Audit (HUB.md) fires from Startup Sequence step 7 when this is >30 days old. Update this line after each audit. 5 findings this pass, 1 resolved same day: terra-api-fe's Bitbucket mirror was 8 commits behind — Will ran `git push bitbucket` directly, re-verified 0/0 divergence, RESOLVED. Still open: the odd 4th "all" remote pushing to both GitHub+Bitbucket, separate from the plain origin/bitbucket pair, is still there and is likely why origin-only pushes keep drifting — worth remembering to push `all` (or both remotes) going forward, not a one-time fix; terra-api-fe's stale "Everything above is UNCOMMITTED" claim (tree is clean at 4874f91); ~~Agent Operating Constraints (NEVER execute build/test/run) sits past HUB.md's own 80-line read cap~~ — RESOLVED same day: the section was pure restatement of Prime Directives 1–2 (already inside the cap), deduplicated to a pointer + the genuinely new content (multi-remote push discipline, backup policy, write-verification rules), HUB.md v2.1→v2.2; terra-api's HUB_STATE text doesn't cite a comparable SHA to its current a4590a5, can't fully verify drift there. -->
-<!-- Last Notion Task Pull: 2026-11-19 | Startup Sequence step 2b checks the live Tasks DB for rows created after this date, every load. Update this line every time step 2b runs, regardless of whether anything new was found. 2026-11-19: 49 rows created 11-01 → 11-20 reconciled into ACTION_PLAN/ALL_TASKS.md. -->
+<!-- Freshness: 2026-11-26 (rev 92) | v1.3 | Snapshots only — overwritten in place. History lives in DEV_LOGs. -->
+<!-- Last Audit: 2026-11-25 | 2026-11-25 pass: 3 items (claude-skills section said hub v2.4, fixed to v2.6; home repo SETUP.md had 7 uncommitted clone lines; terra-hq-site last commit message is just "+"). Paths, remotes (all 0/0) and read window clean. Prior pass 2026-10-22 below. | Monthly Hub Audit (HUB.md) fires from Startup Sequence step 7 when this is >30 days old. Update this line after each audit. 5 findings this pass, 1 resolved same day: terra-api-fe's Bitbucket mirror was 8 commits behind — Will ran `git push bitbucket` directly, re-verified 0/0 divergence, RESOLVED. Still open: the odd 4th "all" remote pushing to both GitHub+Bitbucket, separate from the plain origin/bitbucket pair, is still there and is likely why origin-only pushes keep drifting — worth remembering to push `all` (or both remotes) going forward, not a one-time fix; terra-api-fe's stale "Everything above is UNCOMMITTED" claim (tree is clean at 4874f91); ~~Agent Operating Constraints (NEVER execute build/test/run) sits past HUB.md's own 80-line read cap~~ — RESOLVED same day: the section was pure restatement of Prime Directives 1–2 (already inside the cap), deduplicated to a pointer + the genuinely new content (multi-remote push discipline, backup policy, write-verification rules), HUB.md v2.1→v2.2; terra-api's HUB_STATE text doesn't cite a comparable SHA to its current a4590a5, can't fully verify drift there. -->
+<!-- Last Notion Task Pull: 2026-11-25 | 2026-11-25: 23 rows created 11-21 → 11-23 not yet in ALL_TASKS.md. | Startup Sequence step 2b checks the live Tasks DB for rows created after this date, every load. Update this line every time step 2b runs, regardless of whether anything new was found. 2026-11-19: 49 rows created 11-01 → 11-20 reconciled into ACTION_PLAN/ALL_TASKS.md. -->
 <!-- New project? Copy the template from HUB_GUIDE.md → HUB_STATE Section Template. -->
 
 ## Terra API                                        <!-- prefix: TAPI -->
@@ -303,22 +303,25 @@
 - **Reference Links:** Repo `terra-initiative-home\pios-algo` (GitHub `will55555/PIOS-ALGO`; clone that URL, the old `pios-algo.git` fails to fetch;
   Bitbucket `terra-inc-dev/pios-algo`; also at `pios/algo`). Notion Baseline `40c89370d49781d7ac0dd8f959a7cb65`
   (ADR map §14); handoff `41189370d49781858c3fc60fd2b842fa`; build page `3a989370-d497-81a6-90db-fb0abf02af5b`;
-  doctrine `37089370-d497-8130-936b-c5cb7de79dbf` (never edited). Obsidian 07, 18, `deterministic-event-ids`.
-- **Status:** Platform move from will-strategies DONE 11-21 (ADR-002 A1), each slice proven unchanged (journals,
-  books, trades identical): `pios_algo.security` redaction (`b4db356`), `adapters/paper` engine (`c834afc`),
-  `pios_algo.data` forward layer + calendar + providers (`aa8eab3`; the package was gitignored by a bare `data/` rule
-  until 3b-1, fixed to `/data/`), bar store CSV|SQLite (3b-1), deterministic IDs + event store (`57e9309`). Live
-  orders frozen since 11-02.
-- **Active Task:** None. Forward paper (MOM-01 v1.2, TLB-01 v0.3, VWX-01 v0.1; $2k/$10k books + hybrid) starts
-  Mon 11-23: Windows task 16:35 + Claude extraction 17:15, on the OLD machine only.
-- **Next Step:** Webull paper connector, built WITH Will after Monday's option test (mirror hybrid $10k, never size
-  from the $1M, redaction on). Then intraday runner; mypy strict for `adapters/paper` + `data`.
-- **Blockers:** Will: `forward.json` switches before Mon 16:35 (`"store": "sqlite"` after
-  `scripts\forward_migrate_store.py`, `"event_store": true`) or stay CSV; reset Webull paper key (leaked log in
-  will-strategies history `ff70002`); Mon 09:30-16:00 ET run `webull_paper_option_test.py` in `.venv-webull`.
-- **Context:** Fresh clone has the whole platform; `will-strategies` + forward data exist ONLY on the old machine
-  (no backup) and never join pios-algo. Extras `[data]` yfinance, `[webull]` SDK (Python <3.15). Third-party
-  imports only in `data/providers/` (boundary test). Events: `data/events/tenants/will/events.db`.
+  doctrine `37089370-d497-8130-936b-c5cb7de79dbf` (never edited). Obsidian 07, 11, 16, 18, `deterministic-event-ids`,
+  `broker-connector-design`. Merge plan: pios-algo DEV_LOG 2026-11-25/26.
+- **Status:** Platform move DONE 11-21. Forward paper running nightly since 11-23 (local Yahoo replay, NOT Webull;
+  11-23 log stopped after option bars, later runs replay the whole period so nothing was lost). VWX-01 $10k −6.86% after 3
+  sessions (7 trades); the rest flat. Webull adapter found on Bitbucket `feature/webull-adapter` (11-06, 14 behind,
+  stocks-only, hand-signed, no SDK); read-only paper check PASSED 11-25 (Individual Cash). Live orders frozen since 11-02.
+- **Active Task:** Webull connector, built WITH Will: merge `feature/webull-adapter` onto main per the DEV_LOG merge list
+  (13 items + account-kind provisions: CASH only in v1, sizing always from the book, never the $1M).
+- **Next Step:** Fri 11-27 09:30–13:00 ET (early close): Will runs the stock round trip from `pios-algo-webull`
+  (`--place-test-order SPY 1.00 --confirm`, finder-bypass command) + `webull_paper_option_test.py`. Then slice 1
+  (port + lifecycle) on main.
+- **Blockers:** Will's calls: branch `core/risk.py` A6 v3.1 (tenant.json + VOL-01 bounds), engine choice (branch
+  `runner/` for intraday), merge order. Uncommitted (Will): pios-algo DEV_LOG, will-strategies option-test fix,
+  home `.gitignore` + `SETUP.md`.
+- **Context:** Worktree `terra-initiative-home\pios-algo-webull` (detached `0c888a0`, gitignored); remove after the
+  merge. scikit-build's editable finder overrides PYTHONPATH, so use the finder bypass. Keys only per window:
+  `PIOS_ALGO_WEBULL_PAPER_APP_KEY/SECRET` + `_ACCOUNT_ID` = the API `account_id` of INDIVIDUAL_CASH (not the web
+  `account_number`). Crypto paper book = Notion task, blocked on a spec beating ~2.2% round-trip cost.
+  `will-strategies` + forward data exist ONLY on the old machine (no backup).
 
 ## Terra Agriculture                                <!-- no repo, no prefix yet — planning, Terra Africa -->
 - **Reference Links:** Notion `38189370d497816daa98ce7dc961b099` (phase and research pages stay live there;
@@ -594,7 +597,7 @@
   Change history: claude-skills ROOT `DEV_LOG.md` (one shared log — ai-control does NOT get a
   nested one, per the Hub Update Gate). Git is sole source of truth here; Notion is an
   informational dupe only, never authoritative on conflict.
-- **Status:** Active — hub v2.4; `load hub` and `sync` both exercised in Claude Code 2026-10-31.
+- **Status:** Active — hub v2.6; `load hub` and `sync` both exercised in Claude Code 2026-10-31.
 - **Active Task:** SKILLS-006 — dogfood the CLAUDE.md pointer's auto-activation (not re-checked here; this
   session used the explicit `load hub` trigger).
 - **Next Step:** Open a fresh Claude Code session in a repo with the pointer and confirm it activates.
